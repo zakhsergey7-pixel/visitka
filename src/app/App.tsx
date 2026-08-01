@@ -390,6 +390,7 @@ function Portrait() {
   const scanRef = useRef<HTMLDivElement>(null);
   const pctRef = useRef<HTMLSpanElement>(null);
   const capRef = useRef<HTMLSpanElement>(null);
+  const hudRef = useRef<HTMLDivElement>(null);
   const bigRef = useRef<HTMLDivElement>(null);
   const dissolveRef = useRef<HTMLDivElement>(null);
 
@@ -546,6 +547,13 @@ function Portrait() {
         capRef.current.textContent = caps[idx];
       }
 
+      // HUD (имя/подпись/процент) гасим раньше и быстрее, чем лицо: SignalBlock
+      // "наезжает" на последние 28% этого блока (marginTop:-28vh) — если HUD-текст
+      // не убрать заранее, его подпись визуально накладывается на заголовок
+      // "Каждый пиксель — на своём месте" из следующего блока.
+      const hudOut = Math.min(1, Math.max(0, (p - 0.55) / 0.3));
+      if (hudRef.current) hudRef.current.style.opacity = (1 - hudOut).toFixed(3);
+
       bigTextFrame(p);
     }
 
@@ -640,7 +648,7 @@ function Portrait() {
         </div>
 
         {/* HUD overlay */}
-        <div style={{ position: "absolute", inset: 0, pointerEvents: "none", padding: "clamp(16px,3vh,40px) clamp(20px,5vw,60px)", display: "grid", gridTemplateRows: "auto 1fr auto", fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "#008f11", zIndex: 5 }}>
+        <div ref={hudRef} style={{ position: "absolute", inset: 0, pointerEvents: "none", padding: "clamp(16px,3vh,40px) clamp(20px,5vw,60px)", display: "grid", gridTemplateRows: "auto 1fr auto", fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "#008f11", zIndex: 5 }}>
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <span>Захаров Сергей</span>
             <span>Разработчик · Москва</span>
