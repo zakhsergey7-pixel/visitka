@@ -27,14 +27,20 @@ function MatrixRain({
     const ctx = canvas.getContext("2d")!;
     const chars = "01ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎ<>/\\{}|·+—=".split("");
     let w = 0, h = 0, cols = 0, drops: number[] = [], raf = 0, last = 0;
+    let activeFontSize = fontSize;
     function resize() {
       const r = canvas!.getBoundingClientRect();
-      const dpr = Math.min(2, devicePixelRatio || 1);
+      // На узких экранах (телефоны) считаем меньше столбцов и не берём
+      // двойной DPR — картинка не теряется в качестве, но заметно легче
+      // для слабых мобильных GPU/CPU и меньше сажает батарею.
+      const isNarrow = window.innerWidth < 640;
+      const dpr = Math.min(isNarrow ? 1 : 2, devicePixelRatio || 1);
+      activeFontSize = isNarrow ? fontSize * 1.35 : fontSize;
       w = Math.max(1, r.width); h = Math.max(1, r.height);
       canvas!.width = w * dpr; canvas!.height = h * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      cols = Math.max(1, Math.floor(w / fontSize));
-      drops = Array.from({ length: cols }, () => Math.random() * (h / fontSize));
+      cols = Math.max(1, Math.floor(w / activeFontSize));
+      drops = Array.from({ length: cols }, () => Math.random() * (h / activeFontSize));
     }
     function tick(t: number) {
       raf = requestAnimationFrame(tick);
@@ -42,13 +48,13 @@ function MatrixRain({
       last = t;
       ctx.fillStyle = trail;
       ctx.fillRect(0, 0, w, h);
-      ctx.font = `${fontSize}px "JetBrains Mono", monospace`;
+      ctx.font = `${activeFontSize}px "JetBrains Mono", monospace`;
       for (let i = 0; i < cols; i++) {
         const ch = chars[(Math.random() * chars.length) | 0];
-        const isHead = drops[i] * fontSize > h - fontSize * 3;
+        const isHead = drops[i] * activeFontSize > h - activeFontSize * 3;
         ctx.fillStyle = isHead ? "#ffffff" : color;
-        ctx.fillText(ch, i * fontSize, drops[i] * fontSize);
-        if (drops[i] * fontSize > h && Math.random() > 0.975) drops[i] = 0;
+        ctx.fillText(ch, i * activeFontSize, drops[i] * activeFontSize);
+        if (drops[i] * activeFontSize > h && Math.random() > 0.975) drops[i] = 0;
         drops[i] += 0.35 + Math.random() * 0.4;
       }
     }
@@ -369,6 +375,7 @@ function Portrait() {
   const pctRef = useRef<HTMLSpanElement>(null);
   const capRef = useRef<HTMLSpanElement>(null);
   const bigRef = useRef<HTMLDivElement>(null);
+  const dissolveRef = useRef<HTMLDivElement>(null);
 
   const caps = [
     "Пять лет в вёрстке и дизайне.",
@@ -493,6 +500,10 @@ function Portrait() {
       imgEl!.style.filter = `blur(${blur.toFixed(2)}px) contrast(1.06)`;
       imgEl!.style.opacity = faceOpacity.toFixed(3);
 
+      // Дождь из символов проступает по мере того, как гаснет фото —
+      // лицо буквально "рассыпается" на матричный код
+      if (dissolveRef.current) dissolveRef.current.style.opacity = faceOut.toFixed(3);
+
       const tintEl = card!.querySelector<HTMLDivElement>(".portrait-tint");
       if (tintEl) tintEl.style.opacity = String((((1 - p) * 0.45) * faceOpacity).toFixed(3));
 
@@ -565,6 +576,20 @@ function Portrait() {
               WebkitMaskImage: "radial-gradient(160% 155% at 50% 42%,#000 48%,rgba(0,0,0,.35) 76%,transparent 100%)",
             }}
           />
+
+          {/* Матричный "растворитель" — закрыт той же маской, что и фото,
+              так что дождь из символов проступает ровно по силуэту лица
+              и нарастает по мере того, как фото гаснет (см. update()) */}
+          <div
+            ref={dissolveRef}
+            style={{
+              position: "absolute", inset: 0, zIndex: 3, pointerEvents: "none", opacity: 0,
+              maskImage: "radial-gradient(160% 155% at 50% 42%,#000 48%,rgba(0,0,0,.35) 76%,transparent 100%)",
+              WebkitMaskImage: "radial-gradient(160% 155% at 50% 42%,#000 48%,rgba(0,0,0,.35) 76%,transparent 100%)",
+            }}
+          >
+            <MatrixRain opacity={1} fontSize={11} color="#00ff41" trail="rgba(0,0,0,.12)" speed={35} />
+          </div>
 
           {/* Крупный текст поверх фото — размыто→чётко→расходится */}
           <div
