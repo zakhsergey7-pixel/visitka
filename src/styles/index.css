@@ -1,10 +1,3 @@
 @import './fonts.css';
 @import './tailwind.css';
 @import './theme.css';
-
-/* Страховка от горизонтального скролла на мобильных —
-   частая причина "разъехавшейся" мобильной вёрстки */
-html, body {
-  overflow-x: hidden;
-  width: 100%;
-}
