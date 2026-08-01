@@ -86,6 +86,62 @@ function useTypewriter(text: string, speed = 40, start = true) {
 }
 
 /* ─────────────────────────────────────────
+   Mask Reveal — построчная анимация текста,
+   как на стартовой странице somyajain.com:
+   каждая строка спрятана в контейнере с
+   overflow:hidden и "выезжает" снизу вверх
+   с небольшой задержкой между строками.
+───────────────────────────────────────── */
+function MaskReveal({
+  lines,
+  delayStep = 110,
+  startDelay = 0,
+  style,
+}: {
+  lines: string[];
+  delayStep?: number;
+  startDelay?: number;
+  style?: React.CSSProperties;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const ob = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) {
+          setTimeout(() => setVisible(true), startDelay);
+          ob.disconnect();
+        }
+      },
+      { threshold: 0.2 }
+    );
+    ob.observe(el);
+    return () => ob.disconnect();
+  }, [startDelay]);
+
+  return (
+    <div ref={ref} style={style}>
+      {lines.map((line, i) => (
+        <div key={i} style={{ overflow: "hidden" }}>
+          <div
+            style={{
+              display: "block",
+              transform: visible ? "translateY(0%)" : "translateY(115%)",
+              opacity: visible ? 1 : 0,
+              transition: `transform 1s cubic-bezier(.16,1,.3,1) ${i * delayStep}ms, opacity .7s ease ${i * delayStep}ms`,
+            }}
+          >
+            {line}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────
    Glitch text
 ───────────────────────────────────────── */
 function Glitch({ children, className }: { children: string; className?: string }) {
@@ -266,9 +322,7 @@ function SignalBlock() {
    Hero
 ───────────────────────────────────────── */
 function Hero() {
-  const headline = useTypewriter("Сайт — это инструмент, а не просто картинка.", 38, true);
-  const [cur, setCur] = useState(true);
-  useEffect(() => { const id = setInterval(() => setCur(p => !p), 600); return () => clearInterval(id); }, []);
+  const headlineLines = ["Сайт — это", "инструмент,", "а не просто", "картинка."];
   return (
     <section style={{ position: "relative", minHeight: "100svh", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "clamp(120px,18vh,200px) clamp(20px,5vw,90px) 0", overflow: "hidden" }}>
       <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
@@ -283,7 +337,7 @@ function Hero() {
       </div>
       <div style={{ position: "relative", zIndex: 2 }}>
         <h1 style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: "clamp(30px,5.6vw,88px)", lineHeight: 1.05, letterSpacing: "-.02em", color: "#00ff41", textShadow: "0 0 30px rgba(0,255,65,.4)", maxWidth: "20ch" }}>
-          {headline}<span style={{ opacity: cur ? 1 : 0 }}>_</span>
+          <MaskReveal lines={headlineLines} delayStep={110} />
         </h1>
       </div>
       <div style={{ position: "relative", zIndex: 2, display: "grid", gridTemplateColumns: "1fr auto", gap: 30, alignItems: "end", borderTop: "1px solid rgba(0,255,65,.18)", padding: "22px 0 26px", marginTop: "clamp(36px,8vh,80px)" }}>
@@ -358,10 +412,14 @@ function Portrait() {
     function renderBigWords(text: string) {
       const big = bigRef.current;
       if (!big) return;
+      // Важно: внутри flex-контейнера текстовый узел из одних пробелов
+      // считается "пустым" и схлопывается в 0 — слова слипаются
+      // ("Это инструмент," превращается в "Этоинструмент,").
+      // &nbsp; не схлопывается, поэтому пробел между словами сохраняется.
       big.innerHTML = text
         .split(" ")
         .map((w) => `<span style="display:inline-block;will-change:transform">${w}</span>`)
-        .join(" ");
+        .join("&nbsp;");
     }
 
     function bigTextFrame(p: number) {
