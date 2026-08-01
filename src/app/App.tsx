@@ -197,6 +197,72 @@ function Nav() {
 }
 
 /* ─────────────────────────────────────────
+   Split-text reveal: слова разлетаются и
+   собираются на месте при входе в вьюпорт
+───────────────────────────────────────── */
+function SplitReveal({ text }: { text: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const ob = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { setVisible(true); ob.disconnect(); } },
+      { threshold: 0.4 }
+    );
+    ob.observe(el);
+    return () => ob.disconnect();
+  }, []);
+
+  const words = text.split(" ");
+  function rand(i: number, seed: number) {
+    const x = Math.sin(i * 127.1 + seed * 311.7) * 43758.5453;
+    return x - Math.floor(x);
+  }
+
+  return (
+    <div ref={ref} style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "0.32em" }}>
+      {words.map((w, i) => {
+        const dx = (rand(i, 1) - 0.5) * 260;
+        const dy = (rand(i, 2) - 0.5) * 180;
+        const rot = (rand(i, 3) - 0.5) * 46;
+        return (
+          <span
+            key={i}
+            style={{
+              display: "inline-block",
+              transform: visible ? "none" : `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px) rotate(${rot.toFixed(1)}deg)`,
+              opacity: visible ? 1 : 0,
+              filter: visible ? "blur(0px)" : "blur(7px)",
+              transition: `transform 1s cubic-bezier(.16,1,.3,1) ${i * 70}ms, opacity .7s ease ${i * 70}ms, filter .7s ease ${i * 70}ms`,
+            }}
+          >
+            {w}
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────
+   Второй блок — появляется сразу после того,
+   как голова полностью повернулась к анфасу
+───────────────────────────────────────── */
+function SignalBlock() {
+  return (
+    <section style={{ position: "relative", overflow: "hidden", background: "#000", borderTop: "1px solid rgba(0,255,65,.18)", padding: "clamp(90px,16vh,180px) clamp(20px,5vw,90px)" }}>
+      <div style={{ position: "absolute", inset: 0 }}>
+        <MatrixRain opacity={0.1} fontSize={13} color="#00ff41" trail="rgba(0,0,0,.05)" speed={80} />
+      </div>
+      <div style={{ position: "relative", zIndex: 1, fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: "clamp(28px,6.2vw,92px)", lineHeight: 1.05, letterSpacing: "-.03em", color: "#00ff41", textShadow: "0 0 30px rgba(0,255,65,.35)", textAlign: "center" }}>
+        <SplitReveal text="Каждый пиксель — на своём месте." />
+      </div>
+    </section>
+  );
+}
+
+/* ─────────────────────────────────────────
    Hero
 ───────────────────────────────────────── */
 function Hero() {
@@ -248,12 +314,21 @@ function Portrait() {
   const scanRef = useRef<HTMLDivElement>(null);
   const pctRef = useRef<HTMLSpanElement>(null);
   const capRef = useRef<HTMLSpanElement>(null);
+  const bigRef = useRef<HTMLDivElement>(null);
 
   const caps = [
     "Пять лет в вёрстке и дизайне.",
     "Работаю один: без менеджеров и потерянных писем.",
     "Каждый проект — с нуля, без готовых шаблонов.",
     "Сдаю сайт, которым вы управляете сами.",
+  ];
+
+  // Крупный текст поверх фото — как на референсе, идёт прямо над лицом
+  const bigCaps = [
+    "Сайт — это",
+    "не просто картинка.",
+    "Это инструмент,",
+    "который продаёт.",
   ];
 
   // Реальная последовательность кадров: 001 = затылок (размыто), 073 = анфас (чётко)
@@ -278,6 +353,51 @@ function Portrait() {
     let raf = 0;
     let lastCap = -1;
     let lastFrame = -1;
+    let lastBigIdx = -1;
+
+    function renderBigWords(text: string) {
+      const big = bigRef.current;
+      if (!big) return;
+      big.innerHTML = text
+        .split(" ")
+        .map((w) => `<span style="display:inline-block;will-change:transform">${w}</span>`)
+        .join(" ");
+    }
+
+    function bigTextFrame(p: number) {
+      const big = bigRef.current;
+      if (!big) return;
+      const segments = bigCaps.length;
+      const segLen = 1 / segments;
+      const idx = Math.min(segments - 1, Math.floor(p * segments));
+      if (idx !== lastBigIdx) {
+        lastBigIdx = idx;
+        renderBigWords(bigCaps[idx]);
+      }
+      const localP = (p - idx * segLen) / segLen;
+
+      let scale: number, blur: number, opacity: number, rotX: number, spread = 0;
+      if (localP < 0.3) {
+        const q = localP / 0.3;
+        scale = 0.55 + q * 0.45; blur = (1 - q) * 14; opacity = q; rotX = (1 - q) * 18;
+      } else if (localP < 0.7) {
+        scale = 1; blur = 0; opacity = 1; rotX = 0;
+      } else {
+        const q2 = (localP - 0.7) / 0.3;
+        scale = 1 + q2 * 0.5; blur = q2 * 10; opacity = 1 - q2; rotX = -q2 * 10;
+        spread = q2 * 70;
+      }
+      big.style.transform = `perspective(1200px) rotateX(${rotX.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
+      big.style.filter = `blur(${blur.toFixed(2)}px)`;
+      big.style.opacity = opacity.toFixed(3);
+
+      const spans = big.querySelectorAll<HTMLSpanElement>("span");
+      const n = spans.length;
+      spans.forEach((el, i) => {
+        const offset = i - (n - 1) / 2;
+        el.style.transform = `translateX(${(offset * spread).toFixed(1)}px)`;
+      });
+    }
 
     function onScroll() {
       cancelAnimationFrame(raf);
@@ -323,6 +443,8 @@ function Portrait() {
         lastCap = idx;
         capRef.current.textContent = caps[idx];
       }
+
+      bigTextFrame(p);
     }
 
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -356,7 +478,7 @@ function Portrait() {
         </div>
 
         {/* The 3D card — теперь настоящая последовательность кадров */}
-        <div ref={cardRef} style={{ position: "relative", width: "min(88vw,620px)", aspectRatio: "3/4", willChange: "transform", zIndex: 4 }}>
+        <div ref={cardRef} style={{ position: "relative", width: "min(90vw,680px)", aspectRatio: "3/4", willChange: "transform", zIndex: 4 }}>
           {/* Кадры вращения */}
           <img
             ref={imgRef}
@@ -368,6 +490,19 @@ function Portrait() {
               display: "block", userSelect: "none", pointerEvents: "none",
               maskImage: "radial-gradient(160% 155% at 50% 42%,#000 48%,rgba(0,0,0,.35) 76%,transparent 100%)",
               WebkitMaskImage: "radial-gradient(160% 155% at 50% 42%,#000 48%,rgba(0,0,0,.35) 76%,transparent 100%)",
+            }}
+          />
+
+          {/* Крупный текст поверх фото — размыто→чётко→расходится */}
+          <div
+            ref={bigRef}
+            style={{
+              position: "absolute", inset: 0, zIndex: 6, pointerEvents: "none",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              textAlign: "center", padding: "0 6%",
+              fontFamily: "'JetBrains Mono',monospace", fontWeight: 700,
+              fontSize: "clamp(22px,4.4vw,42px)", lineHeight: 1.15, letterSpacing: "-.02em",
+              color: "#00ff41", textShadow: "0 0 24px rgba(0,255,65,.55), 0 4px 30px rgba(0,0,0,.6)",
             }}
           />
 
@@ -702,6 +837,7 @@ export default function App() {
       <Nav />
       <main id="top">
         <Portrait />
+        <SignalBlock />
         <Hero />
         <Ticker />
         <Services />
