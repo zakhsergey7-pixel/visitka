@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Захаров Сергей — разработка сайтов</title>
+<meta name="description" content="Разрабатываю сайты для малого бизнеса: лендинги, сайты-визитки, каталоги. 5 лет опыта. От 50 000 ₽, срок 2–3 недели.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;800&family=Manrope:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap&subset=cyrillic" rel="stylesheet">
+<style>
+/* ============================================================
+   ТОКЕНЫ
+   ============================================================ */
+:root{
+  --paper:#F2FAF4;
+  --paper-2:#E4F3E9;
+  --ink:#07100A;
+  --ink-soft:#0D1B12;
+  --dim:#5C6F63;
+  --blue:#14D46A;
+  --blue-deep:#0B6B38;
+  --lilac:#BFFFDD;
+  --neon:#39FF8A;
+  --neon-dim:rgba(57,255,138,.5);
+
+  --display:'Unbounded', system-ui, sans-serif;
+  --body:'Manrope', system-ui, sans-serif;
+  --mono:'JetBrains Mono', ui-monospace, monospace;
+
+  --pad:clamp(20px, 5vw, 90px);
+  --rule:1px solid rgba(7,16,10,.18);
+  --rule-inv:1px solid rgba(242,250,244,.18);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--body);
+  font-size:17px;
+  line-height:1.55;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+img{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
+::selection{background:var(--blue);color:#fff}
+
+/* фоновая сетка «чертежа» — теперь с лёгким зелёным оттенком */
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:linear-gradient(rgba(20,212,106,.07) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(20,212,106,.07) 1px,transparent 1px);
+  background-size:64px 64px;
+}
+
+.wrap{position:relative;z-index:1}
+.mono{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+
+/* ============================================================
+   ПРЕЛОАДЕР
+   ============================================================ */
+#boot{
+  position:fixed;inset:0;z-index:999;background:var(--ink);color:var(--paper);
+  display:flex;align-items:flex-end;justify-content:space-between;
+  padding:var(--pad);transition:transform .8s cubic-bezier(.76,0,.24,1);
+}
+#boot.done{transform:translateY(-101%)}
+#boot .b-l{font-family:var(--mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:#6f757e}
+#boot .b-n{font-family:var(--display);font-weight:300;font-size:clamp(58px,16vw,190px);line-height:.82;letter-spacing:-.04em}
+
+/* ============================================================
+   ШАПКА
+   ============================================================ */
+header.nav{
+  position:fixed;top:0;left:0;right:0;z-index:80;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px var(--pad);
+  mix-blend-mode:difference;color:#fff;
+}
+.nav .brand{font-family:var(--display);font-weight:600;font-size:15px;letter-spacing:-.02em}
+.nav .links{display:flex;gap:26px;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+.nav .links a{opacity:.75;transition:opacity .25s}
+.nav .links a:hover{opacity:1}
+@media(max-width:760px){.nav .links a:not(.only){display:none}}
+
+/* ============================================================
+   ГЕРОЙ
+   ============================================================ */
+.hero{position:relative;padding:clamp(130px,20vh,210px) var(--pad) 0;min-height:100svh;display:flex;flex-direction:column;justify-content:space-between}
+.hero__eyebrow{display:flex;gap:14px;align-items:center;margin-bottom:clamp(26px,5vh,54px)}
+.hero__eyebrow .dot{width:7px;height:7px;background:var(--blue);border-radius:50%;animation:pulse 2.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.7)}}
+.hero__eyebrow .cursor{display:inline-block;width:7px;height:13px;background:var(--neon);margin-left:2px;animation:blink 1.1s steps(1) infinite;box-shadow:0 0 8px var(--neon-dim)}
+@keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+.hero__hud{position:absolute;inset:0;pointer-events:none;font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(16,18,21,.32)}
+.hero__hud span{position:absolute}
+.hero__hud .tl{top:clamp(90px,15vh,150px);left:var(--pad)}
+.hero__hud .tr{top:clamp(90px,15vh,150px);right:var(--pad);text-align:right}
+.hero__hud b{color:var(--blue)}
+@media(max-width:700px){.hero__hud{display:none}}
+
+.hero h1{
+  font-family:var(--display);font-weight:300;
+  font-size:clamp(38px,7.4vw,116px);line-height:.94;letter-spacing:-.045em;
+  max-width:16ch;
+}
+.hero h1 em{font-style:normal;font-weight:800}
+.hero h1 .accent{color:var(--blue)}
+.hero .line{display:block;overflow:hidden}
+.hero .line span{display:block;transform:translateY(105%);transition:transform 1s cubic-bezier(.16,1,.3,1)}
+body.ready .hero .line span{transform:translateY(0)}
+.hero .line:nth-child(2) span{transition-delay:.09s}
+.hero .line:nth-child(3) span{transition-delay:.18s}
+.hero .line:nth-child(4) span{transition-delay:.27s}
+
+.hero__foot{
+  display:grid;grid-template-columns:1fr auto;gap:30px;align-items:end;
+  border-top:var(--rule);padding:22px 0 26px;margin-top:clamp(40px,8vh,90px);
+}
+.hero__foot p{max-width:44ch;font-size:16px;color:#33383f}
+.hero__scroll{display:flex;align-items:center;gap:10px}
+.hero__scroll .bar{width:56px;height:1px;background:var(--ink);position:relative;overflow:hidden}
+.hero__scroll .bar::after{content:"";position:absolute;inset:0;background:var(--blue);animation:slide 2s linear infinite}
+@keyframes slide{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+@media(max-width:700px){.hero__foot{grid-template-columns:1fr}}
+
+/* ============================================================
+   БЕГУЩАЯ СТРОКА
+   ============================================================ */
+.ticker{background:var(--ink);color:var(--paper);padding:16px 0;overflow:hidden;white-space:nowrap;border-top:1px solid var(--ink)}
+.ticker__row{display:inline-flex;gap:44px;animation:marq 34s linear infinite;font-family:var(--display);font-weight:300;font-size:clamp(18px,2.4vw,30px);letter-spacing:-.02em}
+.ticker__row span{display:inline-flex;align-items:center;gap:44px}
+.ticker__row i{font-style:normal;color:var(--blue);font-size:.6em}
+@keyframes marq{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* ============================================================
+   MATRIX-RAIN (декоративный фон мелким шрифтом)
+   ============================================================ */
+.matrix-rain{position:absolute;inset:0;pointer-events:none;z-index:0}
+.hero__matrix{position:absolute;pointer-events:none;opacity:.5}
+.hero__matrix--tl{top:clamp(70px,12vh,120px);left:var(--pad);width:min(30vw,220px);height:120px}
+.hero__matrix--tr{top:clamp(70px,12vh,120px);right:var(--pad);width:min(30vw,220px);height:120px}
+.hero__matrix--bt{left:var(--pad);right:var(--pad);bottom:0;height:90px;opacity:.35}
+@media(max-width:700px){.hero__matrix--tl,.hero__matrix--tr{display:none}}
+
+.section-matrix{position:absolute;pointer-events:none;opacity:.28;z-index:0}
+.section-matrix--right{top:0;right:0;width:min(26vw,240px);height:100%}
+.section-matrix--left{top:0;left:0;width:min(22vw,200px);height:100%}
+@media(max-width:760px){.section-matrix{display:none}}
+
+/* ---------- Мелкие IT-заметки, как на референсе ---------- */
+.itnote{
+  position:absolute;pointer-events:none;z-index:1;
+  font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  color:rgba(20,212,106,.55);white-space:nowrap;
+}
+.itnote--dark{color:rgba(57,255,138,.5)}
+.itnote b{color:inherit;font-weight:500;opacity:.7}
+
+/* ============================================================
+   SIGNATURE: ПОРТРЕТ, РАСКРЫВАЮЩИЙСЯ ПРИ СКРОЛЛЕ
+   ============================================================ */
+.portrait{position:relative;height:340vh;background:var(--ink);color:var(--paper)}
+.portrait__stage{position:sticky;top:0;height:100svh;overflow:hidden;display:grid;place-items:center;perspective:1600px}
+.portrait__grid{
+  position:absolute;inset:0;
+  background-image:linear-gradient(rgba(217,219,222,.07) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(217,219,222,.07) 1px,transparent 1px);
+  background-size:80px 80px;
+}
+.portrait__word{
+  position:absolute;left:0;right:0;text-align:center;
+  font-family:var(--display);font-weight:800;
+  font-size:clamp(70px,17vw,260px);line-height:1;letter-spacing:-.05em;
+  color:transparent;-webkit-text-stroke:1px rgba(217,219,222,.22);
+  white-space:nowrap;will-change:transform;
+}
+.portrait__figure{
+  position:relative;width:min(86vw,560px);aspect-ratio:3/4;
+  will-change:transform,filter;overflow:hidden;background:transparent;
+  transform-style:preserve-3d;
+}
+.portrait__figure img{
+  width:100%;height:100%;object-fit:cover;pointer-events:none;user-select:none;
+  will-change:filter;
+  mask-image:radial-gradient(160% 155% at 50% 42%, #000 48%, rgba(0,0,0,.35) 76%, transparent 100%);
+  -webkit-mask-image:radial-gradient(160% 155% at 50% 42%, #000 48%, rgba(0,0,0,.35) 76%, transparent 100%);
+}
+
+.portrait__bigtext{
+  position:absolute;inset:0;z-index:6;pointer-events:none;
+  display:flex;align-items:center;justify-content:center;
+  padding:0 var(--pad);text-align:center;
+  perspective:1200px;
+}
+.portrait__bigtext span{
+  display:block;will-change:transform,filter,opacity;
+  font-family:var(--display);font-weight:300;
+  font-size:clamp(34px,7vw,110px);line-height:1.02;letter-spacing:-.04em;
+  color:var(--paper);text-shadow:0 4px 40px rgba(0,0,0,.5);
+  max-width:18ch;
+}
+.portrait__bigtext span em{font-style:normal;font-weight:800;color:var(--blue)}
+.portrait__figure .ph{
+  position:absolute;inset:0;display:grid;place-content:center;gap:8px;text-align:center;
+  border:1px dashed rgba(242,250,244,.3);color:#8a9099;font-family:var(--mono);font-size:11px;
+  letter-spacing:.12em;text-transform:uppercase;padding:20px;
+}
+.portrait__figure.has-img .ph{display:none}
+.portrait__scan{position:absolute;left:0;right:0;height:2px;background:var(--blue);box-shadow:0 0 24px 4px rgba(20,212,106,.7);will-change:transform;opacity:.7}
+
+.portrait__hud{position:absolute;inset:0;pointer-events:none;padding:var(--pad);
+  display:grid;grid-template-rows:auto 1fr auto;font-family:var(--mono);font-size:11px;
+  letter-spacing:.14em;text-transform:uppercase;color:#7d848d}
+.hud-top,.hud-bot{display:flex;justify-content:space-between;gap:20px}
+.hud-bot{align-items:flex-end}
+.hud-bot .cap{max-width:30ch;text-transform:none;letter-spacing:.02em;font-size:13px;color:var(--paper);font-family:var(--body);line-height:1.4}
+#pct{color:var(--blue)}
+@media(max-width:640px){.portrait{height:300vh}.hud-top,.hud-bot{font-size:9px}}
+
+/* ============================================================
+   INSIGHT: ТЕКСТ ПРИБЛИЖАЕТСЯ И УЛЕТАЕТ ПРИ СКРОЛЛЕ
+   ============================================================ */
+.insight{position:relative;height:260vh;background:var(--ink);color:var(--paper)}
+.insight__stage{
+  position:sticky;top:0;height:100svh;overflow:hidden;
+  display:grid;place-items:center;perspective:1400px;
+}
+.insight__grid{
+  position:absolute;inset:0;
+  background-image:linear-gradient(rgba(217,219,222,.05) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(217,219,222,.05) 1px,transparent 1px);
+  background-size:80px 80px;
+}
+.insight__box{
+  position:relative;max-width:min(880px,84vw);text-align:center;padding:0 var(--pad);
+  will-change:transform,filter,opacity;transform-style:preserve-3d;
+}
+.insight__tag{display:block;margin-bottom:22px}
+.insight__text{
+  font-family:var(--display);font-weight:300;
+  font-size:clamp(26px,5.4vw,66px);line-height:1.08;letter-spacing:-.035em;
+}
+.insight__text em{font-style:normal;font-weight:800;color:var(--blue)}
+.insight__text i{font-style:normal;font-weight:800;color:var(--neon)}
+.insight__text .dw{display:inline-block;will-change:transform,opacity,filter}
+.insight .matrix-rain{opacity:.4}
+@media(max-width:640px){.insight{height:220vh}}
+
+/* ============================================================
+   ОБЩИЕ СЕКЦИИ
+   ============================================================ */
+section{padding:clamp(80px,13vh,150px) var(--pad)}
+.head{display:grid;grid-template-columns:auto 1fr;gap:clamp(20px,5vw,70px);align-items:start;
+  border-top:var(--rule);padding-top:22px;margin-bottom:clamp(44px,7vh,80px)}
+.head h2{font-family:var(--display);font-weight:300;font-size:clamp(28px,4.6vw,64px);line-height:1;letter-spacing:-.04em;max-width:19ch}
+.head h2 em{font-style:normal;font-weight:800}
+@media(max-width:700px){.head{grid-template-columns:1fr;gap:14px}}
+
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .9s cubic-bezier(.16,1,.3,1),transform .9s cubic-bezier(.16,1,.3,1)}
+.reveal.in{opacity:1;transform:none}
+
+/* ---------- Услуги ---------- */
+.svc{border-top:var(--rule)}
+.svc__row{display:grid;grid-template-columns:64px 1.1fr 1.4fr;gap:clamp(16px,4vw,50px);
+  padding:30px 0;border-bottom:var(--rule);align-items:baseline;transition:background .4s,padding-left .4s}
+.svc__row:hover{background:rgba(20,212,106,.06);padding-left:14px}
+.svc__row h3{font-family:var(--display);font-weight:400;font-size:clamp(19px,2.5vw,30px);letter-spacing:-.03em}
+.svc__row p{color:#3b4048;font-size:15.5px}
+@media(max-width:760px){.svc__row{grid-template-columns:1fr;gap:8px;padding:22px 0}}
+
+/* ---------- Прайс ---------- */
+.price{background:var(--ink);color:var(--paper)}
+.price .head{border-top:var(--rule-inv)}
+.price .head .mono{color:#7d848d}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(242,250,244,.18);border:1px solid rgba(242,250,244,.18)}
+.card{background:var(--ink);padding:clamp(26px,4vw,48px);display:flex;flex-direction:column;gap:24px;transition:background .45s}
+.card:hover{background:#101d15}
+.card--hi{background:var(--blue-deep)}
+.card--hi:hover{background:#0f8a49}
+.card__tag{display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8b929c}
+.card--hi .card__tag{color:var(--lilac)}
+.card__price{font-family:var(--display);font-weight:300;font-size:clamp(38px,6vw,80px);line-height:.9;letter-spacing:-.05em}
+.card__price small{font-size:.32em;font-weight:400;letter-spacing:0;color:#8b929c;display:block;margin-top:12px;font-family:var(--body)}
+.card--hi .card__price small{color:var(--lilac)}
+.card h3{font-family:var(--display);font-weight:600;font-size:20px;letter-spacing:-.02em}
+.card ul{list-style:none;display:flex;flex-direction:column;gap:11px;font-size:15.5px;color:#b7c8bd}
+.card--hi ul{color:#d3ffe6}
+.card li{display:grid;grid-template-columns:16px 1fr;gap:10px}
+.card li::before{content:"→";color:var(--blue);font-family:var(--mono);font-size:13px}
+.card--hi li::before{color:var(--lilac)}
+.card .go{margin-top:auto;padding-top:20px;border-top:var(--rule-inv);display:flex;justify-content:space-between;align-items:center;
+  font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+.card .go span{transition:transform .35s}
+.card:hover .go span{transform:translateX(7px)}
+.price__note{margin-top:26px;font-size:14px;color:#8b929c;max-width:60ch}
+@media(max-width:760px){.cards{grid-template-columns:1fr}}
+
+/* ---------- Процесс ---------- */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(7,16,10,.18);border-top:var(--rule);border-bottom:var(--rule)}
+.step{background:var(--paper);padding:30px 24px 34px;display:flex;flex-direction:column;gap:12px;min-height:230px}
+.step__n{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--blue)}
+.step h3{font-family:var(--display);font-weight:400;font-size:20px;letter-spacing:-.03em}
+.step p{font-size:15px;color:#3b4048}
+.step__t{margin-top:auto;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+@media(max-width:900px){.steps{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.steps{grid-template-columns:1fr}}
+
+/* ---------- Контакты ---------- */
+.contact{border-top:var(--rule)}
+.contact__grid{display:grid;grid-template-columns:1.15fr .85fr;gap:clamp(30px,6vw,80px)}
+@media(max-width:860px){.contact__grid{grid-template-columns:1fr}}
+.contact h2{font-family:var(--display);font-weight:300;font-size:clamp(32px,6vw,80px);line-height:.95;letter-spacing:-.045em;margin-bottom:26px}
+.contact h2 em{font-style:normal;font-weight:800;color:var(--blue)}
+.chan{display:flex;flex-direction:column;border-top:var(--rule)}
+.chan a{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:18px 0;border-bottom:var(--rule);
+  font-family:var(--display);font-weight:400;font-size:clamp(17px,2.2vw,24px);letter-spacing:-.02em;transition:padding-left .35s,color .35s}
+.chan a:hover{padding-left:12px;color:var(--blue)}
+.chan a i{font-style:normal;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+
+form{display:flex;flex-direction:column;gap:14px}
+.field{display:flex;flex-direction:column;gap:7px}
+.field label{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.field input,.field textarea{
+  background:transparent;border:0;border-bottom:1px solid rgba(16,18,21,.28);
+  padding:10px 0;font-family:var(--body);font-size:16px;color:var(--ink);transition:border-color .3s}
+.field input:focus,.field textarea:focus{outline:none;border-color:var(--blue)}
+.field textarea{resize:vertical;min-height:76px}
+.submit{margin-top:12px;background:var(--ink);color:var(--paper);padding:17px 26px;
+  display:flex;justify-content:space-between;align-items:center;gap:16px;
+  font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;transition:background .35s}
+.submit:hover{background:var(--blue)}
+.submit span{transition:transform .35s}
+.submit:hover span{transform:translateX(7px)}
+.form-note{font-size:12.5px;color:var(--dim);margin-top:4px}
+
+/* ---------- Подвал ---------- */
+footer{background:var(--ink);color:var(--paper);padding-top:0}
+.foot-marq{overflow:hidden;white-space:nowrap;border-bottom:var(--rule-inv);padding:24px 0}
+.foot-marq div{display:inline-flex;gap:40px;animation:marq 40s linear infinite;
+  font-family:var(--display);font-weight:800;font-size:clamp(40px,11vw,150px);letter-spacing:-.05em;line-height:1;
+  color:transparent;-webkit-text-stroke:1px rgba(217,219,222,.3)}
+.foot-in{display:flex;justify-content:space-between;flex-wrap:wrap;gap:18px;padding:26px var(--pad) 34px;
+  font-family:var(--mono);font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:#7d848d}
+
+/* доступность */
+a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
+@media(prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
+  html{scroll-behavior:auto}
+  .reveal{opacity:1;transform:none}
+  .hero .line span{transform:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ПРЕЛОАДЕР -->
+<div id="boot">
+  <div class="b-l">Захаров Сергей<br>разработка сайтов</div>
+  <div class="b-n" id="bootnum">0</div>
+</div>
+
+<header class="nav">
+  <a href="#top" class="brand">З/С</a>
+  <nav class="links">
+    <a href="#services">Услуги</a>
+    <a href="#price">Стоимость</a>
+    <a href="#process">Процесс</a>
+    <a href="#contact" class="only">Связаться</a>
+  </nav>
+</header>
+
+<div class="wrap" id="top">
+
+  <!-- SIGNATURE: 3D-ГОЛОВА, ВРАЩАЕТСЯ ПРИ СКРОЛЛЕ (СТАРТОВЫЙ ЭКРАН) -->
+  <section class="portrait" id="portrait">
+    <div class="portrait__stage">
+      <div class="portrait__grid"></div>
+      <canvas class="matrix-rain" id="pmatrix" style="opacity:.22"></canvas>
+      <div class="portrait__word" id="pword">WEBSITES · DESIGN · CODE · LAUNCH · WEBSITES · DESIGN · CODE · LAUNCH ·</div>
+
+      <div class="portrait__bigtext" id="pbig"><span id="pbigtext"></span></div>
+
+      <figure class="portrait__figure" id="pfig" data-frames="142" data-path="assets/turntable/frame_" data-pad="3" data-start="71" data-end="142">
+        <img src="assets/turntable/frame_071.jpg" alt="Сергей Захаров" id="pimg" draggable="false">
+        <div class="ph">Положите файл<br>photo.jpg<br>рядом с index.html</div>
+        <div class="portrait__scan" id="pscan"></div>
+      </figure>
+
+      <div class="portrait__hud">
+        <div class="hud-top">
+          <span>Захаров Сергей</span>
+          <span>Разработчик · Москва</span>
+        </div>
+        <div></div>
+        <div class="hud-bot">
+          <span class="cap" id="pcap">Пять лет в вёрстке и дизайне.</span>
+          <span>Готовность <span id="pct">0%</span></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ГЕРОЙ -->
+  <section class="hero">
+    <canvas class="matrix-rain hero__matrix hero__matrix--tl" id="hmatrix1"></canvas>
+    <canvas class="matrix-rain hero__matrix hero__matrix--tr" id="hmatrix2"></canvas>
+    <canvas class="matrix-rain hero__matrix hero__matrix--bt" id="hmatrix3"></canvas>
+    <div class="hero__hud">
+      <span class="tl">SYS.<b>ONLINE</b> · UPTIME 05Y</span>
+      <span class="tr">55.7522° N · 37.6156° E<br>BUILD 2026.08</span>
+    </div>
+    <div>
+      <div class="hero__eyebrow">
+        <i class="dot"></i>
+        <span class="mono">Свободен для новых проектов · 2026<i class="cursor"></i></span>
+      </div>
+      <h1>
+        <span class="line"><span>Сайт — это</span></span>
+        <span class="line"><span><em>инструмент</em>,</span></span>
+        <span class="line"><span>а не просто</span></span>
+        <span class="line"><span class="accent">картинка.</span></span>
+      </h1>
+    </div>
+
+    <div class="hero__foot">
+      <p>Меня зовут Сергей Захаров. Пять лет делаю сайты для малого бизнеса — от визитки на один экран до многостраничного каталога. Дизайн, вёрстка, запуск и поддержка: со мной, а не с шестью подрядчиками.</p>
+      <div class="hero__scroll">
+        <span class="mono">Листайте</span>
+        <span class="bar"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- БЕГУЩАЯ СТРОКА -->
+  <div class="ticker">
+    <div class="ticker__row">
+      <span>Landing Pages <i>◆</i> Business Cards <i>◆</i> Catalogs <i>◆</i> Redesign <i>◆</i> Support <i>◆</i>&nbsp;</span>
+      <span>Landing Pages <i>◆</i> Business Cards <i>◆</i> Catalogs <i>◆</i> Redesign <i>◆</i> Support <i>◆</i>&nbsp;</span>
+    </div>
+  </div>
+
+  <!-- INSIGHT: ПРИБЛИЖАЮЩИЙСЯ ТЕКСТ -->
+  <section class="insight" id="insight">
+    <div class="insight__stage">
+      <div class="insight__grid"></div>
+      <canvas class="matrix-rain" id="imatrix"></canvas>
+      <div class="insight__box" id="ibox">
+        <span class="mono insight__tag">Наблюдение</span>
+        <h2 class="insight__text"><span class="dw">Ошибки,</span> <span class="dw">которые</span><br><em><span class="dw">ломают</span> <span class="dw">доверие</span></em><br><span class="dw">к</span> <span class="dw">сайту,</span> <span class="dw">—</span><br><i><span class="dw">труднее</span> <span class="dw">всего</span> <span class="dw">найти.</span></i></h2>
+      </div>
+    </div>
+  </section>
+
+  <!-- УСЛУГИ -->
+  <section id="services">
+    <div class="head reveal">
+      <span class="mono">01 / Что делаю</span>
+      <h2>Один человек отвечает за <em>весь</em> результат.</h2>
+    </div>
+
+    <div class="svc">
+      <div class="svc__row reveal">
+        <span class="mono">A</span>
+        <h3>Сайт-визитка</h3>
+        <p>Компактный сайт о вас и вашей услуге: кто вы, что делаете, сколько стоит, как связаться. Открывается быстро, читается с телефона, находится в поиске по названию.</p>
+      </div>
+      <div class="svc__row reveal">
+        <span class="mono">B</span>
+        <h3>Лендинг</h3>
+        <p>Одна страница под одну задачу — заявки. Структура строится под ваше предложение и возражения клиентов, а не по универсальному шаблону.</p>
+      </div>
+      <div class="svc__row reveal">
+        <span class="mono">C</span>
+        <h3>Каталог и многостраничник</h3>
+        <p>Товары или услуги с фильтрами, страницами разделов и админкой, в которой вы сами меняете тексты и цены без моей помощи.</p>
+      </div>
+      <div class="svc__row reveal">
+        <span class="mono">D</span>
+        <h3>Редизайн и доработка</h3>
+        <p>Сайт есть, но выглядит на десять лет старше вашего бизнеса или тормозит на мобильных. Разбираю, чиню, обновляю — без переезда на новый домен.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ПРАЙС -->
+  <section class="price" id="price">
+    <div class="head reveal">
+      <span class="mono">02 / Стоимость</span>
+      <h2>Два формата. Цена <em>фиксируется</em> до старта.</h2>
+    </div>
+
+    <div class="cards reveal">
+      <div class="card">
+        <div class="card__tag"><span>Пакет «База»</span><span>2 недели</span></div>
+        <div class="card__price">50 000 ₽<small>Сайт-визитка или лендинг</small></div>
+        <h3>Когда нужен рабочий сайт, а не выставка</h3>
+        <ul>
+          <li>До 5 экранов на одной странице</li>
+          <li>Индивидуальный дизайн, без готовых тем</li>
+          <li>Адаптив под телефон и планшет</li>
+          <li>Форма заявки на почту или в Telegram</li>
+          <li>Подключение домена и хостинга</li>
+          <li>Базовая настройка SEO и метрики</li>
+          <li>2 круга правок</li>
+        </ul>
+        <a class="go" href="#contact">Обсудить проект <span>→</span></a>
+      </div>
+
+      <div class="card card--hi">
+        <div class="card__tag"><span>Пакет «Полный»</span><span>3–4 недели</span></div>
+        <div class="card__price">100 000 ₽<small>Многостраничный сайт или каталог</small></div>
+        <h3>Когда сайт — основной канал продаж</h3>
+        <ul>
+          <li>Всё из пакета «База»</li>
+          <li>До 10 страниц или каталог с фильтрами</li>
+          <li>Админка: сами меняете тексты, цены, фото</li>
+          <li>Анимации и проработанные состояния</li>
+          <li>Копирайтинг основных страниц</li>
+          <li>Интеграции: CRM, оплата, мессенджеры</li>
+          <li>Месяц поддержки после запуска</li>
+        </ul>
+        <a class="go" href="#contact">Обсудить проект <span>→</span></a>
+      </div>
+    </div>
+
+    <p class="price__note">Цены — за проект целиком, без почасовки и «доплатите за ещё один блок». Работаю по предоплате 50%. Если задача не укладывается в эти два формата, посчитаю отдельно после разговора.</p>
+  </section>
+
+  <!-- ПРОЦЕСС -->
+  <section id="process">
+    <div class="head reveal">
+      <span class="mono">03 / Как идёт работа</span>
+      <h2>Четыре шага. Вы видите результат <em>на каждом</em>.</h2>
+    </div>
+
+    <div class="steps reveal">
+      <div class="step">
+        <span class="step__n">01</span>
+        <h3>Разговор</h3>
+        <p>Полчаса о вашем бизнесе, клиентах и том, что должно случиться после захода на сайт. По итогу — смета и срок.</p>
+        <span class="step__t">День 1</span>
+      </div>
+      <div class="step">
+        <span class="step__n">02</span>
+        <h3>Структура</h3>
+        <p>Собираю прототип: что за чем идёт и почему. Правки на этом шаге бесплатны и почти ничего не стоят по времени.</p>
+        <span class="step__t">Дни 2–4</span>
+      </div>
+      <div class="step">
+        <span class="step__n">03</span>
+        <h3>Дизайн и вёрстка</h3>
+        <p>Показываю макет, согласуем, верстаю. Промежуточную версию открываете по ссылке в любой момент.</p>
+        <span class="step__t">Дни 5–12</span>
+      </div>
+      <div class="step">
+        <span class="step__n">04</span>
+        <h3>Запуск</h3>
+        <p>Домен, хостинг, метрика, проверка на реальных телефонах. Показываю, как самому менять контент.</p>
+        <span class="step__t">Дни 13–14</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- КОНТАКТЫ -->
+  <section class="contact" id="contact">
+    <div class="contact__grid">
+      <div class="reveal">
+        <span class="mono">04 / Связаться</span>
+        <h2 style="margin-top:22px">Расскажите,<br>что нужно<br><em>сделать.</em></h2>
+        <p style="max-width:40ch;color:#3b4048">Отвечаю в течение дня. Если проект не мой — честно скажу и подскажу, к кому пойти.</p>
+
+        <div class="chan" style="margin-top:34px">
+          <a href="https://t.me/username">Telegram <i>@username</i></a>
+          <a href="tel:+70000000000">Телефон <i>+7 000 000-00-00</i></a>
+          <a href="mailto:mail@example.ru">Почта <i>mail@example.ru</i></a>
+        </div>
+      </div>
+
+      <div class="reveal">
+        <form id="cform">
+          <div class="field">
+            <label for="f-name">Как вас зовут</label>
+            <input id="f-name" name="name" type="text" required>
+          </div>
+          <div class="field">
+            <label for="f-contact">Telegram или телефон</label>
+            <input id="f-contact" name="contact" type="text" required>
+          </div>
+          <div class="field">
+            <label for="f-task">Что за проект</label>
+            <textarea id="f-task" name="task" placeholder="Пара предложений о бизнесе и задаче"></textarea>
+          </div>
+          <button class="submit" type="submit">Отправить заявку <span>→</span></button>
+          <p class="form-note">Форма откроет ваш почтовый клиент с готовым письмом. Для отправки напрямую с сайта нужен обработчик на сервере.</p>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="foot-marq">
+      <div><span>SERGEI ZAKHAROV — WEB DESIGN — SERGEI ZAKHAROV — </span><span>SERGEI ZAKHAROV — WEB DESIGN — SERGEI ZAKHAROV — </span></div>
+    </div>
+    <div class="foot-in">
+      <span>© 2026 Захаров Сергей</span>
+      <span>Разработка сайтов · 5 лет практики</span>
+      <a href="#top">Наверх ↑</a>
+    </div>
+  </footer>
+</div>
+
+<script>
+(function(){
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------- Прелоадер ---------- */
+  var boot = document.getElementById('boot'), bn = document.getElementById('bootnum'), n = 0;
+  function finish(){
+    boot.classList.add('done');
+    document.body.classList.add('ready');
+    setTimeout(function(){ boot.remove(); }, 900);
+  }
+  if(reduce){ finish(); }
+  else{
+    var t = setInterval(function(){
+      n += Math.ceil((100 - n) * .16) + 1;
+      if(n >= 100){ n = 100; clearInterval(t); setTimeout(finish, 260); }
+      bn.textContent = n;
+    }, 55);
+  }
+
+  /* ---------- Matrix-rain: декоративный «цифровой дождь» мелким шрифтом ---------- */
+  function startMatrixRain(canvas, opts){
+    if(!canvas) return;
+    opts = opts || {};
+    var ctx = canvas.getContext('2d');
+    var fontSize = opts.fontSize || 12;
+    var glyphColor = opts.color || 'rgba(59,255,192,.6)';
+    var trailColor = opts.trail || 'rgba(16,18,21,.14)';
+    var chars = (opts.chars || '01ｱｲｳｴｵﾊﾋﾌﾍﾎﾀﾁﾂﾃﾄ<>/\\{}·+—').split('');
+    var w, h, cols, drops, dpr;
+
+    function resize(){
+      var rect = canvas.getBoundingClientRect();
+      dpr = Math.min(2, window.devicePixelRatio || 1);
+      w = Math.max(1, rect.width); h = Math.max(1, rect.height);
+      canvas.width = w * dpr; canvas.height = h * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.fillStyle = trailColor;
+      ctx.fillRect(0, 0, w, h);
+      cols = Math.max(1, Math.floor(w / fontSize));
+      drops = new Array(cols).fill(0).map(function(){ return Math.random() * (h / fontSize); });
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    var last = 0;
+    function tick(t){
+      requestAnimationFrame(tick);
+      if(t - last < 70) return;
+      last = t;
+      ctx.fillStyle = trailColor;
+      ctx.fillRect(0, 0, w, h);
+      ctx.font = fontSize + 'px "JetBrains Mono", monospace';
+      for(var i = 0; i < cols; i++){
+        var ch = chars[(Math.random() * chars.length) | 0];
+        ctx.fillStyle = glyphColor;
+        ctx.fillText(ch, i * fontSize, drops[i] * fontSize);
+        if(drops[i] * fontSize > h && Math.random() > 0.975) drops[i] = 0;
+        drops[i] += 0.4 + Math.random() * 0.35;
+      }
+    }
+    if(!reduce) requestAnimationFrame(tick);
+  }
+
+  startMatrixRain(document.getElementById('hmatrix1'), { fontSize:11, color:'rgba(20,212,106,.55)', trail:'rgba(242,250,244,.16)' });
+  startMatrixRain(document.getElementById('hmatrix2'), { fontSize:11, color:'rgba(20,212,106,.55)', trail:'rgba(242,250,244,.16)' });
+  startMatrixRain(document.getElementById('hmatrix3'), { fontSize:10, color:'rgba(20,212,106,.45)', trail:'rgba(242,250,244,.2)' });
+  startMatrixRain(document.getElementById('pmatrix'),  { fontSize:12, color:'rgba(57,255,138,.5)', trail:'rgba(7,16,10,.12)' });
+  startMatrixRain(document.getElementById('imatrix'),  { fontSize:12, color:'rgba(57,255,138,.45)', trail:'rgba(7,16,10,.1)' });
+  startMatrixRain(document.getElementById('smatrix'),  { fontSize:10, color:'rgba(20,212,106,.4)', trail:'rgba(242,250,244,.18)' });
+  startMatrixRain(document.getElementById('cmatrix'),  { fontSize:10, color:'rgba(57,255,138,.35)', trail:'rgba(7,16,10,.14)' });
+
+  /* ---------- Появление секций ---------- */
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold:.14, rootMargin:'0px 0px -8% 0px' });
+  document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+
+  /* ---------- Фото на скролле ---------- */
+  var sec  = document.getElementById('portrait'),
+      fig  = document.getElementById('pfig'),
+      img  = document.getElementById('pimg'),
+      word = document.getElementById('pword'),
+      scan = document.getElementById('pscan'),
+      cap  = document.getElementById('pcap'),
+      pct  = document.getElementById('pct'),
+      big  = document.getElementById('pbig'),
+      bigTxt = document.getElementById('pbigtext');
+
+  var bigCaps = [
+    'Сайт — это',
+    'не просто <em>картинка</em>.',
+    'Это инструмент,',
+    'который <em>продаёт</em>.'
+  ];
+  var lastBigIdx = -1;
+
+  function bigTextFrame(p){
+    var segments = bigCaps.length;
+    var segLen = 1 / segments;
+    var idx = Math.min(segments - 1, Math.floor(p * segments));
+    if(idx !== lastBigIdx){ lastBigIdx = idx; bigTxt.innerHTML = bigCaps[idx]; }
+    var localP = (p - idx * segLen) / segLen;
+
+    var scale, blur, opacity, rotX;
+    if(localP < .3){
+      var q = localP / .3;
+      scale = 0.55 + q * 0.45; blur = (1 - q) * 14; opacity = q; rotX = (1 - q) * 18;
+    } else if(localP < .7){
+      scale = 1; blur = 0; opacity = 1; rotX = 0;
+    } else {
+      var q2 = (localP - .7) / .3;
+      scale = 1 + q2 * 0.9; blur = q2 * 12; opacity = 1 - q2; rotX = -q2 * 12;
+    }
+    bigTxt.style.transform = 'perspective(1200px) rotateX(' + rotX.toFixed(2) + 'deg) scale(' + scale.toFixed(3) + ')';
+    bigTxt.style.filter = 'blur(' + blur.toFixed(2) + 'px)';
+    bigTxt.style.opacity = opacity.toFixed(3);
+  }
+
+  if(img){
+    img.addEventListener('load', function(){ fig.classList.add('has-img'); });
+    if(img.complete && img.naturalWidth) fig.classList.add('has-img');
+  }
+
+  var caps = [
+    'Пять лет в вёрстке и дизайне.',
+    'Работаю один: без менеджеров и потерянных писем.',
+    'Каждый проект — с нуля, без готовых шаблонов.',
+    'Сдаю сайт, которым вы управляете сами.'
+  ];
+  var lastCap = -1, ticking = false;
+  var scrollP = 0;
+
+  /* ---------- Turntable: скролл переключает кадры (поворот 180°, от затылка к лицу) ---------- */
+  var frameCount = parseInt(fig.dataset.frames, 10) || 1;
+  var framePath  = fig.dataset.path || '';
+  var framePad   = parseInt(fig.dataset.pad, 10) || 3;
+  var startFrame = parseInt(fig.dataset.start, 10) || 1;
+  var endFrame   = parseInt(fig.dataset.end, 10) || frameCount;
+  var curFrame = startFrame;
+
+  function frameUrl(n){
+    var s = String(n);
+    while(s.length < framePad) s = '0' + s;
+    return framePath + s + '.jpg';
+  }
+
+  // Предзагрузка только нужного диапазона кадров (180°), чтобы вращение было плавным без подгрузок
+  var preloaded = [];
+  if(endFrame > startFrame){
+    for(var i = startFrame; i <= endFrame; i++){
+      var pre = new Image();
+      pre.src = frameUrl(i);
+      preloaded.push(pre);
+    }
+  }
+
+  function setFrame(n){
+    n = Math.max(startFrame, Math.min(endFrame, n));
+    if(n === curFrame) return;
+    curFrame = n;
+    if(img) img.src = frameUrl(n);
+  }
+
+  function applyFigureTransform(){
+    var scale = 0.78 + scrollP * 0.5;
+    fig.style.transform = 'scale(' + scale.toFixed(3) + ')';
+  }
+
+  function frame(){
+    ticking = false;
+    var r = sec.getBoundingClientRect(), vh = window.innerHeight;
+    var total = sec.offsetHeight - vh;
+    var p = Math.min(1, Math.max(0, -r.top / total));
+    scrollP = p;
+    applyFigureTransform();
+    setFrame(startFrame + Math.round(p * (endFrame - startFrame)));
+    bigTextFrame(p);
+
+    // изображение всегда цветное: в начале — сильно размытый затылок,
+    // к концу поворота — почти резкое лицо (лёгкая остаточная мягкость маскирует шов кадров)
+    if(img){
+      var blurAmt = (1 - p) * (1 - p) * 15 + 0.35;
+      img.style.filter = 'blur(' + blurAmt.toFixed(2) + 'px) saturate(1.06) contrast(1.03)';
+    }
+
+    // фоновое слово уезжает вбок
+    word.style.transform = 'translateX(' + (18 - p * 36).toFixed(2) + 'vw)';
+
+    // сканирующая линия
+    scan.style.transform = 'translateY(' + (p * 100 * 4 % 100).toFixed(2) + 'vh)';
+    scan.style.opacity = p < .92 ? '1' : '0';
+
+    pct.textContent = Math.round(p * 100) + '%';
+
+    var idx = Math.min(caps.length - 1, Math.floor(p * caps.length));
+    if(idx !== lastCap){ lastCap = idx; cap.textContent = caps[idx]; }
+
+    insightFrame();
+  }
+
+  /* ---------- Приближение/отдаление текста-инсайта ---------- */
+  var isec = document.getElementById('insight'),
+      ibox = document.getElementById('ibox'),
+      dwords = ibox ? Array.prototype.slice.call(ibox.querySelectorAll('.dw')) : [];
+
+  function insightFrame(){
+    if(!isec || !ibox) return;
+    var r = isec.getBoundingClientRect(), vh = window.innerHeight;
+    var total = isec.offsetHeight - vh;
+    var p = Math.min(1, Math.max(0, -r.top / total));
+
+    var scale, blur, opacity, rotX;
+    if(p < 0.32){
+      // текст приближается издалека, входит в фокус
+      var q = p / 0.32;
+      scale = 0.55 + q * 0.45;
+      blur  = (1 - q) * 14;
+      opacity = q;
+      rotX = (1 - q) * 22;
+
+      // слова «расходятся» из центра в свои места по мере приближения
+      var wq = Math.min(1, q * 1.15);
+      for(var i = 0; i < dwords.length; i++){
+        var dir = (i % 2 === 0) ? -1 : 1;
+        var dist = (26 + i * 9) * (1 - wq);
+        dwords[i].style.transform = 'translateX(' + (dir * dist).toFixed(1) + 'px)';
+        dwords[i].style.opacity = (0.1 + wq * 0.9).toFixed(2);
+        dwords[i].style.filter = 'blur(' + ((1 - wq) * 5).toFixed(2) + 'px)';
+      }
+    } else if(p < 0.68){
+      // держится крупным планом
+      scale = 1; blur = 0; opacity = 1; rotX = 0;
+      for(var j = 0; j < dwords.length; j++){
+        dwords[j].style.transform = 'none';
+        dwords[j].style.opacity = '1';
+        dwords[j].style.filter = 'none';
+      }
+    } else {
+      // улетает и растворяется, проходя «сквозь камеру»
+      var q2 = (p - 0.68) / 0.32;
+      scale = 1 + q2 * 0.9;
+      blur  = q2 * 10;
+      opacity = 1 - q2;
+      rotX = -q2 * 14;
+    }
+
+    ibox.style.transform = 'perspective(1400px) rotateX(' + rotX.toFixed(2) + 'deg) scale(' + scale.toFixed(3) + ')';
+    ibox.style.filter = 'blur(' + blur.toFixed(2) + 'px)';
+    ibox.style.opacity = opacity.toFixed(3);
+  }
+
+  function onScroll(){ if(!ticking){ ticking = true; requestAnimationFrame(frame); } }
+  if(!reduce){
+    window.addEventListener('scroll', onScroll, { passive:true });
+    window.addEventListener('resize', onScroll);
+    frame();
+  } else {
+    fig.style.transform = 'scale(1)';
+    if(img) img.style.filter = 'none';
+    scan.style.display = 'none';
+    if(ibox){ ibox.style.transform = 'none'; ibox.style.filter = 'none'; ibox.style.opacity = '1'; }
+    bigTxt.innerHTML = bigCaps[0];
+    big.style.opacity = '1';
+  }
+
+  /* ---------- Форма ---------- */
+  var form = document.getElementById('cform');
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    var d = new FormData(form);
+    var body = 'Имя: ' + (d.get('name')||'') + '\n' +
+               'Контакт: ' + (d.get('contact')||'') + '\n\n' +
+               'Задача:\n' + (d.get('task')||'');
+    window.location.href = 'mailto:mail@example.ru?subject=' +
+      encodeURIComponent('Заявка с сайта') + '&body=' + encodeURIComponent(body);
+  });
+})();
+</script>
+</body>
+</html>
