@@ -435,10 +435,14 @@ function Portrait() {
       const localP = (p - idx * segLen) / segLen;
 
       let scale: number, blur: number, opacity: number, rotX: number, spread = 0;
+      const isLastSegment = idx === segments - 1;
       if (localP < 0.3) {
         const q = localP / 0.3;
         scale = 0.55 + q * 0.45; blur = (1 - q) * 14; opacity = q; rotX = (1 - q) * 18;
-      } else if (localP < 0.7) {
+      } else if (localP < 0.7 || isLastSegment) {
+        // Последняя фраза не рассыпается и не гаснет — она остаётся
+        // на экране, пока лицо растворяется позади неё (см. update()),
+        // и именно эта фраза "передаёт" сцену следующему блоку.
         scale = 1; blur = 0; opacity = 1; rotX = 0;
       } else {
         const q2 = (localP - 0.7) / 0.3;
@@ -479,18 +483,29 @@ function Portrait() {
       const blur = (1 - p) * 9;
       const scale = 0.88 + p * 0.12;
 
+      // Лицо полностью растворяется в последние 28% скролла блока —
+      // остаётся только текст, из которого "проступает" следующий блок,
+      // как на somyajain.com.
+      const faceOut = Math.min(1, Math.max(0, (p - 0.72) / 0.28));
+      const faceOpacity = 1 - faceOut;
+
       card!.style.transform = `scale(${scale.toFixed(3)})`;
       imgEl!.style.filter = `blur(${blur.toFixed(2)}px) contrast(1.06)`;
+      imgEl!.style.opacity = faceOpacity.toFixed(3);
+
+      const tintEl = card!.querySelector<HTMLDivElement>(".portrait-tint");
+      if (tintEl) tintEl.style.opacity = String((((1 - p) * 0.45) * faceOpacity).toFixed(3));
+
+      // Рамка/уголки/скан-линия гаснут вместе с лицом — весь "фото-блок"
+      // растворяется целиком, а не только картинка внутри него
+      const frameEls = card!.querySelectorAll<HTMLDivElement>(".portrait-frame-el");
+      frameEls.forEach((el) => { el.style.opacity = faceOpacity.toFixed(3); });
 
       // scan line
       if (scan) {
         scan.style.transform = `translateY(${(p * 500 % 100).toFixed(2)}%)`;
-        scan.style.opacity = p > 0.95 ? "0" : "0.7";
+        scan.style.opacity = p > 0.95 ? "0" : (0.7 * faceOpacity).toFixed(3);
       }
-
-      // зелёный matrix-тон растворяется по мере проявления резкости
-      const tint = card!.querySelector<HTMLDivElement>(".portrait-tint");
-      if (tint) tint.style.opacity = String(((1 - p) * 0.45).toFixed(3));
 
       // percent counter
       if (pctRef.current) pctRef.current.textContent = Math.round(p * 100) + "%";
@@ -577,7 +592,7 @@ function Portrait() {
             { bottom: 0, left: 0, borderBottom: "1px solid #00ff41", borderLeft: "1px solid #00ff41" },
             { bottom: 0, right: 0, borderBottom: "1px solid #00ff41", borderRight: "1px solid #00ff41" },
           ].map((s, i) => (
-            <div key={i} style={{ position: "absolute", width: 20, height: 20, ...s }} />
+            <div key={i} className="portrait-frame-el" style={{ position: "absolute", width: 20, height: 20, ...s }} />
           ))}
         </div>
 
