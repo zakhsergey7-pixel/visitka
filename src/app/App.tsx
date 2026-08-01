@@ -313,7 +313,21 @@ function SplitReveal({ text }: { text: string }) {
 ───────────────────────────────────────── */
 function SignalBlock() {
   return (
-    <section style={{ position: "relative", overflow: "hidden", background: "#000", borderTop: "1px solid rgba(0,255,65,.18)", padding: "clamp(90px,16vh,180px) clamp(20px,5vw,90px)" }}>
+    <section
+      style={{
+        position: "relative",
+        zIndex: 2,
+        overflow: "hidden",
+        background: "#000",
+        borderTop: "1px solid rgba(0,255,65,.18)",
+        padding: "clamp(90px,16vh,180px) clamp(20px,5vw,90px)",
+        // Наезжает на хвост предыдущего блока (те же 28% скролла,
+        // за которые растворяется лицо) — второй блок "накрывает"
+        // первый как штора, а не выезжает снизу отдельным куском,
+        // из-за чего был виден обычный "лист" страницы.
+        marginTop: "-28vh",
+      }}
+    >
       <div style={{ position: "absolute", inset: 0 }}>
         <MatrixRain opacity={0.1} fontSize={13} color="#00ff41" trail="rgba(0,0,0,.05)" speed={80} />
       </div>
@@ -542,7 +556,7 @@ function Portrait() {
   }, []);
 
   return (
-    <section ref={sectionRef} style={{ position: "relative", height: "200vh", background: "#000" }}>
+    <section ref={sectionRef} style={{ position: "relative", zIndex: 1, height: "200vh", background: "#000" }}>
       {/* Sticky stage */}
       <div style={{ position: "sticky", top: 0, height: "100svh", overflow: "hidden", display: "grid", placeItems: "center" }}>
         {/* Full-bleed matrix rain */}
