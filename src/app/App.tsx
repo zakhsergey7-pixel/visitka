@@ -318,7 +318,6 @@ function SignalBlock() {
         position: "relative",
         zIndex: 2,
         overflow: "hidden",
-        background: "#000",
         borderTop: "1px solid rgba(0,255,65,.18)",
         padding: "clamp(90px,16vh,180px) clamp(20px,5vw,90px)",
         // Наезжает на хвост предыдущего блока (те же 28% скролла,
@@ -342,7 +341,10 @@ function SignalBlock() {
    Hero
 ───────────────────────────────────────── */
 function Hero() {
-  const headlineLines = ["Сайт — это", "инструмент,", "а не просто", "картинка."];
+  // Hero рендерится ниже Portrait и раньше почти дословно повторял его фразу
+  // ("Сайт — это инструмент, а не просто картинка") — заменено на отдельную
+  // мысль о результате. Имя не дублируем: оно уже есть в абзаце ниже.
+  const headlineLines = ["Результат,", "который", "видно", "сразу."];
   return (
     <section style={{ position: "relative", minHeight: "100svh", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "clamp(120px,18vh,200px) clamp(20px,5vw,90px) 0", overflow: "hidden" }}>
       <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
@@ -398,7 +400,9 @@ function Portrait() {
     "Сдаю сайт, которым вы управляете сами.",
   ];
 
-  // Крупный текст поверх фото — как на референсе, идёт прямо над лицом
+  // Крупный текст поверх фото — как на референсе, идёт прямо над лицом.
+  // Это первый экран сайта (Portrait рендерится раньше Hero) — фразу
+  // "Сайт — это инструмент, а не просто картинка" оставляем как есть.
   const bigCaps = [
     "Сайт — это",
     "не просто картинка.",
@@ -456,16 +460,16 @@ function Portrait() {
       const localP = (p - idx * segLen) / segLen;
 
       let scale: number, blur: number, opacity: number, rotX: number, spread = 0;
-      const isLastSegment = idx === segments - 1;
       if (localP < 0.3) {
         const q = localP / 0.3;
         scale = 0.55 + q * 0.45; blur = (1 - q) * 14; opacity = q; rotX = (1 - q) * 18;
-      } else if (localP < 0.7 || isLastSegment) {
-        // Последняя фраза не рассыпается и не гаснет — она остаётся
-        // на экране, пока лицо растворяется позади неё (см. update()),
-        // и именно эта фраза "передаёт" сцену следующему блоку.
+      } else if (localP < 0.7) {
         scale = 1; blur = 0; opacity = 1; rotX = 0;
       } else {
+        // Важно: последняя фраза тоже обязана погаснуть к концу блока —
+        // раньше она "залипала" на экране (opacity всегда 1) и не убиралась
+        // при скролле ни в вебе, ни в мобильной версии. Теперь она гаснет
+        // так же, как остальные, и полностью исчезает к p=1.
         const q2 = (localP - 0.7) / 0.3;
         scale = 1 + q2 * 0.5; blur = q2 * 10; opacity = 1 - q2; rotX = -q2 * 10;
         spread = q2 * 70;
@@ -556,7 +560,7 @@ function Portrait() {
   }, []);
 
   return (
-    <section ref={sectionRef} style={{ position: "relative", zIndex: 1, height: "200vh", background: "#000" }}>
+    <section id="portrait-scene" ref={sectionRef} style={{ position: "relative", zIndex: 1, height: "200vh" }}>
       {/* Sticky stage */}
       <div style={{ position: "sticky", top: 0, height: "100svh", overflow: "hidden", display: "grid", placeItems: "center" }}>
         {/* Full-bleed matrix rain */}
@@ -928,6 +932,56 @@ function Footer() {
 }
 
 /* ─────────────────────────────────────────
+   Единый сквозной "дождь" на весь сайт.
+   Раньше в каждой секции запускался свой
+   собственный MatrixRain — со стороны это
+   выглядело как отдельные, не связанные
+   между собой куски, а не единый эффект.
+   Этот слой один на всю страницу, зафиксирован
+   (position:fixed) и проступает ровно в тот
+   момент, когда фото в Portrait растворяется,
+   а затем остаётся видимым до самого низа —
+   единый дождь, единый дизайн, от начала и до конца.
+───────────────────────────────────────── */
+function GlobalMatrixRain() {
+  const [opacity, setOpacity] = useState(0);
+  useEffect(() => {
+    let raf = 0;
+    function measure() {
+      const el = document.getElementById("portrait-scene");
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const total = el.offsetHeight - vh;
+      const p = total > 0 ? Math.min(1, Math.max(0, -rect.top / total)) : 0;
+      // Дождь начинает проступать вместе с растворением лица (см. faceOut
+      // в Portrait, там же используется порог .72) и полностью проявляется
+      // чуть раньше конца блока — дальше держится на этом уровне до низа страницы.
+      const start = 0.65, end = 0.95;
+      const q = Math.min(1, Math.max(0, (p - start) / (end - start)));
+      setOpacity(q * 0.16);
+    }
+    function onScroll() {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(measure);
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    measure();
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, []);
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none", opacity, transition: "opacity .6s ease-out" }}>
+      <MatrixRain opacity={1} fontSize={14} color="#00ff41" trail="rgba(0,0,0,.045)" speed={45} />
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────
    Global keyframes (injected once)
 ───────────────────────────────────────── */
 const KEYFRAMES = `
@@ -945,6 +999,7 @@ export default function App() {
   return (
     <div style={{ background: "#000", color: "#00ff41", minHeight: "100vh", animation: "flicker 9s infinite" }}>
       <style>{KEYFRAMES}</style>
+      <GlobalMatrixRain />
       {!ready && <Preloader onDone={() => setReady(true)} />}
       <Nav />
       <main id="top">
