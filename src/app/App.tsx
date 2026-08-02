@@ -358,7 +358,7 @@ function Hero() {
         <span style={{ textAlign: "right" }}>55.7522° N · 37.6156° E<br />BUILD 2026.08</span>
       </div>
       <div style={{ position: "relative", zIndex: 2 }}>
-        <h1 style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: "clamp(30px,5.6vw,88px)", lineHeight: 1.05, letterSpacing: "-.02em", color: "#00ff41", textShadow: "0 0 30px rgba(0,255,65,.4)", maxWidth: "20ch" }}>
+        <h1 style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: "clamp(30px,5.6vw,88px)", lineHeight: 1.05, letterSpacing: "-.02em", color: "#00ff41", animation: "neonPulse 4s ease-in-out infinite", maxWidth: "20ch" }}>
           <MaskReveal lines={headlineLines} delayStep={110} />
         </h1>
       </div>
@@ -588,7 +588,7 @@ function Portrait() {
         </div>
 
         {/* The 3D card — теперь настоящая последовательность кадров */}
-        <div ref={cardRef} style={{ position: "relative", width: "min(90vw,680px)", aspectRatio: "3/4", willChange: "transform", zIndex: 4 }}>
+        <div ref={cardRef} style={{ position: "relative", width: "min(90vw,680px)", aspectRatio: "3/4", willChange: "transform", zIndex: 4, border: "1px solid rgba(0,255,65,.28)", animation: "borderGlow 3.2s ease-in-out infinite" }}>
           {/* Кадры вращения */}
           <img
             ref={imgRef}
@@ -636,6 +636,9 @@ function Portrait() {
           {/* Scan line */}
           <div ref={scanRef} style={{ position: "absolute", left: 0, right: 0, height: 2, background: "#00ff41", boxShadow: "0 0 24px 4px rgba(0,255,65,.7)", top: 0, opacity: 0.7, willChange: "transform" }} />
 
+          {/* Glitch horizontal slice — random flicker */}
+          <div className="portrait-frame-el" style={{ position: "absolute", inset: 0, zIndex: 4, pointerEvents: "none", overflow: "hidden", animation: "glitchSlice 6s steps(1) infinite" }} />
+
           {/* Corner brackets */}
           {[
             { top: 0, left: 0, borderTop: "1px solid #00ff41", borderLeft: "1px solid #00ff41" },
@@ -650,8 +653,8 @@ function Portrait() {
         {/* HUD overlay */}
         <div ref={hudRef} style={{ position: "absolute", inset: 0, pointerEvents: "none", padding: "clamp(16px,3vh,40px) clamp(20px,5vw,60px)", display: "grid", gridTemplateRows: "auto 1fr auto", fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "#008f11", zIndex: 5 }}>
           <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <span>Захаров Сергей</span>
-            <span>Разработчик · Москва</span>
+            <span style={{ animation: "hudBlink 7s steps(1) infinite" }}>Захаров Сергей</span>
+            <span style={{ animation: "hudBlink 11s steps(1) infinite 2s" }}>Разработчик · Москва</span>
           </div>
           <div />
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
@@ -997,6 +1000,51 @@ const KEYFRAMES = `
   @keyframes marqAnim   { from{transform:translateX(0)} to{transform:translateX(-50%)} }
   @keyframes pulse      { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.3;transform:scale(.65)} }
   @keyframes flicker    { 0%,100%{opacity:1} 92%{opacity:1} 93%{opacity:.4} 94%{opacity:1} 96%{opacity:.7} 97%{opacity:1} }
+
+  /* Neon glow pulse on bright headline text */
+  @keyframes neonPulse {
+    0%,100% { text-shadow: 0 0 12px rgba(0,255,65,.45), 0 0 30px rgba(0,255,65,.2); }
+    50%      { text-shadow: 0 0 22px rgba(0,255,65,.9), 0 0 55px rgba(0,255,65,.45), 0 0 90px rgba(0,255,65,.15); }
+  }
+
+  /* Border glow flicker on the portrait card */
+  @keyframes borderGlow {
+    0%,100% { box-shadow: 0 0 0px rgba(0,255,65,0); border-color: rgba(0,255,65,.22); }
+    50%     { box-shadow: 0 0 18px rgba(0,255,65,.25), inset 0 0 8px rgba(0,255,65,.05); border-color: rgba(0,255,65,.5); }
+  }
+
+  /* Glitch horizontal slices over the portrait */
+  @keyframes glitchSlice {
+    0%,88%,100% { opacity: 0; transform: translateX(0); }
+    89% {
+      opacity: 1;
+      background: linear-gradient(
+        180deg,
+        transparent 15%, rgba(0,255,65,.07) 15.5%, transparent 16%,
+        transparent 42%, rgba(255,0,64,.06) 42.5%, transparent 43%,
+        transparent 71%, rgba(0,255,65,.05) 71.5%, transparent 72%
+      );
+      transform: translateX(-6px);
+    }
+    90% {
+      opacity: 1;
+      background: linear-gradient(
+        180deg,
+        transparent 30%, rgba(255,0,64,.08) 30.5%, transparent 31%,
+        transparent 60%, rgba(0,255,65,.06) 60.5%, transparent 61%
+      );
+      transform: translateX(5px);
+    }
+    91% { opacity: 0; }
+  }
+
+  /* HUD text blink */
+  @keyframes hudBlink {
+    0%,94%,100% { opacity: 1; }
+    95%,97%     { opacity: 0; }
+    96%,98%     { opacity: 1; }
+    99%         { opacity: 0.3; }
+  }
 `;
 
 /* ─────────────────────────────────────────
