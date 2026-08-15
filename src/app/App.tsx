@@ -318,14 +318,14 @@ function DecodeStreamDivider() {
     return () => { cancelAnimationFrame(raf); window.removeEventListener("resize", resize); };
   }, []);
 
-  const mono: React.CSSProperties = { fontFamily: "'JetBrains Mono',monospace", letterSpacing: ".13em", textTransform: "uppercase" };
+  const pixel: React.CSSProperties = { fontFamily: "'Silkscreen',monospace", letterSpacing: ".08em", textTransform: "uppercase" };
   return (
     <div style={{ position: "relative", height: 76, background: "#000", borderTop: "1px solid rgba(0,255,65,.13)", borderBottom: "1px solid rgba(0,255,65,.13)", overflow: "hidden" }}>
       <canvas ref={canvasRef} style={{ display: "block", width: "100%", height: "100%" }} />
       <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 clamp(20px,5vw,90px)", pointerEvents: "none" }}>
-        <span style={{ ...mono, fontSize: 10, color: "rgba(0,255,65,.55)" }}>STREAM_IN ▶</span>
-        <span ref={readoutRef} style={{ ...mono, fontSize: 9, color: "rgba(0,255,65,.28)" }}>PACKETS 048213 · SYNC 0x4F2A · INTEGRITY 0.0%</span>
-        <span style={{ ...mono, fontSize: 10, color: "rgba(0,255,65,.55)" }}>▶ STREAM_OUT</span>
+        <span style={{ ...pixel, fontSize: 10, color: "rgba(0,255,65,.6)" }}>STREAM_IN ▶</span>
+        <span ref={readoutRef} style={{ ...pixel, fontSize: 9, color: "rgba(0,255,65,.32)" }}>PACKETS 048213 · SYNC 0x4F2A · INTEGRITY 0.0%</span>
+        <span style={{ ...pixel, fontSize: 10, color: "rgba(0,255,65,.6)" }}>▶ STREAM_OUT</span>
       </div>
     </div>
   );
@@ -401,6 +401,9 @@ function ProcessBar({ target, delay, animate, scanSpeed }: { target: number; del
   const [val, setVal] = useState(0);
   const [scan, setScan] = useState(0);
   const TOTAL = 14;
+  const filled = Math.round(val / 100 * TOTAL);
+  const filledRef = useRef(filled);
+  filledRef.current = filled;
   useEffect(() => {
     if (!animate) return;
     let interval: ReturnType<typeof setInterval>;
@@ -416,10 +419,15 @@ function ProcessBar({ target, delay, animate, scanSpeed }: { target: number; del
     return () => { clearTimeout(t); clearInterval(interval); };
   }, [animate, target, delay]);
   useEffect(() => {
-    const id = setInterval(() => setScan(s => (s + 1) % TOTAL), scanSpeed);
+    // Charge-level cursor: stays confined to the filled (charged) cells
+    // instead of sweeping into the empty tail, so the glow reads as
+    // "this many batteries are charged", not a scanner over dead space.
+    const id = setInterval(() => setScan(s => {
+      const f = filledRef.current;
+      return f > 0 ? (s + 1) % f : 0;
+    }), scanSpeed);
     return () => clearInterval(id);
   }, [scanSpeed]);
-  const filled = Math.round(val / 100 * TOTAL);
   return (
     <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 12, letterSpacing: 1 }}>
       {Array.from({ length: TOTAL }).map((_, i) => {
@@ -432,6 +440,73 @@ function ProcessBar({ target, delay, animate, scanSpeed }: { target: number; del
         );
       })}
     </span>
+  );
+}
+
+/* ─────────────────────────────────────────
+   Live Console — a genuinely typing terminal
+   (not just chrome): cycles through a short
+   script of commands + output, one character
+   at a time, with a blinking cursor while it
+   types. Bridges into the AI-concierge panel.
+───────────────────────────────────────── */
+const CONSOLE_SCRIPT = [
+  { cmd: "whoami", out: "сергей_захаров — веб-разработчик, 5 лет практики" },
+  { cmd: "cat services.list", out: "визитка · лендинг · каталог · редизайн" },
+  { cmd: "./launch.sh --client=вы", out: "бриф принят. приступаю." },
+];
+
+function LiveConsole() {
+  const [idx, setIdx] = useState(0);
+  const [step, setStep] = useState(0);
+  const [cur, setCur] = useState(true);
+
+  useEffect(() => {
+    const id = setInterval(() => setStep(s => s + 1), 34);
+    return () => clearInterval(id);
+  }, []);
+  useEffect(() => {
+    const id = setInterval(() => setCur(c => !c), 500);
+    return () => clearInterval(id);
+  }, []);
+
+  const entry = CONSOLE_SCRIPT[idx];
+  const PAUSE = 8, HOLD = 46;
+  const cmdLen = entry.cmd.length;
+  const outStart = cmdLen + PAUSE;
+  const outLen = entry.out.length;
+  const total = outStart + outLen + HOLD;
+
+  useEffect(() => {
+    if (step >= total) { setStep(0); setIdx(i => (i + 1) % CONSOLE_SCRIPT.length); }
+  }, [step, total]);
+
+  const cmdText = entry.cmd.slice(0, Math.min(step, cmdLen));
+  const typingCmd = step <= cmdLen;
+  const showOut = step > outStart;
+  const outText = showOut ? entry.out.slice(0, Math.max(0, Math.min(step - outStart, outLen))) : "";
+  const typingOut = showOut && step < outStart + outLen;
+
+  return (
+    <section style={{ padding: "clamp(40px,6vh,64px) clamp(20px,5vw,90px)", background: "#000" }}>
+      <div style={{ maxWidth: 640, margin: "0 auto" }}>
+        <TerminalBox title="~/console">
+          <div style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 14, minHeight: 44 }}>
+            <div>
+              <span style={{ color: "#00ff41" }}>$ </span>
+              <span style={{ color: "#00ff41" }}>{cmdText}</span>
+              {typingCmd && <span style={{ opacity: cur ? 1 : 0 }}>_</span>}
+            </div>
+            {showOut && (
+              <div style={{ color: "#008f11", marginTop: 8 }}>
+                {outText}
+                {typingOut && <span style={{ opacity: cur ? 1 : 0 }}>_</span>}
+              </div>
+            )}
+          </div>
+        </TerminalBox>
+      </div>
+    </section>
   );
 }
 
@@ -459,6 +534,7 @@ function AIConsierge() {
   ];
 
   const mono: React.CSSProperties = { fontFamily: "'JetBrains Mono',monospace" };
+  const pixel: React.CSSProperties = { fontFamily: "'Silkscreen',monospace" };
   const statusColor = (s: string) => s.startsWith("DONE") ? "#00ff41" : s === "ACTIVE" ? "#7dffaa" : s === "RUNNING" ? "#008f11" : "rgba(0,255,65,.35)";
   const rowGlow = (s: string) => s.startsWith("DONE") ? { anim: "rowGlowDone", dur: 6 } : s === "ACTIVE" ? { anim: "rowGlowActive", dur: 2.1 } : s === "RUNNING" ? { anim: "rowGlowRunning", dur: 3.2 } : { anim: "rowGlowQueued", dur: 4.4 };
   const scanSpeed = (s: string) => s === "ACTIVE" ? 90 : s === "RUNNING" ? 140 : s.startsWith("DONE") ? 340 : 260;
@@ -495,7 +571,7 @@ function AIConsierge() {
             {/* Terminal chrome */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 16px", borderBottom: "1px solid rgba(0,255,65,.15)", background: "#0a1a0a" }}>
               <div style={{ display: "flex", gap: 7 }}>
-                {["#ff5f57","#ffbd2e","#28c840"].map((c, i) => <span key={i} style={{ width: 9, height: 9, borderRadius: "50%", background: c, display: "block" }} />)}
+                {["#ff5f57","#ffbd2e","#28c840"].map((c, i) => <span key={i} style={{ width: 9, height: 9, borderRadius: 0, background: c, display: "block", imageRendering: "pixelated" }} />)}
                 <span style={{ ...mono, fontSize: 10, color: "#008f11", letterSpacing: ".14em", marginLeft: 8 }}>~/ai-concierge/ps_aux</span>
               </div>
               <span style={{ ...mono, fontSize: 10, color: "#ff0040", letterSpacing: ".1em" }}>VER 2.0 ●</span>
@@ -511,13 +587,13 @@ function AIConsierge() {
                 <div key={p.pid} style={{ display: "grid", gridTemplateColumns: "44px 1fr 210px 90px", gap: "0 clamp(12px,2vw,28px)", padding: "14px 16px", borderBottom: i < procs.length - 1 ? "1px solid rgba(0,255,65,.07)" : "none", alignItems: "center", animation: `${glow.anim} ${glow.dur}s ease-in-out infinite`, animationDelay: `${i * 0.3}s`, transition: "padding-left .3s" }}
                   onMouseEnter={e => { (e.currentTarget as HTMLElement).style.paddingLeft = "22px"; }}
                   onMouseLeave={e => { (e.currentTarget as HTMLElement).style.paddingLeft = "16px"; }}>
-                  <span style={{ ...mono, fontSize: 11, color: "rgba(0,255,65,.35)" }}>{p.pid}</span>
+                  <span style={{ ...pixel, fontSize: 11, color: "rgba(0,255,65,.4)" }}>{p.pid}</span>
                   <div>
                     <span style={{ ...mono, fontSize: 12, color: "#008f11" }}>{p.name}</span>
                     <div style={{ ...mono, fontSize: 11, color: "rgba(0,255,65,.3)", marginTop: 3 }}>{p.desc}</div>
                   </div>
                   <ProcessBar target={p.fill} delay={p.delay} animate={animate} scanSpeed={scanSpeed(p.status)} />
-                  <span style={{ ...mono, fontSize: 10, color: statusColor(p.status), letterSpacing: ".06em" }}>{p.status}</span>
+                  <span style={{ ...pixel, fontSize: 10, color: statusColor(p.status), letterSpacing: ".04em" }}>{p.status}</span>
                 </div>
               );
             })}
@@ -540,7 +616,7 @@ function TerminalBox({ title, children }: { title: string; children: React.React
   return (
     <div style={{ border: "1px solid rgba(0,255,65,.25)", background: "#050f05", fontFamily: "'JetBrains Mono',monospace" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 14px", borderBottom: "1px solid rgba(0,255,65,.18)", background: "#0a1a0a" }}>
-        {["#ff5f57","#ffbd2e","#28c840"].map((c, i) => <span key={i} style={{ width: 10, height: 10, borderRadius: "50%", background: c, display: "block" }} />)}
+        {["#ff5f57","#ffbd2e","#28c840"].map((c, i) => <span key={i} style={{ width: 10, height: 10, borderRadius: 0, background: c, display: "block", imageRendering: "pixelated" }} />)}
         <span style={{ marginLeft: 8, fontSize: 11, color: "#008f11", letterSpacing: ".14em" }}>{title}</span>
       </div>
       <div style={{ padding: "20px 24px" }}>{children}</div>
@@ -842,6 +918,7 @@ export default function App() {
         <Hero />
         <DecodeStreamDivider />
         <Mission />
+        <LiveConsole />
         <AIConsierge />
         <Services />
         <Price />
