@@ -178,4 +178,30 @@
     font-weight: var(--font-weight-normal);
     line-height: 1.5;
   }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  ::selection {
+    background: rgba(0, 255, 65, 0.35);
+    color: #000000;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #000000;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #003b00;
+    border: 2px solid #000000;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #00ff41;
+  }
 }
