@@ -232,15 +232,10 @@ function Hero() {
           {headline}<span style={{ opacity: cur ? 1 : 0 }}>_</span>
         </h1>
       </div>
-      <div style={{ position: "relative", zIndex: 2, display: "grid", gridTemplateColumns: "1fr auto", gap: 30, alignItems: "end", borderTop: "1px solid rgba(0,255,65,.16)", padding: "22px 0 26px", marginTop: "clamp(36px,8vh,80px)" }}>
-        <p style={{ maxWidth: "44ch", fontSize: 13.5, color: "#008f11", fontFamily: "'JetBrains Mono',monospace", lineHeight: 1.65 }}>
-          Меня зовут Сергей Захаров. Пять лет делаю сайты для малого бизнеса — от визитки на один экран до многостраничного каталога. Дизайн, вёрстка, запуск и поддержка: со мной, а не с шестью подрядчиками.
-        </p>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <span style={{ width: 48, height: 1, background: "#003b00", position: "relative", overflow: "hidden", display: "block" }}>
-            <span style={{ position: "absolute", inset: 0, background: "#00ff41", animation: "slideBar 2s linear infinite" }} />
-          </span>
-        </div>
+      <div style={{ position: "relative", zIndex: 2, display: "flex", justifyContent: "flex-end", borderTop: "1px solid rgba(0,255,65,.16)", padding: "22px 0 26px", marginTop: "clamp(36px,8vh,80px)" }}>
+        <span style={{ width: 48, height: 1, background: "#003b00", position: "relative", overflow: "hidden", display: "block" }}>
+          <span style={{ position: "absolute", inset: 0, background: "#00ff41", animation: "slideBar 2s linear infinite" }} />
+        </span>
       </div>
     </section>
   );
@@ -445,24 +440,30 @@ function ProcessBar({ target, delay, animate, scanSpeed }: { target: number; del
 
 /* ─────────────────────────────────────────
    Live Console — a genuinely typing terminal
-   (not just chrome): cycles through a short
-   script of commands + output, one character
-   at a time, with a blinking cursor while it
-   types. Bridges into the AI-concierge panel.
+   (not just chrome). Opens with the bio typed
+   out as command output; once it finishes, a
+   "▶ Дальше" prompt appears — clicking it
+   scrolls to the AI-concierge panel and the
+   console settles into a small ambient loop
+   of follow-up commands.
 ───────────────────────────────────────── */
-const CONSOLE_SCRIPT = [
-  { cmd: "whoami", out: "сергей_захаров — веб-разработчик, 5 лет практики" },
+const CONSOLE_INTRO = {
+  cmd: "cat about.txt",
+  out: "Меня зовут Сергей Захаров. Пять лет делаю сайты для малого бизнеса — от визитки на один экран до многостраничного каталога. Дизайн, вёрстка, запуск и поддержка: со мной, а не с шестью подрядчиками.",
+};
+const CONSOLE_LOOP = [
   { cmd: "cat services.list", out: "визитка · лендинг · каталог · редизайн" },
   { cmd: "./launch.sh --client=вы", out: "бриф принят. приступаю." },
 ];
 
 function LiveConsole() {
+  const [phase, setPhase] = useState<"intro" | "loop">("intro");
   const [idx, setIdx] = useState(0);
   const [step, setStep] = useState(0);
   const [cur, setCur] = useState(true);
 
   useEffect(() => {
-    const id = setInterval(() => setStep(s => s + 1), 34);
+    const id = setInterval(() => setStep(s => s + 1), 30);
     return () => clearInterval(id);
   }, []);
   useEffect(() => {
@@ -470,22 +471,28 @@ function LiveConsole() {
     return () => clearInterval(id);
   }, []);
 
-  const entry = CONSOLE_SCRIPT[idx];
+  const entry = phase === "intro" ? CONSOLE_INTRO : CONSOLE_LOOP[idx];
   const PAUSE = 8, HOLD = 46;
   const cmdLen = entry.cmd.length;
   const outStart = cmdLen + PAUSE;
   const outLen = entry.out.length;
   const total = outStart + outLen + HOLD;
+  const introDone = phase === "intro" && step > outStart + outLen;
 
   useEffect(() => {
-    if (step >= total) { setStep(0); setIdx(i => (i + 1) % CONSOLE_SCRIPT.length); }
-  }, [step, total]);
+    if (phase === "loop" && step >= total) { setStep(0); setIdx(i => (i + 1) % CONSOLE_LOOP.length); }
+  }, [phase, step, total]);
 
   const cmdText = entry.cmd.slice(0, Math.min(step, cmdLen));
   const typingCmd = step <= cmdLen;
   const showOut = step > outStart;
   const outText = showOut ? entry.out.slice(0, Math.max(0, Math.min(step - outStart, outLen))) : "";
   const typingOut = showOut && step < outStart + outLen;
+
+  const handleNext = () => {
+    document.getElementById("ai")?.scrollIntoView({ behavior: "smooth" });
+    setPhase("loop"); setIdx(0); setStep(0);
+  };
 
   return (
     <section style={{ padding: "clamp(40px,6vh,64px) clamp(20px,5vw,90px)", background: "#000" }}>
@@ -498,10 +505,17 @@ function LiveConsole() {
               {typingCmd && <span style={{ opacity: cur ? 1 : 0 }}>_</span>}
             </div>
             {showOut && (
-              <div style={{ color: "#008f11", marginTop: 8 }}>
+              <div style={{ color: "#008f11", marginTop: 8, lineHeight: 1.6 }}>
                 {outText}
                 {typingOut && <span style={{ opacity: cur ? 1 : 0 }}>_</span>}
               </div>
+            )}
+            {introDone && (
+              <button onClick={handleNext} style={{ marginTop: 18, background: "transparent", border: "1px solid rgba(0,255,65,.4)", color: "#00ff41", padding: "9px 18px", fontFamily: "'JetBrains Mono',monospace", fontSize: 12, letterSpacing: ".12em", textTransform: "uppercase", cursor: "pointer", transition: "background .2s" }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(0,255,65,.12)"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}>
+                ▶ Дальше
+              </button>
             )}
           </div>
         </TerminalBox>
@@ -536,7 +550,7 @@ function AIConsierge() {
   const mono: React.CSSProperties = { fontFamily: "'JetBrains Mono',monospace" };
   const pixel: React.CSSProperties = { fontFamily: "'Silkscreen',monospace" };
   const statusColor = (s: string) => s.startsWith("DONE") ? "#00ff41" : s === "ACTIVE" ? "#7dffaa" : s === "RUNNING" ? "#008f11" : "rgba(0,255,65,.35)";
-  const rowGlow = (s: string) => s.startsWith("DONE") ? { anim: "rowGlowDone", dur: 6 } : s === "ACTIVE" ? { anim: "rowGlowActive", dur: 2.1 } : s === "RUNNING" ? { anim: "rowGlowRunning", dur: 3.2 } : { anim: "rowGlowQueued", dur: 4.4 };
+  const rowGlow = (s: string) => s.startsWith("DONE") ? { anim: "rowGlowDone", dur: 11 } : s === "ACTIVE" ? { anim: "rowGlowActive", dur: 4.5 } : s === "RUNNING" ? { anim: "rowGlowRunning", dur: 6.5 } : { anim: "rowGlowQueued", dur: 8.5 };
   const scanSpeed = (s: string) => s === "ACTIVE" ? 90 : s === "RUNNING" ? 140 : s.startsWith("DONE") ? 340 : 260;
 
   return (
@@ -856,12 +870,6 @@ function Footer() {
         <MatrixRain opacity={0.04} fontSize={13} color="#00ff41" trail="rgba(5,15,5,.06)" speed={95} />
       </div>
       <div style={{ position: "relative", zIndex: 1 }}>
-        <div style={{ overflow: "hidden", whiteSpace: "nowrap", borderBottom: "1px solid rgba(0,255,65,.12)", padding: "18px 0" }}>
-          <div style={{ display: "inline-flex", gap: 40, animation: "marqAnim 36s linear infinite", fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: "clamp(32px,9vw,124px)", letterSpacing: "-.05em", lineHeight: 1, color: "transparent", WebkitTextStroke: "1px rgba(0,255,65,.18)" }}>
-            <span>SERGEI ZAKHAROV — WEB DESIGN — AI CONCIERGE — SERGEI ZAKHAROV — </span>
-            <span>SERGEI ZAKHAROV — WEB DESIGN — AI CONCIERGE — SERGEI ZAKHAROV — </span>
-          </div>
-        </div>
         <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 16, padding: "22px clamp(20px,5vw,90px) 28px", fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: ".13em", textTransform: "uppercase", color: "#008f11" }}>
           <span>© 2026 Захаров Сергей</span>
           <span>Разработка сайтов · AI консьерж</span>
@@ -877,7 +885,6 @@ function Footer() {
 ───────────────────────────────────────── */
 const KEYFRAMES = `
   @keyframes slideBar  { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
-  @keyframes marqAnim  { from{transform:translateX(0)} to{transform:translateX(-50%)} }
   @keyframes neonPulse {
     0%,100% { text-shadow: 0 0 10px rgba(0,255,65,.4), 0 0 28px rgba(0,255,65,.18); }
     50%     { text-shadow: 0 0 20px rgba(0,255,65,.85), 0 0 52px rgba(0,255,65,.4), 0 0 88px rgba(0,255,65,.12); }
