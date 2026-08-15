@@ -196,6 +196,32 @@ function Nav() {
 ───────────────────────────────────────── */
 const DEAD_PIXELS = [{ top: "28%", left: "9%" }, { top: "71%", left: "82%" }, { top: "44%", left: "58%" }, { top: "17%", left: "73%" }, { top: "88%", left: "22%" }];
 
+/* ─────────────────────────────────────────
+   Hero status line — fills the footer row
+   left empty once the bio moved into the
+   console. Cycles short taglines: decrypts
+   in, holds, then scatters apart and blurs
+   out before the next one decrypts in.
+───────────────────────────────────────── */
+const STATUS_PHRASES = ["Сайты, которые работают.", "Без шаблонов.", "Без посредников.", "На связи в любое время."];
+
+function HeroStatusLine() {
+  const [idx, setIdx] = useState(0);
+  const [dissolving, setDissolving] = useState(false);
+  const text = useDecrypt(STATUS_PHRASES[idx], true, 28);
+  useEffect(() => {
+    const typeTime = STATUS_PHRASES[idx].length * 28 + 1800;
+    const t1 = setTimeout(() => setDissolving(true), typeTime);
+    const t2 = setTimeout(() => { setIdx(i => (i + 1) % STATUS_PHRASES.length); setDissolving(false); }, typeTime + 450);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [idx]);
+  return (
+    <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 13, color: "#008f11", display: "inline-block", opacity: dissolving ? 0 : 1, filter: dissolving ? "blur(6px)" : "blur(0px)", letterSpacing: dissolving ? ".3em" : "0em", transition: "opacity .45s ease, filter .45s ease, letter-spacing .45s ease" }}>
+      {text}
+    </span>
+  );
+}
+
 function Hero() {
   const [active, setActive] = useState(false);
   const headline = useDecrypt("Сайт — это инструмент,\nа не просто картинка.", active);
@@ -238,8 +264,9 @@ function Hero() {
           {headline}<span style={{ opacity: cur ? 1 : 0 }}>_</span>
         </h1>
       </div>
-      <div style={{ position: "relative", zIndex: 2, display: "flex", justifyContent: "flex-end", borderTop: "1px solid rgba(0,255,65,.16)", padding: "22px 0 26px", marginTop: "clamp(36px,8vh,80px)" }}>
-        <span style={{ width: 48, height: 1, background: "#003b00", position: "relative", overflow: "hidden", display: "block" }}>
+      <div style={{ position: "relative", zIndex: 2, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 20, borderTop: "1px solid rgba(0,255,65,.16)", padding: "22px 0 26px", marginTop: "clamp(36px,8vh,80px)" }}>
+        <HeroStatusLine />
+        <span style={{ width: 48, height: 1, background: "#003b00", position: "relative", overflow: "hidden", display: "block", flexShrink: 0 }}>
           <span style={{ position: "absolute", inset: 0, background: "#00ff41", animation: "slideBar 2s linear infinite" }} />
         </span>
       </div>
@@ -349,8 +376,8 @@ function Mission() {
   const stmt = useDecrypt("Я превращаю бизнес\nв цифровой актив.", active, 30);
 
   const lines = [
-    { t: "AI — инструмент.", pad: "0" },
-    { t: "Не автор.", pad: "clamp(28px,5vw,80px)" },
+    { t: "AI — инструмент,", pad: "0" },
+    { t: "который оптимизирует бизнес.", pad: "clamp(28px,5vw,80px)" },
     { t: "Код пишу и проверяю", pad: "clamp(14px,2.5vw,40px)" },
     { t: "я сам.", pad: "clamp(42px,7vw,110px)" },
   ];
@@ -388,7 +415,7 @@ function Mission() {
           {lines.map((l, i) => (
             <div key={i} style={{ paddingLeft: l.pad, opacity: shown[i] ? 1 : 0, transform: shown[i] ? "none" : "translateX(-16px)", transition: "opacity .7s cubic-bezier(.16,1,.3,1), transform .7s cubic-bezier(.16,1,.3,1)" }}>
               <span style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: i % 2 === 0 ? 700 : 300, fontSize: "clamp(18px,2.8vw,42px)", color: i % 2 === 0 ? "#00ff41" : "transparent", WebkitTextStroke: i % 2 === 0 ? "0px" : "1px rgba(0,255,65,.6)", letterSpacing: "-.01em", display: "inline-block", animation: i % 2 === 0 && shown[i] ? "neonPulse 4.5s ease-in-out infinite" : "none" }}>
-                {i === 0 ? <><Glitch>AI</Glitch> — инструмент.</> : l.t}
+                {i === 0 ? <><Glitch>AI</Glitch> — инструмент,</> : l.t}
               </span>
             </div>
           ))}
@@ -793,7 +820,7 @@ function Process() {
           </div>
         </Reveal>
         <Reveal>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 1, background: "rgba(0,255,65,.1)", borderTop: "1px solid rgba(0,255,65,.18)", borderBottom: "1px solid rgba(0,255,65,.18)" }}>
+          <div className="process-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 1, background: "rgba(0,255,65,.1)", borderTop: "1px solid rgba(0,255,65,.18)", borderBottom: "1px solid rgba(0,255,65,.18)" }}>
             {steps.map(step => (
               <div key={step.n} style={{ background: "#000", padding: "28px 22px 32px", display: "flex", flexDirection: "column", gap: 11, minHeight: 220, transition: "background .3s" }}
                 onMouseEnter={e => (e.currentTarget.style.background = "#050f05")}
@@ -827,7 +854,7 @@ function Contact() {
       <div style={{ position: "absolute", inset: 0 }}>
         <MatrixRain opacity={0.06} fontSize={13} color="#00ff41" trail="rgba(0,0,0,.05)" speed={90} />
       </div>
-      <div style={{ position: "relative", zIndex: 1, display: "grid", gridTemplateColumns: "1.1fr .9fr", gap: "clamp(30px,6vw,80px)" }}>
+      <div className="contact-grid" style={{ position: "relative", zIndex: 1, display: "grid", gridTemplateColumns: "1.1fr .9fr", gap: "clamp(30px,6vw,80px)" }}>
         <Reveal>
           <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "#008f11" }}>04 / Связаться</span>
           <h2 style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: "clamp(26px,5vw,70px)", lineHeight: .97, letterSpacing: "-.04em", color: "#00ff41", marginTop: 20, marginBottom: 20, animation: "neonPulse 4.5s ease-in-out infinite .5s" }}>
@@ -851,7 +878,7 @@ function Contact() {
             ))}
           </div>
         </Reveal>
-        <Reveal delay={120}>
+        <div>
           <TerminalBox title="~/contact/form.sh">
             <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
               {[{ id: "f-name", name: "name", label: "Как вас зовут", type: "text" }, { id: "f-contact", name: "contact", label: "Telegram или телефон", type: "text" }].map(f => (
@@ -881,7 +908,7 @@ function Contact() {
               <p style={{ fontSize: 12, color: "#008f11", fontFamily: "'JetBrains Mono',monospace", lineHeight: 1.5 }}>Форма откроет ваш почтовый клиент с готовым письмом.</p>
             </form>
           </TerminalBox>
-        </Reveal>
+        </div>
       </div>
     </section>
   );
@@ -935,9 +962,15 @@ const KEYFRAMES = `
   @keyframes rowGlowRunning { 0%,100% { background: rgba(0,255,65,.03);  } 50% { background: rgba(0,255,65,.10); } }
   @keyframes rowGlowQueued  { 0%,100% { background: rgba(0,255,65,.015); } 50% { background: rgba(0,255,65,.05); } }
 
+  @media (max-width: 900px) {
+    .process-grid { grid-template-columns: repeat(2,1fr) !important; }
+  }
+
   @media (max-width: 640px) {
-    .nav-links   { display: none !important; }
-    .nav-toggle  { display: inline-flex !important; }
+    .nav-links     { display: none !important; }
+    .nav-toggle    { display: inline-flex !important; }
+    .process-grid  { grid-template-columns: 1fr !important; }
+    .contact-grid  { grid-template-columns: 1fr !important; }
   }
 `;
 
