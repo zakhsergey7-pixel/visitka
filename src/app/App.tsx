@@ -240,7 +240,6 @@ function Hero() {
           Меня зовут Сергей Захаров. Пять лет делаю сайты для малого бизнеса — от визитки на один экран до многостраничного каталога. Дизайн, вёрстка, запуск и поддержка: со мной, а не с шестью подрядчиками.
         </p>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "#008f11" }}>Листайте</span>
           <span style={{ width: 48, height: 1, background: "#003b00", position: "relative", overflow: "hidden", display: "block" }}>
             <span style={{ position: "absolute", inset: 0, background: "#00ff41", animation: "slideBar 2s linear infinite" }} />
           </span>
@@ -350,13 +349,12 @@ function Mission() {
   }, []);
 
   const stmt = useDecrypt("Я превращаю бизнес\nв цифровой актив.", active, 30);
-  const sub = useDecrypt("Один исполнитель — одна точка ответственности — один результат.", active && stmt.includes("актив"), 22);
 
   const lines = [
-    { t: "Не картинка.", pad: "0" },
-    { t: "Инструмент.", pad: "clamp(28px,5vw,80px)" },
-    { t: "Который продаёт.", pad: "clamp(14px,2.5vw,40px)" },
-    { t: "Пока вы спите.", pad: "clamp(42px,7vw,110px)" },
+    { t: "Не рекламный слоган.", pad: "0" },
+    { t: "Работающий код.", pad: "clamp(28px,5vw,80px)" },
+    { t: "Он выдерживает нагрузку", pad: "clamp(14px,2.5vw,40px)" },
+    { t: "и конкурентов.", pad: "clamp(42px,7vw,110px)" },
   ];
   const [shown, setShown] = useState<boolean[]>([false, false, false, false]);
   useEffect(() => {
@@ -389,13 +387,6 @@ function Mission() {
               </span>
             </div>
           ))}
-        </div>
-
-        {/* Sub-statement */}
-        <div style={{ borderLeft: "2px solid rgba(0,255,65,.3)", paddingLeft: "clamp(16px,2.5vw,32px)", maxWidth: "55ch" }}>
-          <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: "clamp(12px,1.3vw,16px)", color: "#008f11", lineHeight: 1.7, letterSpacing: ".02em" }}>
-            {sub}
-          </p>
         </div>
       </div>
     </section>
@@ -470,7 +461,7 @@ function AIConsierge() {
             <div>
               <h2 style={{ ...mono, fontWeight: 700, fontSize: "clamp(20px,3.4vw,50px)", letterSpacing: "-.02em", color: "#00ff41", lineHeight: 1.05, animation: "neonPulse 5s ease-in-out infinite 0.8s" }}>
                 AI-консьерж сервис —<br />уровень крупного агентства<br />
-                <span style={{ color: "#ff0040", WebkitTextStroke: "0px" }}>для одного клиента.</span>
+                <Glitch>для одного клиента.</Glitch>
               </h2>
               <p style={{ ...mono, fontSize: 13, color: "#008f11", lineHeight: 1.7, maxWidth: "52ch", marginTop: 16 }}>
                 Каждый проект проходит через AI-анализ брифа — я вижу задачу глубже, чем вы её описываете. Никаких шаблонов, никаких очередей.
@@ -551,7 +542,7 @@ function Services() {
         <div style={{ display: "flex", gap: "clamp(16px,4vw,60px)", alignItems: "start", borderTop: "1px solid rgba(0,255,65,.18)", paddingTop: 20, marginBottom: "clamp(40px,7vh,72px)" }}>
           <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "#008f11", whiteSpace: "nowrap" }}>01 / Что делаю</span>
           <h2 style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: "clamp(22px,3.6vw,52px)", letterSpacing: "-.02em", color: "#00ff41", lineHeight: 1.05 }}>
-            Один человек отвечает за <span style={{ textDecorationLine: "underline", textDecorationColor: "rgba(0,255,65,.4)" }}>весь</span> результат.
+            Один человек отвечает за <Glitch>весь</Glitch> результат.
           </h2>
         </div>
       </Reveal>
@@ -591,7 +582,7 @@ function Price() {
           <div style={{ display: "flex", gap: "clamp(16px,4vw,60px)", alignItems: "start", borderTop: "1px solid rgba(0,255,65,.18)", paddingTop: 20, marginBottom: "clamp(40px,7vh,72px)" }}>
             <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "#008f11", whiteSpace: "nowrap" }}>02 / Стоимость</span>
             <h2 style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: "clamp(22px,3.6vw,52px)", letterSpacing: "-.02em", color: "#00ff41", lineHeight: 1.05 }}>
-              Два формата. Цена <span style={{ textDecorationLine: "underline", textDecorationColor: "rgba(0,255,65,.4)" }}>фиксируется</span> до старта.
+              Два формата. Цена <Glitch>фиксируется</Glitch> до старта.
             </h2>
           </div>
         </Reveal>
@@ -649,7 +640,7 @@ function Process() {
         <div style={{ display: "flex", gap: "clamp(16px,4vw,60px)", alignItems: "start", borderTop: "1px solid rgba(0,255,65,.18)", paddingTop: 20, marginBottom: "clamp(40px,7vh,72px)" }}>
           <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "#008f11", whiteSpace: "nowrap" }}>03 / Процесс</span>
           <h2 style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: "clamp(22px,3.6vw,52px)", letterSpacing: "-.02em", color: "#00ff41", lineHeight: 1.05 }}>
-            Четыре шага. Вы видите результат <span style={{ textDecorationLine: "underline", textDecorationColor: "rgba(0,255,65,.4)" }}>на каждом</span>.
+            Четыре шага. Вы видите результат <Glitch>на каждом</Glitch>.
           </h2>
         </div>
       </Reveal>
@@ -691,7 +682,7 @@ function Contact() {
         <Reveal>
           <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "#008f11" }}>04 / Связаться</span>
           <h2 style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: "clamp(26px,5vw,70px)", lineHeight: .97, letterSpacing: "-.04em", color: "#00ff41", marginTop: 20, marginBottom: 20, animation: "neonPulse 4.5s ease-in-out infinite .5s" }}>
-            Расскажите,<br />что нужно<br /><span style={{ textDecorationLine: "underline", textDecorationColor: "rgba(0,255,65,.3)" }}>сделать.</span>
+            Расскажите,<br />что нужно<br /><Glitch>сделать.</Glitch>
           </h2>
           <p style={{ maxWidth: "40ch", color: "#008f11", fontFamily: "'JetBrains Mono',monospace", fontSize: 13, lineHeight: 1.6 }}>
             Отвечаю в течение дня. Если проект не мой — честно скажу и подскажу, к кому пойти.
@@ -761,7 +752,7 @@ function Footer() {
       </div>
       <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 16, padding: "22px clamp(20px,5vw,90px) 28px", fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: ".13em", textTransform: "uppercase", color: "#008f11" }}>
         <span>© 2026 Захаров Сергей</span>
-        <span>Разработка сайтов · AI консьерж · 5 лет</span>
+        <span>Разработка сайтов · AI консьерж</span>
         <a href="#top" style={{ color: "#00ff41", textDecoration: "none" }}>Наверх ↑</a>
       </div>
     </footer>
