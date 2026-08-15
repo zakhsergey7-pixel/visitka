@@ -126,7 +126,7 @@ function Reveal({ children, className, delay = 0 }: { children: React.ReactNode;
     ob.observe(el); return () => ob.disconnect();
   }, []);
   return (
-    <div ref={ref} className={className} style={{ opacity: v ? 1 : 0, transform: v ? "none" : "translateY(24px)", transition: `opacity .9s cubic-bezier(.16,1,.3,1) ${delay}ms, transform .9s cubic-bezier(.16,1,.3,1) ${delay}ms` }}>
+    <div ref={ref} className={className} style={{ opacity: v ? 1 : 0, transform: v ? "none" : "translateY(28px)", filter: v ? "blur(0px)" : "blur(7px)", transition: `opacity 1.15s cubic-bezier(.16,1,.3,1) ${delay}ms, transform 1.15s cubic-bezier(.16,1,.3,1) ${delay}ms, filter 1.15s cubic-bezier(.16,1,.3,1) ${delay}ms` }}>
       {children}
     </div>
   );
@@ -197,11 +197,17 @@ function Nav() {
 const DEAD_PIXELS = [{ top: "28%", left: "9%" }, { top: "71%", left: "82%" }, { top: "44%", left: "58%" }, { top: "17%", left: "73%" }, { top: "88%", left: "22%" }];
 
 function Hero() {
-  const headline = useDecrypt("Сайт — это инструмент,\nа не просто картинка.", true);
+  const [active, setActive] = useState(false);
+  const headline = useDecrypt("Сайт — это инструмент,\nа не просто картинка.", active);
   const [cur, setCur] = useState(true);
   const [mouse, setMouse] = useState({ x: 0, y: 0 });
   const secRef = useRef<HTMLElement>(null);
   useEffect(() => { const id = setInterval(() => setCur(p => !p), 550); return () => clearInterval(id); }, []);
+  useEffect(() => {
+    const el = secRef.current; if (!el) return;
+    const ob = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setActive(true); ob.disconnect(); } }, { threshold: 0.3 });
+    ob.observe(el); return () => ob.disconnect();
+  }, []);
   const onMouseMove = (e: React.MouseEvent) => {
     const r = secRef.current?.getBoundingClientRect();
     if (r) setMouse({ x: Math.round(e.clientX - r.left), y: Math.round(e.clientY - r.top) });
@@ -359,9 +365,12 @@ function Mission() {
       <div style={{ position: "absolute", inset: 0 }}>
         <MatrixRain opacity={0.06} fontSize={14} color="#00ff41" trail="rgba(0,0,0,.04)" speed={90} />
       </div>
-      {/* Vertical label */}
-      <div style={{ position: "absolute", left: "clamp(20px,5vw,90px)", top: "50%", transform: "translateY(-50%) rotate(-90deg)", transformOrigin: "center center", fontFamily: "'JetBrains Mono',monospace", fontSize: 10, letterSpacing: ".22em", textTransform: "uppercase", color: "rgba(0,255,65,.2)", whiteSpace: "nowrap", pointerEvents: "none" }}>
-        МИССИЯ · MISSION · МИССИЯ
+      {/* Vertical label — running marquee, rotated so it reads bottom-to-top */}
+      <div style={{ position: "absolute", left: "clamp(20px,5vw,90px)", top: "50%", width: 240, height: 16, overflow: "hidden", transform: "translateY(-50%) rotate(-90deg)", transformOrigin: "center center", pointerEvents: "none" }}>
+        <div style={{ display: "inline-flex", gap: 24, animation: "marqAnim 16s linear infinite", fontFamily: "'JetBrains Mono',monospace", fontSize: 10, letterSpacing: ".22em", textTransform: "uppercase", color: "rgba(0,255,65,.2)", whiteSpace: "nowrap" }}>
+          <span>МИССИЯ · MISSION · МИССИЯ · </span>
+          <span>МИССИЯ · MISSION · МИССИЯ · </span>
+        </div>
       </div>
 
       <div ref={ref} style={{ position: "relative", zIndex: 1, paddingLeft: "clamp(20px,4vw,60px)" }}>
@@ -450,11 +459,11 @@ function ProcessBar({ target, delay, animate, scanSpeed }: { target: number; del
    loop of follow-up commands.
 ───────────────────────────────────────── */
 const CONSOLE_INTRO = {
-  cmd: "cat about.txt",
+  cmd: "AI about.txt",
   out: "Меня зовут Сергей Захаров. Пять лет делаю сайты для малого бизнеса — от визитки на один экран до многостраничного каталога. Дизайн, вёрстка, запуск и поддержка: со мной, а не с шестью подрядчиками.",
 };
 const CONSOLE_LOOP = [
-  { cmd: "cat services.list", out: "визитка · лендинг · каталог · редизайн" },
+  { cmd: "AI services.list", out: "визитка · лендинг · каталог · редизайн" },
   { cmd: "./launch.sh --client=вы", out: "бриф принят. приступаю." },
 ];
 
@@ -806,7 +815,7 @@ function Contact() {
     e.preventDefault();
     const d = new FormData(e.currentTarget);
     const body = `Имя: ${d.get("name")||""}\nКонтакт: ${d.get("contact")||""}\n\nЗадача:\n${d.get("task")||""}`;
-    window.location.href = `mailto:mail@example.ru?subject=${encodeURIComponent("Заявка с сайта")}&body=${encodeURIComponent(body)}`;
+    window.location.href = `mailto:zakhsergey7@gmail.com?subject=${encodeURIComponent("Заявка с сайта")}&body=${encodeURIComponent(body)}`;
   };
   const inp: React.CSSProperties = { background: "transparent", border: 0, borderBottom: "1px solid rgba(0,255,65,.25)", padding: "10px 0", fontFamily: "'JetBrains Mono',monospace", fontSize: 14, color: "#00ff41", width: "100%", outline: "none", transition: "border-color .3s" };
   return (
@@ -825,9 +834,9 @@ function Contact() {
           </p>
           <div style={{ marginTop: 32, borderTop: "1px solid rgba(0,255,65,.18)" }}>
             {[
-              { href: "https://t.me/username", label: "Telegram", sub: "@username" },
-              { href: "tel:+70000000000", label: "Телефон", sub: "+7 000 000-00-00" },
-              { href: "mailto:mail@example.ru", label: "Почта", sub: "mail@example.ru" },
+              { href: "https://t.me/must_D1e", label: "Telegram", sub: "@must_D1e" },
+              { href: "tel:+79217959654", label: "Телефон", sub: "8-921-795-9654" },
+              { href: "mailto:zakhsergey7@gmail.com", label: "Почта", sub: "zakhsergey7@gmail.com" },
             ].map(ch => (
               <a key={ch.href} href={ch.href} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, padding: "16px 0", borderBottom: "1px solid rgba(0,255,65,.18)", fontFamily: "'JetBrains Mono',monospace", fontSize: "clamp(14px,1.8vw,20px)", letterSpacing: "-.02em", color: "#00ff41", textDecoration: "none", transition: "padding-left .3s" }}
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.paddingLeft = "10px"; }}
@@ -899,6 +908,7 @@ function Footer() {
 ───────────────────────────────────────── */
 const KEYFRAMES = `
   @keyframes slideBar  { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
+  @keyframes marqAnim  { from{transform:translateX(0)} to{transform:translateX(-50%)} }
   @keyframes neonPulse {
     0%,100% { text-shadow: 0 0 10px rgba(0,255,65,.4), 0 0 28px rgba(0,255,65,.18); }
     50%     { text-shadow: 0 0 20px rgba(0,255,65,.85), 0 0 52px rgba(0,255,65,.4), 0 0 88px rgba(0,255,65,.12); }
