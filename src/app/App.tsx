@@ -349,10 +349,10 @@ function Mission() {
   const stmt = useDecrypt("Я превращаю бизнес\nв цифровой актив.", active, 30);
 
   const lines = [
-    { t: "Не рекламный слоган.", pad: "0" },
-    { t: "Работающий код.", pad: "clamp(28px,5vw,80px)" },
-    { t: "Он выдерживает нагрузку", pad: "clamp(14px,2.5vw,40px)" },
-    { t: "и конкурентов.", pad: "clamp(42px,7vw,110px)" },
+    { t: "Без пафоса.", pad: "0" },
+    { t: "Обычный код.", pad: "clamp(28px,5vw,80px)" },
+    { t: "Просто он не ломается", pad: "clamp(14px,2.5vw,40px)" },
+    { t: "и грузится быстро.", pad: "clamp(42px,7vw,110px)" },
   ];
   const [shown, setShown] = useState<boolean[]>([false, false, false, false]);
   useEffect(() => {
@@ -365,15 +365,17 @@ function Mission() {
       <div style={{ position: "absolute", inset: 0 }}>
         <MatrixRain opacity={0.06} fontSize={14} color="#00ff41" trail="rgba(0,0,0,.04)" speed={90} />
       </div>
-      {/* Vertical label — running marquee, rotated so it reads bottom-to-top */}
-      <div style={{ position: "absolute", left: "clamp(20px,5vw,90px)", top: "50%", width: 240, height: 16, overflow: "hidden", transform: "translateY(-50%) rotate(-90deg)", transformOrigin: "center center", pointerEvents: "none" }}>
-        <div style={{ display: "inline-flex", gap: 24, animation: "marqAnim 16s linear infinite", fontFamily: "'JetBrains Mono',monospace", fontSize: 10, letterSpacing: ".22em", textTransform: "uppercase", color: "rgba(0,255,65,.2)", whiteSpace: "nowrap" }}>
+      {/* Vertical label — running marquee, rotated so it reads bottom-to-top.
+          Brighter, bigger and slower than before, with its own lane to the
+          left of the manifesto text so it doesn't get lost under it. */}
+      <div style={{ position: "absolute", left: "clamp(8px,2.2vw,28px)", top: "50%", width: 320, height: 22, overflow: "hidden", transform: "translateY(-50%) rotate(-90deg)", transformOrigin: "center center", pointerEvents: "none" }}>
+        <div style={{ display: "inline-flex", gap: 28, animation: "marqAnim 22s linear infinite", fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: 13, letterSpacing: ".28em", textTransform: "uppercase", color: "rgba(0,255,65,.55)", textShadow: "0 0 12px rgba(0,255,65,.35)", whiteSpace: "nowrap" }}>
           <span>МИССИЯ · MISSION · МИССИЯ · </span>
           <span>МИССИЯ · MISSION · МИССИЯ · </span>
         </div>
       </div>
 
-      <div ref={ref} style={{ position: "relative", zIndex: 1, paddingLeft: "clamp(20px,4vw,60px)" }}>
+      <div ref={ref} style={{ position: "relative", zIndex: 1, paddingLeft: "clamp(36px,6vw,80px)" }}>
         {/* Main decrypt statement */}
         <div style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: "clamp(32px,6vw,96px)", lineHeight: 1.0, letterSpacing: "-.03em", color: "#00ff41", animation: active ? "neonPulse 5s ease-in-out infinite" : "none", whiteSpace: "pre-line", marginBottom: "clamp(40px,7vh,80px)" }}>
           {stmt}<span style={{ opacity: active && !stmt.includes("актив") ? 1 : 0 }}>_</span>
