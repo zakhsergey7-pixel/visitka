@@ -841,10 +841,10 @@ function Contact() {
         <MatrixRain opacity={0.06} fontSize={13} color="#00ff41" trail="rgba(0,0,0,.05)" speed={90} />
       </div>
       <div className="contact-grid" style={{ position: "relative", zIndex: 1, display: "grid", gridTemplateColumns: "1.1fr .9fr", gap: "clamp(30px,6vw,80px)" }}>
-        <Reveal>
+        <div>
           <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "#008f11" }}>04 / Связаться</span>
-          <h2 style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: "clamp(26px,5vw,70px)", lineHeight: .97, letterSpacing: "-.04em", color: "#00ff41", marginTop: 20, marginBottom: 20, animation: "neonPulse 4.5s ease-in-out infinite .5s" }}>
-            Расскажите,<br />что нужно<br /><Glitch>сделать.</Glitch>
+          <h2 style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: "clamp(26px,5vw,70px)", lineHeight: .97, letterSpacing: "-.04em", color: "#00ff41", marginTop: 20, marginBottom: 20, textShadow: "0 0 16px rgba(0,255,65,.55)" }}>
+            Расскажите,<br />что нужно<br />сделать.
           </h2>
           <p style={{ maxWidth: "40ch", color: "#008f11", fontFamily: "'JetBrains Mono',monospace", fontSize: 13, lineHeight: 1.6 }}>
             Отвечаю в течение дня. Если проект не мой — честно скажу и подскажу, к кому пойти.
@@ -855,13 +855,13 @@ function Contact() {
               { href: "tel:+79217959654", label: "Телефон", sub: "8-921-795-9654" },
               { href: "mailto:zakhsergey7@gmail.com", label: "Почта", sub: "zakhsergey7@gmail.com" },
             ].map(ch => (
-              <a key={ch.href} href={ch.href} className="link-channel" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, padding: "16px 0", borderBottom: "1px solid rgba(0,255,65,.18)", fontFamily: "'JetBrains Mono',monospace", fontSize: "clamp(14px,1.8vw,20px)", letterSpacing: "-.02em", color: "#00ff41", textDecoration: "none", transition: "padding-left .3s" }}>
+              <a key={ch.href} href={ch.href} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, padding: "16px 0", borderBottom: "1px solid rgba(0,255,65,.18)", fontFamily: "'JetBrains Mono',monospace", fontSize: "clamp(14px,1.8vw,20px)", letterSpacing: "-.02em", color: "#00ff41", textDecoration: "none" }}>
                 {ch.label}
                 <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "#008f11" }}>{ch.sub}</span>
               </a>
             ))}
           </div>
-        </Reveal>
+        </div>
         <div>
           <TerminalBox title="~/contact/form.sh">
             <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -958,7 +958,6 @@ const KEYFRAMES = `
     .card-price-base:hover  { background: #0a1a0a; }
     .card-price-full:hover  { background: #004d00; }
     .card-process:hover     { background: #050f05; }
-    .link-channel:hover     { padding-left: 10px; }
     .btn-submit:hover       { background: #7dffaa; box-shadow: 0 0 24px rgba(0,255,65,.45); }
   }
 
