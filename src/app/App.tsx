@@ -167,9 +167,6 @@ function Nav() {
     <header style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 80, borderBottom: scrolled || open ? "1px solid rgba(0,255,65,.14)" : "1px solid transparent", background: scrolled || open ? "rgba(0,0,0,.93)" : "transparent", backdropFilter: scrolled || open ? "blur(12px)" : "none", transition: "background .4s,border-color .4s" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "15px clamp(20px,5vw,90px)" }}>
         <div style={{ display: "flex", alignItems: "center" }}>
-          <a href="#top" onClick={() => setOpen(false)} style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: 14, color: "#00ff41", letterSpacing: ".1em", textDecoration: "none" }}>
-            <span style={{ color: "#008f11" }}>[</span>З/С<span style={{ color: "#008f11" }}>]</span>
-          </a>
           <SignalBars />
         </div>
         <nav className="nav-links" style={{ display: "flex", gap: "clamp(14px,2.8vw,28px)", ...mono }}>
@@ -394,10 +391,15 @@ function Mission() {
 }
 
 /* ─────────────────────────────────────────
-   Process bar — block character fill
+   Process bar — block character fill with a
+   continuous scanning cursor, so every bar
+   (including finished ones) always reads as
+   a live process, not a static graphic. Scan
+   speed reflects how "busy" the status is.
 ───────────────────────────────────────── */
-function ProcessBar({ target, delay, animate }: { target: number; delay: number; animate: boolean }) {
+function ProcessBar({ target, delay, animate, scanSpeed }: { target: number; delay: number; animate: boolean; scanSpeed: number }) {
   const [val, setVal] = useState(0);
+  const [scan, setScan] = useState(0);
   const TOTAL = 14;
   useEffect(() => {
     if (!animate) return;
@@ -413,10 +415,22 @@ function ProcessBar({ target, delay, animate }: { target: number; delay: number;
     }, delay);
     return () => { clearTimeout(t); clearInterval(interval); };
   }, [animate, target, delay]);
+  useEffect(() => {
+    const id = setInterval(() => setScan(s => (s + 1) % TOTAL), scanSpeed);
+    return () => clearInterval(id);
+  }, [scanSpeed]);
   const filled = Math.round(val / 100 * TOTAL);
   return (
-    <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 12, letterSpacing: 1, color: val >= target ? "#00ff41" : "#008f11" }}>
-      {"█".repeat(filled)}{"░".repeat(TOTAL - filled)}
+    <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 12, letterSpacing: 1 }}>
+      {Array.from({ length: TOTAL }).map((_, i) => {
+        const isFilled = i < filled;
+        const isScan = i === scan;
+        return (
+          <span key={i} style={{ color: isScan ? "#ffffff" : isFilled ? "#00ff41" : "#0a2a0a", textShadow: isScan ? "0 0 6px #00ff41" : "none" }}>
+            {isFilled ? "█" : "░"}
+          </span>
+        );
+      })}
     </span>
   );
 }
@@ -446,9 +460,14 @@ function AIConsierge() {
 
   const mono: React.CSSProperties = { fontFamily: "'JetBrains Mono',monospace" };
   const statusColor = (s: string) => s.startsWith("DONE") ? "#00ff41" : s === "ACTIVE" ? "#7dffaa" : s === "RUNNING" ? "#008f11" : "rgba(0,255,65,.35)";
+  const rowGlow = (s: string) => s.startsWith("DONE") ? { anim: "rowGlowDone", dur: 6 } : s === "ACTIVE" ? { anim: "rowGlowActive", dur: 2.1 } : s === "RUNNING" ? { anim: "rowGlowRunning", dur: 3.2 } : { anim: "rowGlowQueued", dur: 4.4 };
+  const scanSpeed = (s: string) => s === "ACTIVE" ? 90 : s === "RUNNING" ? 140 : s.startsWith("DONE") ? 340 : 260;
 
   return (
     <section id="ai" style={{ padding: "clamp(80px,12vh,140px) clamp(20px,5vw,90px)", background: "#050f05", position: "relative", overflow: "hidden" }}>
+      <div style={{ position: "absolute", inset: 0 }}>
+        <MatrixRain opacity={0.05} fontSize={13} color="#00ff41" trail="rgba(5,15,5,.06)" speed={85} />
+      </div>
       {/* Decorative giant "AI" behind content */}
       <div style={{ position: "absolute", top: "50%", left: "-3%", transform: "translateY(-50%)", ...mono, fontWeight: 700, fontSize: "clamp(160px,26vw,380px)", lineHeight: 0.82, color: "transparent", WebkitTextStroke: "1px rgba(0,255,65,.05)", letterSpacing: "-.04em", userSelect: "none", pointerEvents: "none" }}>
         AI
@@ -486,19 +505,22 @@ function AIConsierge() {
               <span>PID</span><span>СЕРВИС</span><span>ПРОГРЕСС</span><span>СТАТУС</span>
             </div>
             {/* Process rows */}
-            {procs.map((p, i) => (
-              <div key={p.pid} style={{ display: "grid", gridTemplateColumns: "44px 1fr 210px 90px", gap: "0 clamp(12px,2vw,28px)", padding: "14px 16px", borderBottom: i < procs.length - 1 ? "1px solid rgba(0,255,65,.07)" : "none", alignItems: "center", background: i % 2 === 0 ? "rgba(0,255,65,.015)" : "transparent", transition: "background .3s" }}
-                onMouseEnter={e => (e.currentTarget.style.background = "rgba(0,255,65,.04)")}
-                onMouseLeave={e => (e.currentTarget.style.background = i % 2 === 0 ? "rgba(0,255,65,.015)" : "transparent")}>
-                <span style={{ ...mono, fontSize: 11, color: "rgba(0,255,65,.35)" }}>{p.pid}</span>
-                <div>
-                  <span style={{ ...mono, fontSize: 12, color: "#008f11" }}>{p.name}</span>
-                  <div style={{ ...mono, fontSize: 11, color: "rgba(0,255,65,.3)", marginTop: 3 }}>{p.desc}</div>
+            {procs.map((p, i) => {
+              const glow = rowGlow(p.status);
+              return (
+                <div key={p.pid} style={{ display: "grid", gridTemplateColumns: "44px 1fr 210px 90px", gap: "0 clamp(12px,2vw,28px)", padding: "14px 16px", borderBottom: i < procs.length - 1 ? "1px solid rgba(0,255,65,.07)" : "none", alignItems: "center", animation: `${glow.anim} ${glow.dur}s ease-in-out infinite`, animationDelay: `${i * 0.3}s`, transition: "padding-left .3s" }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.paddingLeft = "22px"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.paddingLeft = "16px"; }}>
+                  <span style={{ ...mono, fontSize: 11, color: "rgba(0,255,65,.35)" }}>{p.pid}</span>
+                  <div>
+                    <span style={{ ...mono, fontSize: 12, color: "#008f11" }}>{p.name}</span>
+                    <div style={{ ...mono, fontSize: 11, color: "rgba(0,255,65,.3)", marginTop: 3 }}>{p.desc}</div>
+                  </div>
+                  <ProcessBar target={p.fill} delay={p.delay} animate={animate} scanSpeed={scanSpeed(p.status)} />
+                  <span style={{ ...mono, fontSize: 10, color: statusColor(p.status), letterSpacing: ".06em" }}>{p.status}</span>
                 </div>
-                <ProcessBar target={p.fill} delay={p.delay} animate={animate} />
-                <span style={{ ...mono, fontSize: 10, color: statusColor(p.status), letterSpacing: ".06em" }}>{p.status}</span>
-              </div>
-            ))}
+              );
+            })}
             {/* Footer line */}
             <div style={{ padding: "10px 16px", borderTop: "1px solid rgba(0,255,65,.1)", ...mono, fontSize: 10, color: "rgba(0,255,65,.3)", letterSpacing: ".12em", textTransform: "uppercase", display: "flex", justifyContent: "space-between" }}>
               <span>5 SERVICES · UPTIME 5 YRS</span>
@@ -537,27 +559,32 @@ function Services() {
     { id: "D", name: "Редизайн и доработка", desc: "Сайт есть, но выглядит на десять лет старше вашего бизнеса. Разбираю, чиню, обновляю — без переезда на новый домен." },
   ];
   return (
-    <section id="services" style={{ padding: "clamp(80px,12vh,140px) clamp(20px,5vw,90px)" }}>
-      <Reveal>
-        <div style={{ display: "flex", gap: "clamp(16px,4vw,60px)", alignItems: "start", borderTop: "1px solid rgba(0,255,65,.18)", paddingTop: 20, marginBottom: "clamp(40px,7vh,72px)" }}>
-          <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "#008f11", whiteSpace: "nowrap" }}>01 / Что делаю</span>
-          <h2 style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: "clamp(22px,3.6vw,52px)", letterSpacing: "-.02em", color: "#00ff41", lineHeight: 1.05 }}>
-            Один человек отвечает за <Glitch>весь</Glitch> результат.
-          </h2>
+    <section id="services" style={{ padding: "clamp(80px,12vh,140px) clamp(20px,5vw,90px)", position: "relative", overflow: "hidden" }}>
+      <div style={{ position: "absolute", inset: 0 }}>
+        <MatrixRain opacity={0.05} fontSize={13} color="#00ff41" trail="rgba(0,0,0,.05)" speed={85} />
+      </div>
+      <div style={{ position: "relative", zIndex: 1 }}>
+        <Reveal>
+          <div style={{ display: "flex", gap: "clamp(16px,4vw,60px)", alignItems: "start", borderTop: "1px solid rgba(0,255,65,.18)", paddingTop: 20, marginBottom: "clamp(40px,7vh,72px)" }}>
+            <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "#008f11", whiteSpace: "nowrap" }}>01 / Что делаю</span>
+            <h2 style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: "clamp(22px,3.6vw,52px)", letterSpacing: "-.02em", color: "#00ff41", lineHeight: 1.05 }}>
+              Один человек отвечает за <Glitch>весь</Glitch> результат.
+            </h2>
+          </div>
+        </Reveal>
+        <div style={{ borderTop: "1px solid rgba(0,255,65,.12)" }}>
+          {services.map((svc, i) => (
+            <Reveal key={svc.id} delay={i * 80}>
+              <div style={{ display: "grid", gridTemplateColumns: "50px 1fr 1.4fr", gap: "clamp(14px,3vw,44px)", padding: "28px 0", borderBottom: "1px solid rgba(0,255,65,.12)", alignItems: "baseline", transition: "background .3s,padding-left .3s", cursor: "default" }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(0,255,65,.04)"; (e.currentTarget as HTMLElement).style.paddingLeft = "12px"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.paddingLeft = "0"; }}>
+                <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, color: "#008f11", letterSpacing: ".14em" }}>{svc.id}</span>
+                <h3 style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 400, fontSize: "clamp(16px,2.1vw,27px)", color: "#00ff41", letterSpacing: "-.02em" }}><Glitch>{svc.name}</Glitch></h3>
+                <p style={{ color: "#008f11", fontSize: 14, lineHeight: 1.6, fontFamily: "'JetBrains Mono',monospace" }}>{svc.desc}</p>
+              </div>
+            </Reveal>
+          ))}
         </div>
-      </Reveal>
-      <div style={{ borderTop: "1px solid rgba(0,255,65,.12)" }}>
-        {services.map((svc, i) => (
-          <Reveal key={svc.id} delay={i * 80}>
-            <div style={{ display: "grid", gridTemplateColumns: "50px 1fr 1.4fr", gap: "clamp(14px,3vw,44px)", padding: "28px 0", borderBottom: "1px solid rgba(0,255,65,.12)", alignItems: "baseline", transition: "background .3s,padding-left .3s", cursor: "default" }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(0,255,65,.04)"; (e.currentTarget as HTMLElement).style.paddingLeft = "12px"; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.paddingLeft = "0"; }}>
-              <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, color: "#008f11", letterSpacing: ".14em" }}>{svc.id}</span>
-              <h3 style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 400, fontSize: "clamp(16px,2.1vw,27px)", color: "#00ff41", letterSpacing: "-.02em" }}><Glitch>{svc.name}</Glitch></h3>
-              <p style={{ color: "#008f11", fontSize: 14, lineHeight: 1.6, fontFamily: "'JetBrains Mono',monospace" }}>{svc.desc}</p>
-            </div>
-          </Reveal>
-        ))}
       </div>
     </section>
   );
@@ -635,29 +662,34 @@ function Process() {
     { n: "04", title: "Запуск", desc: "Домен, хостинг, метрика, проверка на реальных телефонах. Показываю, как самому менять контент.", t: "Дни 13–14" },
   ];
   return (
-    <section id="process" style={{ padding: "clamp(80px,12vh,140px) clamp(20px,5vw,90px)" }}>
-      <Reveal>
-        <div style={{ display: "flex", gap: "clamp(16px,4vw,60px)", alignItems: "start", borderTop: "1px solid rgba(0,255,65,.18)", paddingTop: 20, marginBottom: "clamp(40px,7vh,72px)" }}>
-          <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "#008f11", whiteSpace: "nowrap" }}>03 / Процесс</span>
-          <h2 style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: "clamp(22px,3.6vw,52px)", letterSpacing: "-.02em", color: "#00ff41", lineHeight: 1.05 }}>
-            Четыре шага. Вы видите результат <Glitch>на каждом</Glitch>.
-          </h2>
-        </div>
-      </Reveal>
-      <Reveal>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 1, background: "rgba(0,255,65,.1)", borderTop: "1px solid rgba(0,255,65,.18)", borderBottom: "1px solid rgba(0,255,65,.18)" }}>
-          {steps.map(step => (
-            <div key={step.n} style={{ background: "#000", padding: "28px 22px 32px", display: "flex", flexDirection: "column", gap: 11, minHeight: 220, transition: "background .3s" }}
-              onMouseEnter={e => (e.currentTarget.style.background = "#050f05")}
-              onMouseLeave={e => (e.currentTarget.style.background = "#000")}>
-              <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: ".14em", color: "#00ff41" }}>{step.n}</span>
-              <h3 style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 400, fontSize: 18, color: "#00ff41", letterSpacing: "-.02em" }}>{step.title}</h3>
-              <p style={{ fontSize: 13, color: "#008f11", fontFamily: "'JetBrains Mono',monospace", lineHeight: 1.55 }}>{step.desc}</p>
-              <span style={{ marginTop: "auto", fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: ".12em", textTransform: "uppercase", color: "rgba(0,255,65,.35)" }}>{step.t}</span>
-            </div>
-          ))}
-        </div>
-      </Reveal>
+    <section id="process" style={{ padding: "clamp(80px,12vh,140px) clamp(20px,5vw,90px)", position: "relative", overflow: "hidden" }}>
+      <div style={{ position: "absolute", inset: 0 }}>
+        <MatrixRain opacity={0.05} fontSize={13} color="#00ff41" trail="rgba(0,0,0,.05)" speed={85} />
+      </div>
+      <div style={{ position: "relative", zIndex: 1 }}>
+        <Reveal>
+          <div style={{ display: "flex", gap: "clamp(16px,4vw,60px)", alignItems: "start", borderTop: "1px solid rgba(0,255,65,.18)", paddingTop: 20, marginBottom: "clamp(40px,7vh,72px)" }}>
+            <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "#008f11", whiteSpace: "nowrap" }}>03 / Процесс</span>
+            <h2 style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: "clamp(22px,3.6vw,52px)", letterSpacing: "-.02em", color: "#00ff41", lineHeight: 1.05 }}>
+              Четыре шага. Вы видите результат <Glitch>на каждом</Glitch>.
+            </h2>
+          </div>
+        </Reveal>
+        <Reveal>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 1, background: "rgba(0,255,65,.1)", borderTop: "1px solid rgba(0,255,65,.18)", borderBottom: "1px solid rgba(0,255,65,.18)" }}>
+            {steps.map(step => (
+              <div key={step.n} style={{ background: "#000", padding: "28px 22px 32px", display: "flex", flexDirection: "column", gap: 11, minHeight: 220, transition: "background .3s" }}
+                onMouseEnter={e => (e.currentTarget.style.background = "#050f05")}
+                onMouseLeave={e => (e.currentTarget.style.background = "#000")}>
+                <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: ".14em", color: "#00ff41" }}>{step.n}</span>
+                <h3 style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 400, fontSize: 18, color: "#00ff41", letterSpacing: "-.02em" }}>{step.title}</h3>
+                <p style={{ fontSize: 13, color: "#008f11", fontFamily: "'JetBrains Mono',monospace", lineHeight: 1.55 }}>{step.desc}</p>
+                <span style={{ marginTop: "auto", fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: ".12em", textTransform: "uppercase", color: "rgba(0,255,65,.35)" }}>{step.t}</span>
+              </div>
+            ))}
+          </div>
+        </Reveal>
+      </div>
     </section>
   );
 }
@@ -743,17 +775,22 @@ function Contact() {
 ───────────────────────────────────────── */
 function Footer() {
   return (
-    <footer style={{ background: "#050f05", borderTop: "1px solid rgba(0,255,65,.18)" }}>
-      <div style={{ overflow: "hidden", whiteSpace: "nowrap", borderBottom: "1px solid rgba(0,255,65,.12)", padding: "18px 0" }}>
-        <div style={{ display: "inline-flex", gap: 40, animation: "marqAnim 36s linear infinite", fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: "clamp(32px,9vw,124px)", letterSpacing: "-.05em", lineHeight: 1, color: "transparent", WebkitTextStroke: "1px rgba(0,255,65,.18)" }}>
-          <span>SERGEI ZAKHAROV — WEB DESIGN — AI CONCIERGE — SERGEI ZAKHAROV — </span>
-          <span>SERGEI ZAKHAROV — WEB DESIGN — AI CONCIERGE — SERGEI ZAKHAROV — </span>
-        </div>
+    <footer style={{ background: "#050f05", borderTop: "1px solid rgba(0,255,65,.18)", position: "relative", overflow: "hidden" }}>
+      <div style={{ position: "absolute", inset: 0 }}>
+        <MatrixRain opacity={0.04} fontSize={13} color="#00ff41" trail="rgba(5,15,5,.06)" speed={95} />
       </div>
-      <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 16, padding: "22px clamp(20px,5vw,90px) 28px", fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: ".13em", textTransform: "uppercase", color: "#008f11" }}>
-        <span>© 2026 Захаров Сергей</span>
-        <span>Разработка сайтов · AI консьерж</span>
-        <a href="#top" style={{ color: "#00ff41", textDecoration: "none" }}>Наверх ↑</a>
+      <div style={{ position: "relative", zIndex: 1 }}>
+        <div style={{ overflow: "hidden", whiteSpace: "nowrap", borderBottom: "1px solid rgba(0,255,65,.12)", padding: "18px 0" }}>
+          <div style={{ display: "inline-flex", gap: 40, animation: "marqAnim 36s linear infinite", fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: "clamp(32px,9vw,124px)", letterSpacing: "-.05em", lineHeight: 1, color: "transparent", WebkitTextStroke: "1px rgba(0,255,65,.18)" }}>
+            <span>SERGEI ZAKHAROV — WEB DESIGN — AI CONCIERGE — SERGEI ZAKHAROV — </span>
+            <span>SERGEI ZAKHAROV — WEB DESIGN — AI CONCIERGE — SERGEI ZAKHAROV — </span>
+          </div>
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 16, padding: "22px clamp(20px,5vw,90px) 28px", fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: ".13em", textTransform: "uppercase", color: "#008f11" }}>
+          <span>© 2026 Захаров Сергей</span>
+          <span>Разработка сайтов · AI консьерж</span>
+          <a href="#top" style={{ color: "#00ff41", textDecoration: "none" }}>Наверх ↑</a>
+        </div>
       </div>
     </footer>
   );
@@ -779,6 +816,13 @@ const KEYFRAMES = `
     95%,97%     { opacity:1 }
     98%,99%     { opacity:.3 }
   }
+
+  /* Continuous per-status glow for AI-concierge process rows —
+     every row stays visibly "alive", not just the ones you hover. */
+  @keyframes rowGlowDone    { 0%,100% { background: rgba(0,255,65,.02);  } 50% { background: rgba(0,255,65,.07); } }
+  @keyframes rowGlowActive  { 0%,100% { background: rgba(0,255,65,.04);  } 50% { background: rgba(0,255,65,.14); } }
+  @keyframes rowGlowRunning { 0%,100% { background: rgba(0,255,65,.03);  } 50% { background: rgba(0,255,65,.10); } }
+  @keyframes rowGlowQueued  { 0%,100% { background: rgba(0,255,65,.015); } 50% { background: rgba(0,255,65,.05); } }
 
   @media (max-width: 640px) {
     .nav-links   { display: none !important; }
