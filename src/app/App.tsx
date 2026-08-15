@@ -401,6 +401,9 @@ function ProcessBar({ target, delay, animate, scanSpeed }: { target: number; del
   const [val, setVal] = useState(0);
   const [scan, setScan] = useState(0);
   const TOTAL = 14;
+  const filled = Math.round(val / 100 * TOTAL);
+  const filledRef = useRef(filled);
+  filledRef.current = filled;
   useEffect(() => {
     if (!animate) return;
     let interval: ReturnType<typeof setInterval>;
@@ -416,10 +419,15 @@ function ProcessBar({ target, delay, animate, scanSpeed }: { target: number; del
     return () => { clearTimeout(t); clearInterval(interval); };
   }, [animate, target, delay]);
   useEffect(() => {
-    const id = setInterval(() => setScan(s => (s + 1) % TOTAL), scanSpeed);
+    // Charge-level cursor: stays confined to the filled (charged) cells
+    // instead of sweeping into the empty tail, so the glow reads as
+    // "this many batteries are charged", not a scanner over dead space.
+    const id = setInterval(() => setScan(s => {
+      const f = filledRef.current;
+      return f > 0 ? (s + 1) % f : 0;
+    }), scanSpeed);
     return () => clearInterval(id);
   }, [scanSpeed]);
-  const filled = Math.round(val / 100 * TOTAL);
   return (
     <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 12, letterSpacing: 1 }}>
       {Array.from({ length: TOTAL }).map((_, i) => {
