@@ -4,167 +4,114 @@ import { useEffect, useRef, useState } from "react";
    Matrix Rain Canvas
 ───────────────────────────────────────── */
 function MatrixRain({
-  className,
-  style: styleProp,
-  opacity = 1,
-  fontSize = 13,
-  color = "#00ff41",
-  trail = "rgba(0,0,0,0.05)",
-  speed = 65,
+  className, style: styleProp, opacity = 1, fontSize = 13,
+  color = "#00ff41", trail = "rgba(0,0,0,0.05)", speed = 65,
 }: {
-  className?: string;
-  style?: React.CSSProperties;
-  opacity?: number;
-  fontSize?: number;
-  color?: string;
-  trail?: string;
-  speed?: number;
+  className?: string; style?: React.CSSProperties;
+  opacity?: number; fontSize?: number; color?: string; trail?: string; speed?: number;
 }) {
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
-    const canvas = ref.current;
-    if (!canvas) return;
+    const canvas = ref.current; if (!canvas) return;
     const ctx = canvas.getContext("2d")!;
     const chars = "01ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎ<>/\\{}|·+—=".split("");
     let w = 0, h = 0, cols = 0, drops: number[] = [], raf = 0, last = 0;
-    let activeFontSize = fontSize;
     function resize() {
       const r = canvas!.getBoundingClientRect();
-      // На узких экранах (телефоны) считаем меньше столбцов и не берём
-      // двойной DPR — картинка не теряется в качестве, но заметно легче
-      // для слабых мобильных GPU/CPU и меньше сажает батарею.
-      const isNarrow = window.innerWidth < 640;
-      const dpr = Math.min(isNarrow ? 1 : 2, devicePixelRatio || 1);
-      activeFontSize = isNarrow ? fontSize * 1.35 : fontSize;
+      const dpr = Math.min(2, devicePixelRatio || 1);
       w = Math.max(1, r.width); h = Math.max(1, r.height);
       canvas!.width = w * dpr; canvas!.height = h * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      cols = Math.max(1, Math.floor(w / activeFontSize));
-      drops = Array.from({ length: cols }, () => Math.random() * (h / activeFontSize));
+      cols = Math.max(1, Math.floor(w / fontSize));
+      drops = Array.from({ length: cols }, () => Math.random() * (h / fontSize));
     }
     function tick(t: number) {
       raf = requestAnimationFrame(tick);
-      if (t - last < speed) return;
-      last = t;
-      ctx.fillStyle = trail;
-      ctx.fillRect(0, 0, w, h);
-      ctx.font = `${activeFontSize}px "JetBrains Mono", monospace`;
+      if (t - last < speed) return; last = t;
+      ctx.fillStyle = trail; ctx.fillRect(0, 0, w, h);
+      ctx.font = `${fontSize}px "JetBrains Mono", monospace`;
       for (let i = 0; i < cols; i++) {
         const ch = chars[(Math.random() * chars.length) | 0];
-        const isHead = drops[i] * activeFontSize > h - activeFontSize * 3;
-        ctx.fillStyle = isHead ? "#ffffff" : color;
-        ctx.fillText(ch, i * activeFontSize, drops[i] * activeFontSize);
-        if (drops[i] * activeFontSize > h && Math.random() > 0.975) drops[i] = 0;
+        ctx.fillStyle = drops[i] * fontSize > h - fontSize * 3 ? "#ffffff" : color;
+        ctx.fillText(ch, i * fontSize, drops[i] * fontSize);
+        if (drops[i] * fontSize > h && Math.random() > 0.975) drops[i] = 0;
         drops[i] += 0.35 + Math.random() * 0.4;
       }
     }
-    resize();
-    window.addEventListener("resize", resize);
-    raf = requestAnimationFrame(tick);
+    resize(); window.addEventListener("resize", resize); raf = requestAnimationFrame(tick);
     return () => { cancelAnimationFrame(raf); window.removeEventListener("resize", resize); };
   }, [fontSize, color, trail, speed]);
-  return (
-    <canvas
-      ref={ref}
-      className={className}
-      style={{ opacity, display: "block", width: "100%", height: "100%", ...styleProp }}
-    />
-  );
+  return <canvas ref={ref} className={className} style={{ opacity, display: "block", width: "100%", height: "100%", ...styleProp }} />;
 }
 
 /* ─────────────────────────────────────────
-   Typewriter hook
+   CRT Noise Overlay — chunky static grain
 ───────────────────────────────────────── */
-function useTypewriter(text: string, speed = 40, start = true) {
-  const [displayed, setDisplayed] = useState("");
+function NoiseOverlay() {
+  const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
-    if (!start) return;
-    setDisplayed("");
-    let i = 0;
+    const canvas = ref.current; if (!canvas) return;
+    const SIZE = 120;
+    canvas.width = SIZE; canvas.height = SIZE;
+    const ctx = canvas.getContext("2d")!;
+    let raf: number;
+    function draw() {
+      const d = ctx.createImageData(SIZE, SIZE);
+      for (let i = 0; i < d.data.length; i += 4) {
+        const v = Math.random() > 0.93 ? Math.floor(Math.random() * 200) : 0;
+        d.data[i] = 0; d.data[i + 1] = v; d.data[i + 2] = 0; d.data[i + 3] = v;
+      }
+      ctx.putImageData(d, 0, 0);
+      raf = requestAnimationFrame(draw);
+    }
+    raf = requestAnimationFrame(draw);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+  return <canvas ref={ref} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.04, pointerEvents: "none", imageRendering: "pixelated" }} />;
+}
+
+/* ─────────────────────────────────────────
+   Decrypt hook — characters scramble → resolve
+───────────────────────────────────────── */
+function useDecrypt(text: string, active: boolean, speed = 36) {
+  const glyphs = "01ｱｲｳｴｵｶﾀﾁﾂ<>[]{}|\\!@#$%";
+  const [out, setOut] = useState(() =>
+    text.split("").map(c => (c === " " ? " " : glyphs[(Math.random() * glyphs.length) | 0])).join("")
+  );
+  const pos = useRef(0);
+  useEffect(() => {
+    if (!active) return;
+    pos.current = 0;
     const id = setInterval(() => {
-      i++;
-      setDisplayed(text.slice(0, i));
-      if (i >= text.length) clearInterval(id);
+      pos.current += 1.6;
+      const p = pos.current;
+      setOut(text.split("").map((c, i) => {
+        if (c === " ") return " ";
+        if (i < p) return c;
+        return glyphs[(Math.random() * glyphs.length) | 0];
+      }).join(""));
+      if (p >= text.length) clearInterval(id);
     }, speed);
     return () => clearInterval(id);
-  }, [text, speed, start]);
-  return displayed;
+  }, [active, text, speed]);
+  return out;
 }
 
 /* ─────────────────────────────────────────
-   Mask Reveal — построчная анимация текста,
-   как на стартовой странице somyajain.com:
-   каждая строка спрятана в контейнере с
-   overflow:hidden и "выезжает" снизу вверх
-   с небольшой задержкой между строками.
+   Glitch text — random corruption burst
 ───────────────────────────────────────── */
-function MaskReveal({
-  lines,
-  delayStep = 110,
-  startDelay = 0,
-  style,
-}: {
-  lines: string[];
-  delayStep?: number;
-  startDelay?: number;
-  style?: React.CSSProperties;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const ob = new IntersectionObserver(
-      ([e]) => {
-        if (e.isIntersecting) {
-          setTimeout(() => setVisible(true), startDelay);
-          ob.disconnect();
-        }
-      },
-      { threshold: 0.2 }
-    );
-    ob.observe(el);
-    return () => ob.disconnect();
-  }, [startDelay]);
-
-  return (
-    <div ref={ref} style={style}>
-      {lines.map((line, i) => (
-        <div key={i} style={{ overflow: "hidden" }}>
-          <div
-            style={{
-              display: "block",
-              transform: visible ? "translateY(0%)" : "translateY(115%)",
-              opacity: visible ? 1 : 0,
-              transition: `transform 1s cubic-bezier(.16,1,.3,1) ${i * delayStep}ms, opacity .7s ease ${i * delayStep}ms`,
-            }}
-          >
-            {line}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-/* ─────────────────────────────────────────
-   Glitch text
-───────────────────────────────────────── */
-function Glitch({ children, className }: { children: string; className?: string }) {
+function Glitch({ children }: { children: string }) {
   const [glitching, setGlitching] = useState(false);
-  const glyphs = "01ｱｲｳｴｵ<>[]{}|\\";
+  const g = "01ｱｲｳｴｵ<>[]{}|\\";
   useEffect(() => {
     const id = setInterval(() => {
       setGlitching(true);
-      setTimeout(() => setGlitching(false), 120);
-    }, 3200 + Math.random() * 4000);
+      setTimeout(() => setGlitching(false), 110);
+    }, 3400 + Math.random() * 5000);
     return () => clearInterval(id);
   }, []);
-  if (!glitching) return <span className={className}>{children}</span>;
-  const corrupted = children.split("").map((c) =>
-    Math.random() > 0.6 ? glyphs[(Math.random() * glyphs.length) | 0] : c
-  ).join("");
-  return <span className={className} style={{ color: "#ff0040" }}>{corrupted}</span>;
+  if (!glitching) return <span>{children}</span>;
+  return <span style={{ color: "#ff0040" }}>{children.split("").map(c => Math.random() > 0.55 ? g[(Math.random() * g.length) | 0] : c).join("")}</span>;
 }
 
 /* ─────────────────────────────────────────
@@ -175,200 +122,126 @@ function Reveal({ children, className, delay = 0 }: { children: React.ReactNode;
   const [v, setV] = useState(false);
   useEffect(() => {
     const el = ref.current; if (!el) return;
-    const ob = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setV(true); ob.disconnect(); } }, { threshold: 0.1 });
-    ob.observe(el);
-    return () => ob.disconnect();
+    const ob = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setV(true); ob.disconnect(); } }, { threshold: 0.08 });
+    ob.observe(el); return () => ob.disconnect();
   }, []);
   return (
-    <div ref={ref} className={className} style={{ opacity: v ? 1 : 0, transform: v ? "none" : "translateY(28px)", transition: `opacity .9s cubic-bezier(.16,1,.3,1) ${delay}ms, transform .9s cubic-bezier(.16,1,.3,1) ${delay}ms` }}>
+    <div ref={ref} className={className} style={{ opacity: v ? 1 : 0, transform: v ? "none" : "translateY(24px)", transition: `opacity .9s cubic-bezier(.16,1,.3,1) ${delay}ms, transform .9s cubic-bezier(.16,1,.3,1) ${delay}ms` }}>
       {children}
     </div>
   );
 }
 
 /* ─────────────────────────────────────────
-   Preloader
+   Signal bars — nav indicator
 ───────────────────────────────────────── */
-function Preloader({ onDone }: { onDone: () => void }) {
-  const [n, setN] = useState(0);
-  const [out, setOut] = useState(false);
-  const [lineIdx, setLineIdx] = useState(0);
-  const lines = ["> INITIALIZING SYSTEM...", "> LOADING KERNEL MODULES...", "> ESTABLISHING SECURE CONNECTION...", "> DECRYPTING PAYLOAD...", "> ACCESS GRANTED."];
+function SignalBars() {
+  const [level, setLevel] = useState(4);
   useEffect(() => {
-    const t = setInterval(() => {
-      setN(prev => {
-        const next = Math.min(100, prev + Math.ceil((100 - prev) * 0.16) + 1);
-        if (next >= 100) { clearInterval(t); setTimeout(() => { setOut(true); setTimeout(onDone, 700); }, 400); }
-        return next;
-      });
-    }, 55);
-    const lt = setInterval(() => setLineIdx(p => Math.min(p + 1, lines.length - 1)), 600);
-    return () => { clearInterval(t); clearInterval(lt); };
+    const id = setInterval(() => setLevel(Math.random() > 0.15 ? 4 : 3), 2800 + Math.random() * 2000);
+    return () => clearInterval(id);
   }, []);
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 9999, background: "#000", transform: out ? "translateY(-101%)" : "none", transition: "transform .7s cubic-bezier(.76,0,.24,1)", display: "flex", flexDirection: "column" }}>
-      <div style={{ position: "absolute", inset: 0 }}>
-        <MatrixRain opacity={0.35} fontSize={14} color="#00ff41" trail="rgba(0,0,0,0.08)" speed={50} />
-      </div>
-      <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: 32, padding: 40 }}>
-        <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "clamp(12px,1.4vw,15px)", color: "#008f11", width: "min(480px,90vw)", lineHeight: 2 }}>
-          {lines.slice(0, lineIdx + 1).map((l, i) => (
-            <div key={i} style={{ color: i === lineIdx ? "#00ff41" : "#008f11" }}>{l}</div>
-          ))}
-        </div>
-        <div style={{ width: "min(480px,90vw)" }}>
-          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: "#008f11", letterSpacing: "0.16em", marginBottom: 8 }}>
-            LOADING [{n.toString().padStart(3, "0")}%]
-          </div>
-          <div style={{ height: 2, background: "#001a00", position: "relative", overflow: "hidden" }}>
-            <div style={{ position: "absolute", left: 0, top: 0, height: "100%", width: `${n}%`, background: "#00ff41", boxShadow: "0 0 12px #00ff41", transition: "width .05s" }} />
-          </div>
-        </div>
-        <div style={{ fontFamily: "'VT323', monospace", fontSize: "clamp(60px,14vw,160px)", color: "#00ff41", textShadow: "0 0 40px rgba(0,255,65,.5)", lineHeight: 1 }}>
-          {n}
-        </div>
-      </div>
-    </div>
+    <span style={{ display: "inline-flex", alignItems: "flex-end", gap: 2, marginLeft: 10 }}>
+      {[1, 2, 3, 4].map(b => (
+        <span key={b} style={{ width: 3, height: b * 3 + 1, background: b <= level ? "#00ff41" : "#003b00", display: "block", transition: "background .5s", boxShadow: b <= level ? "0 0 4px #00ff41" : "none" }} />
+      ))}
+    </span>
   );
 }
 
 /* ─────────────────────────────────────────
    Nav
 ───────────────────────────────────────── */
+const NAV_LINKS: [string, string][] = [["#services","Услуги"],["#ai","Консьерж"],["#price","Стоимость"],["#contact","Связаться"]];
+
 function Nav() {
   const [scrolled, setScrolled] = useState(false);
+  const [open, setOpen] = useState(false);
   useEffect(() => {
     const h = () => setScrolled(window.scrollY > 60);
-    window.addEventListener("scroll", h, { passive: true });
-    return () => window.removeEventListener("scroll", h);
+    window.addEventListener("scroll", h, { passive: true }); return () => window.removeEventListener("scroll", h);
   }, []);
+  const mono: React.CSSProperties = { fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase" };
   return (
-    <header style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 80, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px clamp(20px,5vw,90px)", borderBottom: scrolled ? "1px solid rgba(0,255,65,.15)" : "1px solid transparent", background: scrolled ? "rgba(0,0,0,.92)" : "transparent", backdropFilter: scrolled ? "blur(10px)" : "none", transition: "all .4s" }}>
-      <a href="#top" style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: 14, color: "#00ff41", letterSpacing: ".1em", textDecoration: "none" }}>
-        <span style={{ color: "#008f11" }}>[</span>З/С<span style={{ color: "#008f11" }}>]</span>
-      </a>
-      <nav style={{ display: "flex", gap: "clamp(14px,2.8vw,28px)", fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase" }}>
-        {[["#services","Услуги"],["#price","Стоимость"],["#process","Процесс"],["#contact","Связаться"]].map(([href, label]) => (
-          <a key={href} href={href} style={{ color: "#008f11", textDecoration: "none", transition: "color .2s" }}
-            onMouseEnter={e => (e.currentTarget.style.color = "#00ff41")}
-            onMouseLeave={e => (e.currentTarget.style.color = "#008f11")}>{label}</a>
-        ))}
-      </nav>
+    <header style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 80, borderBottom: scrolled || open ? "1px solid rgba(0,255,65,.14)" : "1px solid transparent", background: scrolled || open ? "rgba(0,0,0,.93)" : "transparent", backdropFilter: scrolled || open ? "blur(12px)" : "none", transition: "background .4s,border-color .4s" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "15px clamp(20px,5vw,90px)" }}>
+        <div style={{ display: "flex", alignItems: "center" }}>
+          <a href="#top" onClick={() => setOpen(false)} style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: 14, color: "#00ff41", letterSpacing: ".1em", textDecoration: "none" }}>
+            <span style={{ color: "#008f11" }}>[</span>З/С<span style={{ color: "#008f11" }}>]</span>
+          </a>
+          <SignalBars />
+        </div>
+        <nav className="nav-links" style={{ display: "flex", gap: "clamp(14px,2.8vw,28px)", ...mono }}>
+          {NAV_LINKS.map(([href, label]) => (
+            <a key={href} href={href} style={{ color: "#008f11", textDecoration: "none", transition: "color .2s" }}
+              onMouseEnter={e => (e.currentTarget.style.color = "#00ff41")}
+              onMouseLeave={e => (e.currentTarget.style.color = "#008f11")}>{label}</a>
+          ))}
+        </nav>
+        <button className="nav-toggle" onClick={() => setOpen(o => !o)} style={{ ...mono, display: "none", background: "transparent", border: "1px solid rgba(0,255,65,.35)", color: "#00ff41", padding: "6px 10px", cursor: "pointer" }}>
+          [ {open ? "×" : "MENU"} ]
+        </button>
+      </div>
+      {open && (
+        <nav className="nav-mobile-panel" style={{ display: "flex", flexDirection: "column", padding: "4px clamp(20px,5vw,90px) 18px" }}>
+          {NAV_LINKS.map(([href, label]) => (
+            <a key={href} href={href} onClick={() => setOpen(false)} style={{ ...mono, color: "#00ff41", textDecoration: "none", padding: "13px 0", borderTop: "1px solid rgba(0,255,65,.1)" }}>{label}</a>
+          ))}
+        </nav>
+      )}
     </header>
-  );
-}
-
-/* ─────────────────────────────────────────
-   Split-text reveal: слова разлетаются и
-   собираются на месте при входе в вьюпорт
-───────────────────────────────────────── */
-function SplitReveal({ text }: { text: string }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const ob = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { setVisible(true); ob.disconnect(); } },
-      { threshold: 0.4 }
-    );
-    ob.observe(el);
-    return () => ob.disconnect();
-  }, []);
-
-  const words = text.split(" ");
-  function rand(i: number, seed: number) {
-    const x = Math.sin(i * 127.1 + seed * 311.7) * 43758.5453;
-    return x - Math.floor(x);
-  }
-
-  return (
-    <div ref={ref} style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "0.32em" }}>
-      {words.map((w, i) => {
-        const dx = (rand(i, 1) - 0.5) * 260;
-        const dy = (rand(i, 2) - 0.5) * 180;
-        const rot = (rand(i, 3) - 0.5) * 46;
-        return (
-          <span
-            key={i}
-            style={{
-              display: "inline-block",
-              transform: visible ? "none" : `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px) rotate(${rot.toFixed(1)}deg)`,
-              opacity: visible ? 1 : 0,
-              filter: visible ? "blur(0px)" : "blur(7px)",
-              transition: `transform 1s cubic-bezier(.16,1,.3,1) ${i * 70}ms, opacity .7s ease ${i * 70}ms, filter .7s ease ${i * 70}ms`,
-            }}
-          >
-            {w}
-          </span>
-        );
-      })}
-    </div>
-  );
-}
-
-/* ─────────────────────────────────────────
-   Второй блок — появляется сразу после того,
-   как голова полностью повернулась к анфасу
-───────────────────────────────────────── */
-function SignalBlock() {
-  return (
-    <section
-      style={{
-        position: "relative",
-        zIndex: 2,
-        overflow: "hidden",
-        borderTop: "1px solid rgba(0,255,65,.18)",
-        padding: "clamp(90px,16vh,180px) clamp(20px,5vw,90px)",
-        // Наезжает на хвост предыдущего блока (те же 28% скролла,
-        // за которые растворяется лицо) — второй блок "накрывает"
-        // первый как штора, а не выезжает снизу отдельным куском,
-        // из-за чего был виден обычный "лист" страницы.
-        marginTop: "-28vh",
-      }}
-    >
-      <div style={{ position: "absolute", inset: 0 }}>
-        <MatrixRain opacity={0.1} fontSize={13} color="#00ff41" trail="rgba(0,0,0,.05)" speed={80} />
-      </div>
-      <div style={{ position: "relative", zIndex: 1, fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: "clamp(28px,6.2vw,92px)", lineHeight: 1.05, letterSpacing: "-.03em", color: "#00ff41", textShadow: "0 0 30px rgba(0,255,65,.35)", textAlign: "center" }}>
-        <SplitReveal text="Каждый пиксель — на своём месте." />
-      </div>
-    </section>
   );
 }
 
 /* ─────────────────────────────────────────
    Hero
 ───────────────────────────────────────── */
+const DEAD_PIXELS = [{ top: "28%", left: "9%" }, { top: "71%", left: "82%" }, { top: "44%", left: "58%" }, { top: "17%", left: "73%" }, { top: "88%", left: "22%" }];
+
 function Hero() {
-  // Hero рендерится ниже Portrait и раньше почти дословно повторял его фразу
-  // ("Сайт — это инструмент, а не просто картинка") — заменено на отдельную
-  // мысль о результате. Имя не дублируем: оно уже есть в абзаце ниже.
-  const headlineLines = ["Результат,", "который", "видно", "сразу."];
+  const headline = useDecrypt("Сайт — это инструмент,\nа не просто картинка.", true);
+  const [cur, setCur] = useState(true);
+  const [mouse, setMouse] = useState({ x: 0, y: 0 });
+  const secRef = useRef<HTMLElement>(null);
+  useEffect(() => { const id = setInterval(() => setCur(p => !p), 550); return () => clearInterval(id); }, []);
+  const onMouseMove = (e: React.MouseEvent) => {
+    const r = secRef.current?.getBoundingClientRect();
+    if (r) setMouse({ x: Math.round(e.clientX - r.left), y: Math.round(e.clientY - r.top) });
+  };
   return (
-    <section style={{ position: "relative", minHeight: "100svh", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "clamp(120px,18vh,200px) clamp(20px,5vw,90px) 0", overflow: "hidden" }}>
+    <section ref={secRef} onMouseMove={onMouseMove} style={{ position: "relative", minHeight: "100svh", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "clamp(120px,18vh,200px) clamp(20px,5vw,90px) 0", overflow: "hidden" }}>
       <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
-        <MatrixRain opacity={0.12} fontSize={14} color="#00ff41" trail="rgba(0,0,0,.06)" speed={60} />
+        <MatrixRain opacity={0.13} fontSize={14} color="#00ff41" trail="rgba(0,0,0,.055)" speed={58} />
       </div>
-      {/* scanlines */}
-      <div style={{ position: "absolute", inset: 0, zIndex: 1, pointerEvents: "none", background: "repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.08) 2px,rgba(0,0,0,.08) 4px)" }} />
-      {/* HUD */}
-      <div style={{ position: "absolute", top: "clamp(80px,13vh,140px)", left: "clamp(20px,5vw,90px)", right: "clamp(20px,5vw,90px)", display: "flex", justifyContent: "space-between", fontFamily: "'JetBrains Mono',monospace", fontSize: 10, letterSpacing: ".14em", textTransform: "uppercase", color: "rgba(0,255,65,.3)", zIndex: 2, pointerEvents: "none" }}>
-        <span>SYS.<span style={{ color: "#00ff41" }}>ONLINE</span> · UPTIME 05Y</span>
+      <NoiseOverlay />
+      {/* Dead pixel artifacts */}
+      {DEAD_PIXELS.map((p, i) => (
+        <div key={i} style={{ position: "absolute", width: 2, height: 2, background: "#00ff41", boxShadow: "0 0 3px #00ff41", zIndex: 1, pointerEvents: "none", animation: `hudBlink ${3.5 + i * 1.4}s steps(1) infinite ${i * 0.8}s`, ...p }} />
+      ))}
+      {/* Scanlines */}
+      <div style={{ position: "absolute", inset: 0, zIndex: 1, pointerEvents: "none", background: "repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.07) 2px,rgba(0,0,0,.07) 4px)" }} />
+      {/* HUD corners */}
+      <div style={{ position: "absolute", top: "clamp(80px,13vh,140px)", left: "clamp(20px,5vw,90px)", right: "clamp(20px,5vw,90px)", display: "flex", justifyContent: "space-between", fontFamily: "'JetBrains Mono',monospace", fontSize: 10, letterSpacing: ".14em", textTransform: "uppercase", color: "rgba(0,255,65,.28)", zIndex: 2, pointerEvents: "none" }}>
+        <span>SYS.<span style={{ color: "#00ff41", animation: "hudBlink 8s steps(1) infinite" }}>ONLINE</span> · UPTIME 05Y</span>
         <span style={{ textAlign: "right" }}>55.7522° N · 37.6156° E<br />BUILD 2026.08</span>
       </div>
+      {/* Mouse coordinates */}
+      <div style={{ position: "absolute", bottom: "clamp(80px,12vh,120px)", right: "clamp(20px,5vw,90px)", fontFamily: "'JetBrains Mono',monospace", fontSize: 9, letterSpacing: ".14em", color: "rgba(0,255,65,.22)", zIndex: 2, pointerEvents: "none", textTransform: "uppercase" }}>
+        CURSOR [{mouse.x.toString().padStart(4, "0")}, {mouse.y.toString().padStart(4, "0")}]
+      </div>
       <div style={{ position: "relative", zIndex: 2 }}>
-        <h1 style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: "clamp(30px,5.6vw,88px)", lineHeight: 1.05, letterSpacing: "-.02em", color: "#00ff41", animation: "neonPulse 4s ease-in-out infinite", maxWidth: "20ch" }}>
-          <MaskReveal lines={headlineLines} delayStep={110} />
+        <h1 style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: "clamp(28px,5.4vw,86px)", lineHeight: 1.06, letterSpacing: "-.02em", color: "#00ff41", animation: "neonPulse 4.5s ease-in-out infinite", maxWidth: "22ch", whiteSpace: "pre-line" }}>
+          {headline}<span style={{ opacity: cur ? 1 : 0 }}>_</span>
         </h1>
       </div>
-      <div style={{ position: "relative", zIndex: 2, display: "grid", gridTemplateColumns: "1fr auto", gap: 30, alignItems: "end", borderTop: "1px solid rgba(0,255,65,.18)", padding: "22px 0 26px", marginTop: "clamp(36px,8vh,80px)" }}>
-        <p style={{ maxWidth: "44ch", fontSize: 14, color: "#008f11", fontFamily: "'JetBrains Mono',monospace", lineHeight: 1.6 }}>
+      <div style={{ position: "relative", zIndex: 2, display: "grid", gridTemplateColumns: "1fr auto", gap: 30, alignItems: "end", borderTop: "1px solid rgba(0,255,65,.16)", padding: "22px 0 26px", marginTop: "clamp(36px,8vh,80px)" }}>
+        <p style={{ maxWidth: "44ch", fontSize: 13.5, color: "#008f11", fontFamily: "'JetBrains Mono',monospace", lineHeight: 1.65 }}>
           Меня зовут Сергей Захаров. Пять лет делаю сайты для малого бизнеса — от визитки на один экран до многостраничного каталога. Дизайн, вёрстка, запуск и поддержка: со мной, а не с шестью подрядчиками.
         </p>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "#008f11" }}>Листайте</span>
-          <span style={{ width: 56, height: 1, background: "#003b00", position: "relative", overflow: "hidden", display: "block" }}>
+          <span style={{ width: 48, height: 1, background: "#003b00", position: "relative", overflow: "hidden", display: "block" }}>
             <span style={{ position: "absolute", inset: 0, background: "#00ff41", animation: "slideBar 2s linear infinite" }} />
           </span>
         </div>
@@ -378,291 +251,151 @@ function Hero() {
 }
 
 /* ─────────────────────────────────────────
-   3D Portrait — scroll-driven rotation
-   Simulates a full 180° turntable via
-   CSS perspective + rotateY driven by
-   IntersectionObserver + scroll progress.
+   Decode Stream Divider — replaces Ticker
+   Instead of a smooth oscilloscope curve,
+   a flat row of matrix glyphs flickers at
+   random and a "decode head" sweeps across,
+   resolving nearby characters to solid bright
+   green — same code-rain language as the rest
+   of the site, laid on its side, no wave shape.
 ───────────────────────────────────────── */
-function Portrait() {
-  const sectionRef = useRef<HTMLDivElement>(null);
-  const cardRef = useRef<HTMLDivElement>(null);
-  const imgRef = useRef<HTMLImageElement>(null);
-  const scanRef = useRef<HTMLDivElement>(null);
-  const pctRef = useRef<HTMLSpanElement>(null);
-  const capRef = useRef<HTMLSpanElement>(null);
-  const hudRef = useRef<HTMLDivElement>(null);
-  const bigRef = useRef<HTMLDivElement>(null);
-  const dissolveRef = useRef<HTMLDivElement>(null);
-
-  const caps = [
-    "Пять лет в вёрстке и дизайне.",
-    "Работаю один: без менеджеров и потерянных писем.",
-    "Каждый проект — с нуля, без готовых шаблонов.",
-    "Сдаю сайт, которым вы управляете сами.",
-  ];
-
-  // Крупный текст поверх фото — как на референсе, идёт прямо над лицом.
-  // Это первый экран сайта (Portrait рендерится раньше Hero) — фразу
-  // "Сайт — это инструмент, а не просто картинка" оставляем как есть.
-  const bigCaps = [
-    "Сайт — это",
-    "не просто картинка.",
-    "Это инструмент,",
-    "который продаёт.",
-  ];
-
-  // Реальная последовательность кадров: 001 = затылок (размыто), 073 = анфас (чётко)
-  const FRAME_COUNT = 73;
-  const frameUrl = (n: number) => `${import.meta.env.BASE_URL}turntable/frame_${String(n).padStart(3, "0")}.jpg`;
+function DecodeStreamDivider() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const readoutRef = useRef<HTMLSpanElement>(null);
+  const headRef = useRef(0);
 
   useEffect(() => {
-    // предзагрузка всех кадров, чтобы вращение было плавным без подгрузок на скролле
-    const imgs: HTMLImageElement[] = [];
-    for (let i = 1; i <= FRAME_COUNT; i++) {
-      const im = new Image();
-      im.src = frameUrl(i);
-      imgs.push(im);
+    const canvas = canvasRef.current; if (!canvas) return;
+    const ctx = canvas.getContext("2d")!;
+    const chars = "01ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎ<>/\\{}|·+—=".split("");
+    const cell = 15;
+    let w = 0, h = 0, cols = 0, cells: string[] = [], raf = 0, last = 0;
+
+    function resize() {
+      const dpr = Math.min(2, devicePixelRatio || 1);
+      w = canvas!.offsetWidth; h = canvas!.offsetHeight;
+      canvas!.width = w * dpr; canvas!.height = h * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      cols = Math.max(1, Math.floor(w / cell));
+      cells = Array.from({ length: cols }, () => chars[(Math.random() * chars.length) | 0]);
     }
 
-    const section = sectionRef.current;
-    const card = cardRef.current;
-    const scan = scanRef.current;
-    const imgEl = imgRef.current;
-    if (!section || !card || !imgEl) return;
+    function draw(t: number) {
+      raf = requestAnimationFrame(draw);
+      if (t - last < 60) return; last = t;
+      ctx.clearRect(0, 0, w, h);
+      ctx.font = `${cell - 2}px "JetBrains Mono", monospace`;
+      ctx.textBaseline = "middle";
 
-    let raf = 0;
-    let lastCap = -1;
-    let lastFrame = -1;
-    let lastBigIdx = -1;
+      const span = cols + 40;
+      headRef.current += 0.7;
+      const headPos = (headRef.current % span) - 20;
 
-    function renderBigWords(text: string) {
-      const big = bigRef.current;
-      if (!big) return;
-      // Важно: внутри flex-контейнера текстовый узел из одних пробелов
-      // считается "пустым" и схлопывается в 0 — слова слипаются
-      // ("Это инструмент," превращается в "Этоинструмент,").
-      // &nbsp; не схлопывается, поэтому пробел между словами сохраняется.
-      big.innerHTML = text
-        .split(" ")
-        .map((w) => `<span style="display:inline-block;will-change:transform">${w}</span>`)
-        .join("&nbsp;");
+      for (let i = 0; i < cols; i++) {
+        if (Math.random() < 0.05) cells[i] = chars[(Math.random() * chars.length) | 0];
+        const dist = Math.abs(i - headPos);
+        const resolved = dist < 5;
+        const near = dist < 13;
+        ctx.shadowBlur = resolved ? 8 : 0;
+        ctx.shadowColor = "#00ff41";
+        ctx.fillStyle = resolved ? "#ffffff" : near ? "#00ff41" : "rgba(0,255,65,.2)";
+        ctx.fillText(cells[i], i * cell + 2, h / 2);
+      }
+      ctx.shadowBlur = 0;
+
+      const hx = headPos * cell;
+      const grad = ctx.createLinearGradient(hx - 34, 0, hx + 34, 0);
+      grad.addColorStop(0, "rgba(0,255,65,0)");
+      grad.addColorStop(0.5, "rgba(0,255,65,.3)");
+      grad.addColorStop(1, "rgba(0,255,65,0)");
+      ctx.fillStyle = grad;
+      ctx.fillRect(hx - 34, 0, 68, h);
+
+      if (readoutRef.current) {
+        const pct = Math.max(0, Math.min(99.9, ((headRef.current % span) / span) * 100));
+        const sync = Math.floor((headRef.current * 137) % 0xffff).toString(16).toUpperCase().padStart(4, "0");
+        readoutRef.current.textContent = `PACKETS ${Math.floor(48213 + headRef.current * 37).toString().padStart(6, "0")} · SYNC 0x${sync} · INTEGRITY ${pct.toFixed(1)}%`;
+      }
     }
 
-    function bigTextFrame(p: number) {
-      const big = bigRef.current;
-      if (!big) return;
-      const segments = bigCaps.length;
-      const segLen = 1 / segments;
-      const idx = Math.min(segments - 1, Math.floor(p * segments));
-      if (idx !== lastBigIdx) {
-        lastBigIdx = idx;
-        renderBigWords(bigCaps[idx]);
-      }
-      const localP = (p - idx * segLen) / segLen;
-
-      let scale: number, blur: number, opacity: number, rotX: number, spread = 0;
-      if (localP < 0.3) {
-        const q = localP / 0.3;
-        scale = 0.55 + q * 0.45; blur = (1 - q) * 14; opacity = q; rotX = (1 - q) * 18;
-      } else if (localP < 0.7) {
-        scale = 1; blur = 0; opacity = 1; rotX = 0;
-      } else {
-        // Важно: последняя фраза тоже обязана погаснуть к концу блока —
-        // раньше она "залипала" на экране (opacity всегда 1) и не убиралась
-        // при скролле ни в вебе, ни в мобильной версии. Теперь она гаснет
-        // так же, как остальные, и полностью исчезает к p=1.
-        const q2 = (localP - 0.7) / 0.3;
-        scale = 1 + q2 * 0.5; blur = q2 * 10; opacity = 1 - q2; rotX = -q2 * 10;
-        spread = q2 * 70;
-      }
-      big.style.transform = `perspective(1200px) rotateX(${rotX.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
-      big.style.filter = `blur(${blur.toFixed(2)}px)`;
-      big.style.opacity = opacity.toFixed(3);
-
-      const spans = big.querySelectorAll<HTMLSpanElement>("span");
-      const n = spans.length;
-      spans.forEach((el, i) => {
-        const offset = i - (n - 1) / 2;
-        el.style.transform = `translateX(${(offset * spread).toFixed(1)}px)`;
-      });
-    }
-
-    function onScroll() {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(update);
-    }
-
-    function update() {
-      const rect = section!.getBoundingClientRect();
-      const vh = window.innerHeight;
-      const total = section!.offsetHeight - vh;
-      const p = Math.min(1, Math.max(0, -rect.top / total));
-
-      // Поворот на 180°: от затылка (размыто) к анфасу (чётко) —
-      // качество только нарастает по мере скролла, без отката назад
-      const frameIdx = 1 + Math.round(p * (FRAME_COUNT - 1));
-      if (frameIdx !== lastFrame) {
-        lastFrame = frameIdx;
-        imgEl!.src = frameUrl(frameIdx);
-      }
-
-      const blur = (1 - p) * 9;
-      const scale = 0.88 + p * 0.12;
-
-      // Лицо полностью растворяется в последние 28% скролла блока —
-      // остаётся только текст, из которого "проступает" следующий блок,
-      // как на somyajain.com.
-      const faceOut = Math.min(1, Math.max(0, (p - 0.72) / 0.28));
-      const faceOpacity = 1 - faceOut;
-
-      card!.style.transform = `scale(${scale.toFixed(3)})`;
-      imgEl!.style.filter = `blur(${blur.toFixed(2)}px) contrast(1.06)`;
-      imgEl!.style.opacity = faceOpacity.toFixed(3);
-
-      // Дождь из символов проступает по мере того, как гаснет фото —
-      // лицо буквально "рассыпается" на матричный код
-      if (dissolveRef.current) dissolveRef.current.style.opacity = faceOut.toFixed(3);
-
-      const tintEl = card!.querySelector<HTMLDivElement>(".portrait-tint");
-      if (tintEl) tintEl.style.opacity = String((((1 - p) * 0.45) * faceOpacity).toFixed(3));
-
-      // Рамка/уголки/скан-линия гаснут вместе с лицом — весь "фото-блок"
-      // растворяется целиком, а не только картинка внутри него
-      const frameEls = card!.querySelectorAll<HTMLDivElement>(".portrait-frame-el");
-      frameEls.forEach((el) => { el.style.opacity = faceOpacity.toFixed(3); });
-
-      // scan line
-      if (scan) {
-        scan.style.transform = `translateY(${(p * 500 % 100).toFixed(2)}%)`;
-        scan.style.opacity = p > 0.95 ? "0" : (0.7 * faceOpacity).toFixed(3);
-      }
-
-      // percent counter
-      if (pctRef.current) pctRef.current.textContent = Math.round(p * 100) + "%";
-
-      // caption cycling
-      const idx = Math.min(caps.length - 1, Math.floor(p * caps.length));
-      if (idx !== lastCap && capRef.current) {
-        lastCap = idx;
-        capRef.current.textContent = caps[idx];
-      }
-
-      // HUD (имя/подпись/процент) гасим раньше и быстрее, чем лицо: SignalBlock
-      // "наезжает" на последние 28% этого блока (marginTop:-28vh) — если HUD-текст
-      // не убрать заранее, его подпись визуально накладывается на заголовок
-      // "Каждый пиксель — на своём месте" из следующего блока.
-      const hudOut = Math.min(1, Math.max(0, (p - 0.55) / 0.3));
-      if (hudRef.current) hudRef.current.style.opacity = (1 - hudOut).toFixed(3);
-
-      bigTextFrame(p);
-    }
-
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    update();
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-    };
+    resize(); window.addEventListener("resize", resize); raf = requestAnimationFrame(draw);
+    return () => { cancelAnimationFrame(raf); window.removeEventListener("resize", resize); };
   }, []);
 
+  const mono: React.CSSProperties = { fontFamily: "'JetBrains Mono',monospace", letterSpacing: ".13em", textTransform: "uppercase" };
   return (
-    <section id="portrait-scene" ref={sectionRef} style={{ position: "relative", zIndex: 1, height: "200vh" }}>
-      {/* Sticky stage */}
-      <div style={{ position: "sticky", top: 0, height: "100svh", overflow: "hidden", display: "grid", placeItems: "center" }}>
-        {/* Full-bleed matrix rain */}
-        <div style={{ position: "absolute", inset: 0 }}>
-          <MatrixRain opacity={0.22} fontSize={14} color="#00ff41" trail="rgba(0,0,0,.07)" speed={55} />
+    <div style={{ position: "relative", height: 76, background: "#000", borderTop: "1px solid rgba(0,255,65,.13)", borderBottom: "1px solid rgba(0,255,65,.13)", overflow: "hidden" }}>
+      <canvas ref={canvasRef} style={{ display: "block", width: "100%", height: "100%" }} />
+      <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 clamp(20px,5vw,90px)", pointerEvents: "none" }}>
+        <span style={{ ...mono, fontSize: 10, color: "rgba(0,255,65,.55)" }}>STREAM_IN ▶</span>
+        <span ref={readoutRef} style={{ ...mono, fontSize: 9, color: "rgba(0,255,65,.28)" }}>PACKETS 048213 · SYNC 0x4F2A · INTEGRITY 0.0%</span>
+        <span style={{ ...mono, fontSize: 10, color: "rgba(0,255,65,.55)" }}>▶ STREAM_OUT</span>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────
+   Mission — staggered manifesto
+   Each line at a different x-offset,
+   decrypts in on scroll entry.
+───────────────────────────────────────── */
+function Mission() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [active, setActive] = useState(false);
+  useEffect(() => {
+    const el = ref.current; if (!el) return;
+    const ob = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setActive(true); ob.disconnect(); } }, { threshold: 0.15 });
+    ob.observe(el); return () => ob.disconnect();
+  }, []);
+
+  const stmt = useDecrypt("Я превращаю бизнес\nв цифровой актив.", active, 30);
+  const sub = useDecrypt("Один исполнитель — одна точка ответственности — один результат.", active && stmt.includes("актив"), 22);
+
+  const lines = [
+    { t: "Не картинка.", pad: "0" },
+    { t: "Инструмент.", pad: "clamp(28px,5vw,80px)" },
+    { t: "Который продаёт.", pad: "clamp(14px,2.5vw,40px)" },
+    { t: "Пока вы спите.", pad: "clamp(42px,7vw,110px)" },
+  ];
+  const [shown, setShown] = useState<boolean[]>([false, false, false, false]);
+  useEffect(() => {
+    if (!active) return;
+    lines.forEach((_, i) => setTimeout(() => setShown(p => { const n = [...p]; n[i] = true; return n; }), 600 + i * 220));
+  }, [active]);
+
+  return (
+    <section style={{ padding: "clamp(90px,14vh,160px) clamp(20px,5vw,90px)", background: "#000", position: "relative", overflow: "hidden" }}>
+      <div style={{ position: "absolute", inset: 0 }}>
+        <MatrixRain opacity={0.06} fontSize={14} color="#00ff41" trail="rgba(0,0,0,.04)" speed={90} />
+      </div>
+      {/* Vertical label */}
+      <div style={{ position: "absolute", left: "clamp(20px,5vw,90px)", top: "50%", transform: "translateY(-50%) rotate(-90deg)", transformOrigin: "center center", fontFamily: "'JetBrains Mono',monospace", fontSize: 10, letterSpacing: ".22em", textTransform: "uppercase", color: "rgba(0,255,65,.2)", whiteSpace: "nowrap", pointerEvents: "none" }}>
+        МИССИЯ · MISSION · МИССИЯ
+      </div>
+
+      <div ref={ref} style={{ position: "relative", zIndex: 1, paddingLeft: "clamp(20px,4vw,60px)" }}>
+        {/* Main decrypt statement */}
+        <div style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: "clamp(32px,6vw,96px)", lineHeight: 1.0, letterSpacing: "-.03em", color: "#00ff41", animation: active ? "neonPulse 5s ease-in-out infinite" : "none", whiteSpace: "pre-line", marginBottom: "clamp(40px,7vh,80px)" }}>
+          {stmt}<span style={{ opacity: active && !stmt.includes("актив") ? 1 : 0 }}>_</span>
         </div>
 
-        {/* Grid overlay */}
-        <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(0,255,65,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,65,.05) 1px,transparent 1px)", backgroundSize: "80px 80px" }} />
-
-        {/* Scanlines */}
-        <div style={{ position: "absolute", inset: 0, zIndex: 1, pointerEvents: "none", background: "repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.07) 2px,rgba(0,0,0,.07) 4px)" }} />
-
-        {/* Background word */}
-        <div style={{ position: "absolute", left: 0, right: 0, textAlign: "center", fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: "clamp(60px,16vw,240px)", lineHeight: 1, letterSpacing: "-.05em", color: "transparent", WebkitTextStroke: "1px rgba(0,255,65,.08)", whiteSpace: "nowrap", userSelect: "none" }}>
-          DESIGN · CODE · LAUNCH · WEB ·
-        </div>
-
-        {/* The 3D card — теперь настоящая последовательность кадров */}
-        <div ref={cardRef} style={{ position: "relative", width: "min(90vw,680px)", aspectRatio: "3/4", willChange: "transform", zIndex: 4, border: "1px solid rgba(0,255,65,.28)", animation: "borderGlow 3.2s ease-in-out infinite" }}>
-          {/* Кадры вращения */}
-          <img
-            ref={imgRef}
-            src={frameUrl(1)}
-            alt="Сергей Захаров — веб-разработчик"
-            draggable={false}
-            style={{
-              width: "100%", height: "100%", objectFit: "cover",
-              display: "block", userSelect: "none", pointerEvents: "none",
-              maskImage: "radial-gradient(160% 155% at 50% 42%,#000 48%,rgba(0,0,0,.35) 76%,transparent 100%)",
-              WebkitMaskImage: "radial-gradient(160% 155% at 50% 42%,#000 48%,rgba(0,0,0,.35) 76%,transparent 100%)",
-            }}
-          />
-
-          {/* Матричный "растворитель" — закрыт той же маской, что и фото,
-              так что дождь из символов проступает ровно по силуэту лица
-              и нарастает по мере того, как фото гаснет (см. update()) */}
-          <div
-            ref={dissolveRef}
-            style={{
-              position: "absolute", inset: 0, zIndex: 3, pointerEvents: "none", opacity: 0,
-              maskImage: "radial-gradient(160% 155% at 50% 42%,#000 48%,rgba(0,0,0,.35) 76%,transparent 100%)",
-              WebkitMaskImage: "radial-gradient(160% 155% at 50% 42%,#000 48%,rgba(0,0,0,.35) 76%,transparent 100%)",
-            }}
-          >
-            <MatrixRain opacity={1} fontSize={11} color="#00ff41" trail="rgba(0,0,0,.12)" speed={35} />
-          </div>
-
-          {/* Крупный текст поверх фото — размыто→чётко→расходится */}
-          <div
-            ref={bigRef}
-            style={{
-              position: "absolute", inset: 0, zIndex: 6, pointerEvents: "none",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              textAlign: "center", padding: "0 6%",
-              fontFamily: "'JetBrains Mono',monospace", fontWeight: 700,
-              fontSize: "clamp(22px,4.4vw,42px)", lineHeight: 1.15, letterSpacing: "-.02em",
-              color: "#00ff41", textShadow: "0 0 24px rgba(0,255,65,.55), 0 4px 30px rgba(0,0,0,.6)",
-            }}
-          />
-
-          {/* Green matrix colour-grade tint */}
-          <div className="portrait-tint" style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(0,255,65,.0) 0%, rgba(0,255,65,.55) 100%)", mixBlendMode: "color", opacity: 0.45, pointerEvents: "none" }} />
-
-          {/* Scan line */}
-          <div ref={scanRef} style={{ position: "absolute", left: 0, right: 0, height: 2, background: "#00ff41", boxShadow: "0 0 24px 4px rgba(0,255,65,.7)", top: 0, opacity: 0.7, willChange: "transform" }} />
-
-          {/* Glitch horizontal slice — random flicker */}
-          <div className="portrait-frame-el" style={{ position: "absolute", inset: 0, zIndex: 4, pointerEvents: "none", overflow: "hidden", animation: "glitchSlice 6s steps(1) infinite" }} />
-
-          {/* Corner brackets */}
-          {[
-            { top: 0, left: 0, borderTop: "1px solid #00ff41", borderLeft: "1px solid #00ff41" },
-            { top: 0, right: 0, borderTop: "1px solid #00ff41", borderRight: "1px solid #00ff41" },
-            { bottom: 0, left: 0, borderBottom: "1px solid #00ff41", borderLeft: "1px solid #00ff41" },
-            { bottom: 0, right: 0, borderBottom: "1px solid #00ff41", borderRight: "1px solid #00ff41" },
-          ].map((s, i) => (
-            <div key={i} className="portrait-frame-el" style={{ position: "absolute", width: 20, height: 20, ...s }} />
+        {/* Staggered manifesto lines */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "clamp(6px,1.2vh,14px)", marginBottom: "clamp(44px,8vh,90px)" }}>
+          {lines.map((l, i) => (
+            <div key={i} style={{ paddingLeft: l.pad, opacity: shown[i] ? 1 : 0, transform: shown[i] ? "none" : "translateX(-16px)", transition: "opacity .7s cubic-bezier(.16,1,.3,1), transform .7s cubic-bezier(.16,1,.3,1)" }}>
+              <span style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: i % 2 === 0 ? 700 : 300, fontSize: "clamp(18px,2.8vw,42px)", color: i % 2 === 0 ? "#00ff41" : "transparent", WebkitTextStroke: i % 2 === 0 ? "0px" : "1px rgba(0,255,65,.6)", letterSpacing: "-.01em" }}>
+                {l.t}
+              </span>
+            </div>
           ))}
         </div>
 
-        {/* HUD overlay */}
-        <div ref={hudRef} style={{ position: "absolute", inset: 0, pointerEvents: "none", padding: "clamp(16px,3vh,40px) clamp(20px,5vw,60px)", display: "grid", gridTemplateRows: "auto 1fr auto", fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "#008f11", zIndex: 5 }}>
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <span style={{ animation: "hudBlink 7s steps(1) infinite" }}>Захаров Сергей</span>
-            <span style={{ animation: "hudBlink 11s steps(1) infinite 2s" }}>Разработчик · Москва</span>
-          </div>
-          <div />
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
-            <span ref={capRef} style={{ maxWidth: "30ch", textTransform: "none", letterSpacing: ".02em", fontSize: 13, color: "#00ff41", fontFamily: "'JetBrains Mono',monospace", lineHeight: 1.4 }}>
-              Пять лет в вёрстке и дизайне.
-            </span>
-            <span>Готовность <span ref={pctRef} style={{ color: "#00ff41" }}>0%</span></span>
-          </div>
+        {/* Sub-statement */}
+        <div style={{ borderLeft: "2px solid rgba(0,255,65,.3)", paddingLeft: "clamp(16px,2.5vw,32px)", maxWidth: "55ch" }}>
+          <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: "clamp(12px,1.3vw,16px)", color: "#008f11", lineHeight: 1.7, letterSpacing: ".02em" }}>
+            {sub}
+          </p>
         </div>
       </div>
     </section>
@@ -670,24 +403,120 @@ function Portrait() {
 }
 
 /* ─────────────────────────────────────────
-   Ticker
+   Process bar — block character fill
 ───────────────────────────────────────── */
-function Ticker() {
-  const items = ["Landing Pages", "Сайты-Визитки", "Каталоги", "Редизайн", "Поддержка", "Terminal_UI", "Web_Dev"];
+function ProcessBar({ target, delay, animate }: { target: number; delay: number; animate: boolean }) {
+  const [val, setVal] = useState(0);
+  const TOTAL = 14;
+  useEffect(() => {
+    if (!animate) return;
+    let interval: ReturnType<typeof setInterval>;
+    const t = setTimeout(() => {
+      interval = setInterval(() => {
+        setVal(v => {
+          const next = Math.min(target, v + 2);
+          if (next >= target) clearInterval(interval);
+          return next;
+        });
+      }, 18);
+    }, delay);
+    return () => { clearTimeout(t); clearInterval(interval); };
+  }, [animate, target, delay]);
+  const filled = Math.round(val / 100 * TOTAL);
   return (
-    <div style={{ background: "#00ff41", color: "#000", padding: "14px 0", overflow: "hidden", whiteSpace: "nowrap" }}>
-      <div style={{ display: "inline-flex", gap: 40, animation: "marqAnim 28s linear infinite", fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: "clamp(15px,2vw,25px)", letterSpacing: "-.02em" }}>
-        {[0, 1].map(rep => (
-          <span key={rep} style={{ display: "inline-flex", alignItems: "center", gap: 40 }}>
-            {items.map((item, i) => (
-              <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: 40 }}>
-                {item}<span style={{ color: "#003b00", fontSize: ".6em" }}>◆</span>
-              </span>
-            ))}
-          </span>
-        ))}
+    <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 12, letterSpacing: 1, color: val >= target ? "#00ff41" : "#008f11" }}>
+      {"█".repeat(filled)}{"░".repeat(TOTAL - filled)}
+    </span>
+  );
+}
+
+/* ─────────────────────────────────────────
+   AI Консьерж — htop process viewer
+   Completely original: services rendered
+   as a live terminal process list with
+   animated block-char progress bars.
+───────────────────────────────────────── */
+function AIConsierge() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [animate, setAnimate] = useState(false);
+  useEffect(() => {
+    const el = ref.current; if (!el) return;
+    const ob = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setAnimate(true); ob.disconnect(); } }, { threshold: 0.18 });
+    ob.observe(el); return () => ob.disconnect();
+  }, []);
+
+  const procs = [
+    { pid: "001", name: "захват_брифа............", fill: 100, delay: 0,    status: "DONE  ✓", desc: "AI разбирает ваш бизнес на части, до начала работы" },
+    { pid: "002", name: "анализ_конкурентов......", fill: 100, delay: 280,  status: "DONE  ✓", desc: "Понимаем контекст рынка, а не работаем в вакууме" },
+    { pid: "003", name: "персональный_дизайн.....", fill: 76,  delay: 560,  status: "ACTIVE", desc: "Решение под вас — без шаблонов из общего доступа" },
+    { pid: "004", name: "итерации_без_лимита.....", fill: 51,  delay: 840,  status: "RUNNING", desc: "Правки до результата, без доплат за каждый круг" },
+    { pid: "005", name: "поддержка_после_запуска.", fill: 22,  delay: 1120, status: "QUEUED", desc: "Остаюсь на связи — сайт живёт, а не стоит" },
+  ];
+
+  const mono: React.CSSProperties = { fontFamily: "'JetBrains Mono',monospace" };
+  const statusColor = (s: string) => s.startsWith("DONE") ? "#00ff41" : s === "ACTIVE" ? "#7dffaa" : s === "RUNNING" ? "#008f11" : "rgba(0,255,65,.35)";
+
+  return (
+    <section id="ai" style={{ padding: "clamp(80px,12vh,140px) clamp(20px,5vw,90px)", background: "#050f05", position: "relative", overflow: "hidden" }}>
+      {/* Decorative giant "AI" behind content */}
+      <div style={{ position: "absolute", top: "50%", left: "-3%", transform: "translateY(-50%)", ...mono, fontWeight: 700, fontSize: "clamp(160px,26vw,380px)", lineHeight: 0.82, color: "transparent", WebkitTextStroke: "1px rgba(0,255,65,.05)", letterSpacing: "-.04em", userSelect: "none", pointerEvents: "none" }}>
+        AI
       </div>
-    </div>
+
+      <div ref={ref} style={{ position: "relative", zIndex: 1 }}>
+        <Reveal>
+          <div style={{ display: "flex", gap: "clamp(16px,4vw,60px)", alignItems: "start", borderTop: "1px solid rgba(0,255,65,.18)", paddingTop: 20, marginBottom: "clamp(36px,6vh,64px)" }}>
+            <span style={{ ...mono, fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "#008f11", whiteSpace: "nowrap" }}>00 / Уникальность</span>
+            <div>
+              <h2 style={{ ...mono, fontWeight: 700, fontSize: "clamp(20px,3.4vw,50px)", letterSpacing: "-.02em", color: "#00ff41", lineHeight: 1.05, animation: "neonPulse 5s ease-in-out infinite 0.8s" }}>
+                AI-консьерж сервис —<br />уровень крупного агентства<br />
+                <span style={{ color: "#ff0040", WebkitTextStroke: "0px" }}>для одного клиента.</span>
+              </h2>
+              <p style={{ ...mono, fontSize: 13, color: "#008f11", lineHeight: 1.7, maxWidth: "52ch", marginTop: 16 }}>
+                Каждый проект проходит через AI-анализ брифа — я вижу задачу глубже, чем вы её описываете. Никаких шаблонов, никаких очередей.
+              </p>
+            </div>
+          </div>
+        </Reveal>
+
+        {/* Terminal process viewer */}
+        <Reveal delay={100}>
+          <div style={{ border: "1px solid rgba(0,255,65,.2)", animation: "borderGlow 4s ease-in-out infinite" }}>
+            {/* Terminal chrome */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 16px", borderBottom: "1px solid rgba(0,255,65,.15)", background: "#0a1a0a" }}>
+              <div style={{ display: "flex", gap: 7 }}>
+                {["#ff5f57","#ffbd2e","#28c840"].map((c, i) => <span key={i} style={{ width: 9, height: 9, borderRadius: "50%", background: c, display: "block" }} />)}
+                <span style={{ ...mono, fontSize: 10, color: "#008f11", letterSpacing: ".14em", marginLeft: 8 }}>~/ai-concierge/ps_aux</span>
+              </div>
+              <span style={{ ...mono, fontSize: 10, color: "#ff0040", letterSpacing: ".1em" }}>VER 2.0 ●</span>
+            </div>
+            {/* Table header */}
+            <div style={{ display: "grid", gridTemplateColumns: "44px 1fr 210px 90px", gap: "0 clamp(12px,2vw,28px)", padding: "10px 16px 8px", borderBottom: "1px solid rgba(0,255,65,.1)", ...mono, fontSize: 10, letterSpacing: ".14em", textTransform: "uppercase", color: "rgba(0,255,65,.35)" }}>
+              <span>PID</span><span>СЕРВИС</span><span>ПРОГРЕСС</span><span>СТАТУС</span>
+            </div>
+            {/* Process rows */}
+            {procs.map((p, i) => (
+              <div key={p.pid} style={{ display: "grid", gridTemplateColumns: "44px 1fr 210px 90px", gap: "0 clamp(12px,2vw,28px)", padding: "14px 16px", borderBottom: i < procs.length - 1 ? "1px solid rgba(0,255,65,.07)" : "none", alignItems: "center", background: i % 2 === 0 ? "rgba(0,255,65,.015)" : "transparent", transition: "background .3s" }}
+                onMouseEnter={e => (e.currentTarget.style.background = "rgba(0,255,65,.04)")}
+                onMouseLeave={e => (e.currentTarget.style.background = i % 2 === 0 ? "rgba(0,255,65,.015)" : "transparent")}>
+                <span style={{ ...mono, fontSize: 11, color: "rgba(0,255,65,.35)" }}>{p.pid}</span>
+                <div>
+                  <span style={{ ...mono, fontSize: 12, color: "#008f11" }}>{p.name}</span>
+                  <div style={{ ...mono, fontSize: 11, color: "rgba(0,255,65,.3)", marginTop: 3 }}>{p.desc}</div>
+                </div>
+                <ProcessBar target={p.fill} delay={p.delay} animate={animate} />
+                <span style={{ ...mono, fontSize: 10, color: statusColor(p.status), letterSpacing: ".06em" }}>{p.status}</span>
+              </div>
+            ))}
+            {/* Footer line */}
+            <div style={{ padding: "10px 16px", borderTop: "1px solid rgba(0,255,65,.1)", ...mono, fontSize: 10, color: "rgba(0,255,65,.3)", letterSpacing: ".12em", textTransform: "uppercase", display: "flex", justifyContent: "space-between" }}>
+              <span>5 SERVICES · UPTIME 5 YRS</span>
+              <span>EXIT CODE: 0 · MEMORY: 0 LEAKED</span>
+            </div>
+          </div>
+        </Reveal>
+      </div>
+    </section>
   );
 }
 
@@ -698,7 +527,7 @@ function TerminalBox({ title, children }: { title: string; children: React.React
   return (
     <div style={{ border: "1px solid rgba(0,255,65,.25)", background: "#050f05", fontFamily: "'JetBrains Mono',monospace" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 14px", borderBottom: "1px solid rgba(0,255,65,.18)", background: "#0a1a0a" }}>
-        {["#ff5f57","#ffbd2e","#28c840"].map((c,i) => <span key={i} style={{ width: 10, height: 10, borderRadius: "50%", background: c, display: "block" }} />)}
+        {["#ff5f57","#ffbd2e","#28c840"].map((c, i) => <span key={i} style={{ width: 10, height: 10, borderRadius: "50%", background: c, display: "block" }} />)}
         <span style={{ marginLeft: 8, fontSize: 11, color: "#008f11", letterSpacing: ".14em" }}>{title}</span>
       </div>
       <div style={{ padding: "20px 24px" }}>{children}</div>
@@ -717,7 +546,7 @@ function Services() {
     { id: "D", name: "Редизайн и доработка", desc: "Сайт есть, но выглядит на десять лет старше вашего бизнеса. Разбираю, чиню, обновляю — без переезда на новый домен." },
   ];
   return (
-    <section id="services" style={{ padding: "clamp(80px,12vh,140px) clamp(20px,5vw,90px)", position: "relative" }}>
+    <section id="services" style={{ padding: "clamp(80px,12vh,140px) clamp(20px,5vw,90px)" }}>
       <Reveal>
         <div style={{ display: "flex", gap: "clamp(16px,4vw,60px)", alignItems: "start", borderTop: "1px solid rgba(0,255,65,.18)", paddingTop: 20, marginBottom: "clamp(40px,7vh,72px)" }}>
           <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "#008f11", whiteSpace: "nowrap" }}>01 / Что делаю</span>
@@ -749,8 +578,7 @@ function Services() {
 function Price() {
   const li = (text: string, hi?: boolean) => (
     <li key={text} style={{ display: "grid", gridTemplateColumns: "16px 1fr", gap: 10 }}>
-      <span style={{ color: hi ? "#7dffaa" : "#00ff41" }}>→</span>
-      <span>{text}</span>
+      <span style={{ color: hi ? "#7dffaa" : "#00ff41" }}>→</span><span>{text}</span>
     </li>
   );
   return (
@@ -768,30 +596,28 @@ function Price() {
           </div>
         </Reveal>
         <Reveal>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, background: "rgba(0,255,65,.12)", border: "1px solid rgba(0,255,65,.18)" }}>
-            {/* Base */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, background: "rgba(0,255,65,.12)", border: "1px solid rgba(0,255,65,.18)", animation: "borderGlow 4.5s ease-in-out infinite" }}>
             <div style={{ background: "#050f05", padding: "clamp(22px,4vw,42px)", display: "flex", flexDirection: "column", gap: 20, transition: "background .4s" }}
               onMouseEnter={e => (e.currentTarget.style.background = "#0a1a0a")}
               onMouseLeave={e => (e.currentTarget.style.background = "#050f05")}>
               <div style={{ display: "flex", justifyContent: "space-between", fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "#008f11" }}><span>Пакет «База»</span><span>2 недели</span></div>
-              <div style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: "clamp(30px,5vw,68px)", lineHeight: .9, color: "#00ff41", textShadow: "0 0 20px rgba(0,255,65,.3)" }}>
+              <div style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: "clamp(28px,4.8vw,66px)", lineHeight: .9, color: "#00ff41", textShadow: "0 0 20px rgba(0,255,65,.3)" }}>
                 50 000 ₽<small style={{ display: "block", fontSize: ".3em", fontWeight: 400, color: "#008f11", marginTop: 10 }}>Сайт-визитка или лендинг</small>
               </div>
-              <h3 style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: 16, color: "#00ff41", letterSpacing: "-.01em" }}>Когда нужен рабочий сайт, а не выставка</h3>
+              <h3 style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: 15, color: "#00ff41" }}>Когда нужен рабочий сайт, а не выставка</h3>
               <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 9, fontSize: 13, color: "#008f11", fontFamily: "'JetBrains Mono',monospace", padding: 0 }}>
                 {["До 5 экранов на одной странице","Индивидуальный дизайн, без готовых тем","Адаптив под телефон и планшет","Форма заявки на почту или в Telegram","Подключение домена и хостинга","Базовая настройка SEO и метрики","2 круга правок"].map(t => li(t))}
               </ul>
               <a href="#contact" style={{ marginTop: "auto", paddingTop: 16, borderTop: "1px solid rgba(0,255,65,.18)", display: "flex", justifyContent: "space-between", alignItems: "center", fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "#00ff41", textDecoration: "none" }}>Обсудить проект <span>→</span></a>
             </div>
-            {/* Full */}
             <div style={{ background: "#003b00", padding: "clamp(22px,4vw,42px)", display: "flex", flexDirection: "column", gap: 20, transition: "background .4s" }}
               onMouseEnter={e => (e.currentTarget.style.background = "#004d00")}
               onMouseLeave={e => (e.currentTarget.style.background = "#003b00")}>
               <div style={{ display: "flex", justifyContent: "space-between", fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "#7dffaa" }}><span>Пакет «Полный»</span><span>3–4 недели</span></div>
-              <div style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: "clamp(30px,5vw,68px)", lineHeight: .9, color: "#00ff41", textShadow: "0 0 30px rgba(0,255,65,.5)" }}>
+              <div style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: "clamp(28px,4.8vw,66px)", lineHeight: .9, color: "#00ff41", textShadow: "0 0 30px rgba(0,255,65,.5)" }}>
                 100 000 ₽<small style={{ display: "block", fontSize: ".3em", fontWeight: 400, color: "#7dffaa", marginTop: 10 }}>Многостраничный сайт или каталог</small>
               </div>
-              <h3 style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: 16, color: "#00ff41", letterSpacing: "-.01em" }}>Когда сайт — основной канал продаж</h3>
+              <h3 style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: 15, color: "#00ff41" }}>Когда сайт — основной канал продаж</h3>
               <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 9, fontSize: 13, color: "#c8ffe0", fontFamily: "'JetBrains Mono',monospace", padding: 0 }}>
                 {["Всё из пакета «База»","До 10 страниц или каталог с фильтрами","Админка: сами меняете тексты, цены, фото","Анимации и проработанные состояния","Копирайтинг основных страниц","Интеграции: CRM, оплата, мессенджеры","Месяц поддержки после запуска"].map(t => li(t, true))}
               </ul>
@@ -800,7 +626,7 @@ function Price() {
           </div>
         </Reveal>
         <p style={{ marginTop: 22, fontSize: 13, color: "#008f11", maxWidth: "60ch", fontFamily: "'JetBrains Mono',monospace", lineHeight: 1.6 }}>
-          Цены — за проект целиком, без почасовки и «доплатите за ещё один блок». Работаю по предоплате 50%. Если задача не укладывается в эти два формата, посчитаю отдельно после разговора.
+          Цены — за проект целиком, без почасовки и «доплатите за ещё один блок». Работаю по предоплате 50%.
         </p>
       </div>
     </section>
@@ -864,7 +690,7 @@ function Contact() {
       <div style={{ position: "relative", zIndex: 1, display: "grid", gridTemplateColumns: "1.1fr .9fr", gap: "clamp(30px,6vw,80px)" }}>
         <Reveal>
           <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "#008f11" }}>04 / Связаться</span>
-          <h2 style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: "clamp(26px,5vw,70px)", lineHeight: .97, letterSpacing: "-.04em", color: "#00ff41", marginTop: 20, marginBottom: 20, textShadow: "0 0 30px rgba(0,255,65,.3)" }}>
+          <h2 style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: "clamp(26px,5vw,70px)", lineHeight: .97, letterSpacing: "-.04em", color: "#00ff41", marginTop: 20, marginBottom: 20, animation: "neonPulse 4.5s ease-in-out infinite .5s" }}>
             Расскажите,<br />что нужно<br /><span style={{ textDecorationLine: "underline", textDecorationColor: "rgba(0,255,65,.3)" }}>сделать.</span>
           </h2>
           <p style={{ maxWidth: "40ch", color: "#008f11", fontFamily: "'JetBrains Mono',monospace", fontSize: 13, lineHeight: 1.6 }}>
@@ -908,7 +734,7 @@ function Contact() {
                   onBlur={e => (e.currentTarget.style.borderColor = "rgba(0,255,65,.25)")} />
               </div>
               <button type="submit" style={{ marginTop: 10, background: "#00ff41", color: "#000", padding: "15px 22px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 14, fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: ".16em", textTransform: "uppercase", cursor: "pointer", border: "none", fontWeight: 700, transition: "background .3s,box-shadow .3s" }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "#7dffaa"; (e.currentTarget as HTMLElement).style.boxShadow = "0 0 20px rgba(0,255,65,.4)"; }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "#7dffaa"; (e.currentTarget as HTMLElement).style.boxShadow = "0 0 24px rgba(0,255,65,.45)"; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "#00ff41"; (e.currentTarget as HTMLElement).style.boxShadow = "none"; }}>
                 <span>./send_request.sh</span><span>→</span>
               </button>
@@ -928,14 +754,14 @@ function Footer() {
   return (
     <footer style={{ background: "#050f05", borderTop: "1px solid rgba(0,255,65,.18)" }}>
       <div style={{ overflow: "hidden", whiteSpace: "nowrap", borderBottom: "1px solid rgba(0,255,65,.12)", padding: "18px 0" }}>
-        <div style={{ display: "inline-flex", gap: 40, animation: "marqAnim 36s linear infinite", fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: "clamp(34px,9vw,128px)", letterSpacing: "-.05em", lineHeight: 1, color: "transparent", WebkitTextStroke: "1px rgba(0,255,65,.2)" }}>
-          <span>SERGEI ZAKHAROV — WEB DESIGN — SERGEI ZAKHAROV — </span>
-          <span>SERGEI ZAKHAROV — WEB DESIGN — SERGEI ZAKHAROV — </span>
+        <div style={{ display: "inline-flex", gap: 40, animation: "marqAnim 36s linear infinite", fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: "clamp(32px,9vw,124px)", letterSpacing: "-.05em", lineHeight: 1, color: "transparent", WebkitTextStroke: "1px rgba(0,255,65,.18)" }}>
+          <span>SERGEI ZAKHAROV — WEB DESIGN — AI CONCIERGE — SERGEI ZAKHAROV — </span>
+          <span>SERGEI ZAKHAROV — WEB DESIGN — AI CONCIERGE — SERGEI ZAKHAROV — </span>
         </div>
       </div>
       <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 16, padding: "22px clamp(20px,5vw,90px) 28px", fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: ".13em", textTransform: "uppercase", color: "#008f11" }}>
         <span>© 2026 Захаров Сергей</span>
-        <span>Разработка сайтов на заказ</span>
+        <span>Разработка сайтов · AI консьерж · 5 лет</span>
         <a href="#top" style={{ color: "#00ff41", textDecoration: "none" }}>Наверх ↑</a>
       </div>
     </footer>
@@ -943,126 +769,45 @@ function Footer() {
 }
 
 /* ─────────────────────────────────────────
-   Единый сквозной "дождь" на весь сайт.
-   Раньше в каждой секции запускался свой
-   собственный MatrixRain — со стороны это
-   выглядело как отдельные, не связанные
-   между собой куски, а не единый эффект.
-   Этот слой один на всю страницу, зафиксирован
-   (position:fixed) и проступает ровно в тот
-   момент, когда фото в Portrait растворяется,
-   а затем остаётся видимым до самого низа —
-   единый дождь, единый дизайн, от начала и до конца.
-───────────────────────────────────────── */
-function GlobalMatrixRain() {
-  const [opacity, setOpacity] = useState(0);
-  useEffect(() => {
-    let raf = 0;
-    function measure() {
-      const el = document.getElementById("portrait-scene");
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
-      const vh = window.innerHeight;
-      const total = el.offsetHeight - vh;
-      const p = total > 0 ? Math.min(1, Math.max(0, -rect.top / total)) : 0;
-      // Дождь начинает проступать вместе с растворением лица (см. faceOut
-      // в Portrait, там же используется порог .72) и полностью проявляется
-      // чуть раньше конца блока — дальше держится на этом уровне до низа страницы.
-      const start = 0.65, end = 0.95;
-      const q = Math.min(1, Math.max(0, (p - start) / (end - start)));
-      setOpacity(q * 0.16);
-    }
-    function onScroll() {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(measure);
-    }
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    measure();
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-    };
-  }, []);
-  return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none", opacity, transition: "opacity .6s ease-out" }}>
-      <MatrixRain opacity={1} fontSize={14} color="#00ff41" trail="rgba(0,0,0,.045)" speed={45} />
-    </div>
-  );
-}
-
-/* ─────────────────────────────────────────
-   Global keyframes (injected once)
+   Keyframes
 ───────────────────────────────────────── */
 const KEYFRAMES = `
-  @keyframes slideBar   { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
-  @keyframes marqAnim   { from{transform:translateX(0)} to{transform:translateX(-50%)} }
-  @keyframes pulse      { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.3;transform:scale(.65)} }
-  @keyframes flicker    { 0%,100%{opacity:1} 92%{opacity:1} 93%{opacity:.4} 94%{opacity:1} 96%{opacity:.7} 97%{opacity:1} }
-
-  /* Neon glow pulse on bright headline text */
+  @keyframes slideBar  { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
+  @keyframes marqAnim  { from{transform:translateX(0)} to{transform:translateX(-50%)} }
   @keyframes neonPulse {
-    0%,100% { text-shadow: 0 0 12px rgba(0,255,65,.45), 0 0 30px rgba(0,255,65,.2); }
-    50%      { text-shadow: 0 0 22px rgba(0,255,65,.9), 0 0 55px rgba(0,255,65,.45), 0 0 90px rgba(0,255,65,.15); }
+    0%,100% { text-shadow: 0 0 10px rgba(0,255,65,.4), 0 0 28px rgba(0,255,65,.18); }
+    50%     { text-shadow: 0 0 20px rgba(0,255,65,.85), 0 0 52px rgba(0,255,65,.4), 0 0 88px rgba(0,255,65,.12); }
   }
-
-  /* Border glow flicker on the portrait card */
   @keyframes borderGlow {
-    0%,100% { box-shadow: 0 0 0px rgba(0,255,65,0); border-color: rgba(0,255,65,.22); }
-    50%     { box-shadow: 0 0 18px rgba(0,255,65,.25), inset 0 0 8px rgba(0,255,65,.05); border-color: rgba(0,255,65,.5); }
+    0%,100% { box-shadow: 0 0 0 rgba(0,255,65,0);    border-color: rgba(0,255,65,.2); }
+    50%     { box-shadow: 0 0 20px rgba(0,255,65,.2); border-color: rgba(0,255,65,.48); }
   }
-
-  /* Glitch horizontal slices over the portrait */
-  @keyframes glitchSlice {
-    0%,88%,100% { opacity: 0; transform: translateX(0); }
-    89% {
-      opacity: 1;
-      background: linear-gradient(
-        180deg,
-        transparent 15%, rgba(0,255,65,.07) 15.5%, transparent 16%,
-        transparent 42%, rgba(255,0,64,.06) 42.5%, transparent 43%,
-        transparent 71%, rgba(0,255,65,.05) 71.5%, transparent 72%
-      );
-      transform: translateX(-6px);
-    }
-    90% {
-      opacity: 1;
-      background: linear-gradient(
-        180deg,
-        transparent 30%, rgba(255,0,64,.08) 30.5%, transparent 31%,
-        transparent 60%, rgba(0,255,65,.06) 60.5%, transparent 61%
-      );
-      transform: translateX(5px);
-    }
-    91% { opacity: 0; }
-  }
-
-  /* HUD text blink */
   @keyframes hudBlink {
-    0%,94%,100% { opacity: 1; }
-    95%,97%     { opacity: 0; }
-    96%,98%     { opacity: 1; }
-    99%         { opacity: 0.3; }
+    0%,93%,100% { opacity:1 }
+    94%,96%     { opacity:0 }
+    95%,97%     { opacity:1 }
+    98%,99%     { opacity:.3 }
+  }
+
+  @media (max-width: 640px) {
+    .nav-links   { display: none !important; }
+    .nav-toggle  { display: inline-flex !important; }
   }
 `;
 
 /* ─────────────────────────────────────────
-   App root
+   App
 ───────────────────────────────────────── */
 export default function App() {
-  const [ready, setReady] = useState(false);
   return (
-    <div style={{ background: "#000", color: "#00ff41", minHeight: "100vh", animation: "flicker 9s infinite" }}>
+    <div style={{ background: "#000", color: "#00ff41", minHeight: "100vh" }}>
       <style>{KEYFRAMES}</style>
-      <GlobalMatrixRain />
-      {!ready && <Preloader onDone={() => setReady(true)} />}
       <Nav />
       <main id="top">
-        <Portrait />
-        <SignalBlock />
         <Hero />
-        <Ticker />
+        <DecodeStreamDivider />
+        <Mission />
+        <AIConsierge />
         <Services />
         <Price />
         <Process />
