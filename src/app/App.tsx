@@ -207,7 +207,7 @@ function Hero() {
     if (r) setMouse({ x: Math.round(e.clientX - r.left), y: Math.round(e.clientY - r.top) });
   };
   return (
-    <section ref={secRef} onMouseMove={onMouseMove} style={{ position: "relative", minHeight: "100svh", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "clamp(120px,18vh,200px) clamp(20px,5vw,90px) 0", overflow: "hidden" }}>
+    <section id="hero" ref={secRef} onMouseMove={onMouseMove} style={{ position: "relative", minHeight: "100svh", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "clamp(120px,18vh,200px) clamp(20px,5vw,90px) 0", overflow: "hidden" }}>
       <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
         <MatrixRain opacity={0.13} fontSize={14} color="#00ff41" trail="rgba(0,0,0,.055)" speed={58} />
       </div>
@@ -439,13 +439,15 @@ function ProcessBar({ target, delay, animate, scanSpeed }: { target: number; del
 }
 
 /* ─────────────────────────────────────────
-   Live Console — a genuinely typing terminal
-   (not just chrome). Opens with the bio typed
-   out as command output; once it finishes, a
-   "▶ Дальше" prompt appears — clicking it
-   scrolls to the AI-concierge panel and the
-   console settles into a small ambient loop
-   of follow-up commands.
+   Live Console — the site's boot screen.
+   First thing a visitor sees: a genuinely
+   typing terminal (not just chrome) that
+   opens with the bio as command output.
+   Scrolling is locked until the visitor
+   clicks "▶ Дальше" — only then does the
+   page unlock and scroll into the Hero, and
+   the console settles into a small ambient
+   loop of follow-up commands.
 ───────────────────────────────────────── */
 const CONSOLE_INTRO = {
   cmd: "cat about.txt",
@@ -471,6 +473,15 @@ function LiveConsole() {
     return () => clearInterval(id);
   }, []);
 
+  // Lock page scroll while the gate is up; release it the moment the
+  // visitor presses "Дальше" (phase flips to "loop").
+  useEffect(() => {
+    const locked = phase === "intro";
+    document.documentElement.style.overflow = locked ? "hidden" : "";
+    document.body.style.overflow = locked ? "hidden" : "";
+    return () => { document.documentElement.style.overflow = ""; document.body.style.overflow = ""; };
+  }, [phase]);
+
   const entry = phase === "intro" ? CONSOLE_INTRO : CONSOLE_LOOP[idx];
   const PAUSE = 8, HOLD = 46;
   const cmdLen = entry.cmd.length;
@@ -490,13 +501,16 @@ function LiveConsole() {
   const typingOut = showOut && step < outStart + outLen;
 
   const handleNext = () => {
-    document.getElementById("ai")?.scrollIntoView({ behavior: "smooth" });
     setPhase("loop"); setIdx(0); setStep(0);
+    setTimeout(() => document.getElementById("hero")?.scrollIntoView({ behavior: "smooth" }), 30);
   };
 
   return (
-    <section style={{ padding: "clamp(40px,6vh,64px) clamp(20px,5vw,90px)", background: "#000" }}>
-      <div style={{ maxWidth: 640, margin: "0 auto" }}>
+    <section style={{ minHeight: "100svh", display: "flex", alignItems: "center", justifyContent: "center", padding: "clamp(40px,6vh,64px) clamp(20px,5vw,90px)", background: "#000", position: "relative", overflow: "hidden" }}>
+      <div style={{ position: "absolute", inset: 0 }}>
+        <MatrixRain opacity={0.1} fontSize={14} color="#00ff41" trail="rgba(0,0,0,.05)" speed={60} />
+      </div>
+      <div style={{ position: "relative", zIndex: 1, width: "100%", maxWidth: 640 }}>
         <TerminalBox title="~/console">
           <div style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 14, minHeight: 44 }}>
             <div>
@@ -603,7 +617,7 @@ function AIConsierge() {
                   onMouseLeave={e => { (e.currentTarget as HTMLElement).style.paddingLeft = "16px"; }}>
                   <span style={{ ...pixel, fontSize: 11, color: "rgba(0,255,65,.4)" }}>{p.pid}</span>
                   <div>
-                    <span style={{ ...mono, fontSize: 12, color: "#008f11" }}>{p.name}</span>
+                    <span style={{ ...mono, fontSize: 12, color: "#008f11" }}><Glitch>{p.name}</Glitch></span>
                     <div style={{ ...mono, fontSize: 11, color: "rgba(0,255,65,.3)", marginTop: 3 }}>{p.desc}</div>
                   </div>
                   <ProcessBar target={p.fill} delay={p.delay} animate={animate} scanSpeed={scanSpeed(p.status)} />
@@ -922,10 +936,10 @@ export default function App() {
       <style>{KEYFRAMES}</style>
       <Nav />
       <main id="top">
+        <LiveConsole />
         <Hero />
         <DecodeStreamDivider />
         <Mission />
-        <LiveConsole />
         <AIConsierge />
         <Services />
         <Price />
