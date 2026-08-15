@@ -171,9 +171,7 @@ function Nav() {
         </div>
         <nav className="nav-links" style={{ display: "flex", gap: "clamp(14px,2.8vw,28px)", ...mono }}>
           {NAV_LINKS.map(([href, label]) => (
-            <a key={href} href={href} style={{ color: "#008f11", textDecoration: "none", transition: "color .2s" }}
-              onMouseEnter={e => (e.currentTarget.style.color = "#00ff41")}
-              onMouseLeave={e => (e.currentTarget.style.color = "#008f11")}>{label}</a>
+            <a key={href} href={href} className="link-nav" style={{ color: "#008f11", textDecoration: "none", transition: "color .2s" }}>{label}</a>
           ))}
         </nav>
         <button className="nav-toggle" onClick={() => setOpen(o => !o)} style={{ ...mono, display: "none", background: "transparent", border: "1px solid rgba(0,255,65,.35)", color: "#00ff41", padding: "6px 10px", cursor: "pointer" }}>
@@ -565,9 +563,7 @@ function LiveConsole() {
               </div>
             )}
             {introDone && (
-              <button onClick={handleNext} style={{ marginTop: 18, background: "transparent", border: "1px solid rgba(0,255,65,.4)", color: "#00ff41", padding: "9px 18px", fontFamily: "'JetBrains Mono',monospace", fontSize: 12, letterSpacing: ".12em", textTransform: "uppercase", cursor: "pointer", transition: "background .2s" }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(0,255,65,.12)"; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}>
+              <button onClick={handleNext} className="btn-next" style={{ marginTop: 18, background: "transparent", border: "1px solid rgba(0,255,65,.4)", color: "#00ff41", padding: "9px 18px", fontFamily: "'JetBrains Mono',monospace", fontSize: 12, letterSpacing: ".12em", textTransform: "uppercase", cursor: "pointer", transition: "background .2s" }}>
                 ▶ Дальше
               </button>
             )}
@@ -652,9 +648,7 @@ function AIConsierge() {
             {procs.map((p, i) => {
               const glow = rowGlow(p.status);
               return (
-                <div key={p.pid} style={{ display: "grid", gridTemplateColumns: "44px 1fr 210px 90px", gap: "0 clamp(12px,2vw,28px)", padding: "14px 16px", borderBottom: i < procs.length - 1 ? "1px solid rgba(0,255,65,.07)" : "none", alignItems: "center", animation: `${glow.anim} ${glow.dur}s ease-in-out infinite`, animationDelay: `${i * 0.3}s`, transition: "padding-left .3s" }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.paddingLeft = "22px"; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.paddingLeft = "16px"; }}>
+                <div key={p.pid} className="row-ai" style={{ display: "grid", gridTemplateColumns: "44px 1fr 210px 90px", gap: "0 clamp(12px,2vw,28px)", padding: "14px 16px", borderBottom: i < procs.length - 1 ? "1px solid rgba(0,255,65,.07)" : "none", alignItems: "center", animation: `${glow.anim} ${glow.dur}s ease-in-out infinite`, animationDelay: `${i * 0.3}s`, transition: "padding-left .3s" }}>
                   <span style={{ ...pixel, fontSize: 11, color: "rgba(0,255,65,.4)" }}>{p.pid}</span>
                   <div>
                     <span style={{ ...mono, fontSize: 12, color: "#008f11" }}><Glitch>{p.name}</Glitch></span>
@@ -719,9 +713,7 @@ function Services() {
         <div style={{ borderTop: "1px solid rgba(0,255,65,.12)" }}>
           {services.map((svc, i) => (
             <Reveal key={svc.id} delay={i * 80}>
-              <div style={{ display: "grid", gridTemplateColumns: "50px 1fr 1.4fr", gap: "clamp(14px,3vw,44px)", padding: "28px 0", borderBottom: "1px solid rgba(0,255,65,.12)", alignItems: "baseline", transition: "background .3s,padding-left .3s", cursor: "default" }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(0,255,65,.04)"; (e.currentTarget as HTMLElement).style.paddingLeft = "12px"; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.paddingLeft = "0"; }}>
+              <div className="row-service" style={{ display: "grid", gridTemplateColumns: "50px 1fr 1.4fr", gap: "clamp(14px,3vw,44px)", padding: "28px 0", borderBottom: "1px solid rgba(0,255,65,.12)", alignItems: "baseline", transition: "background .3s,padding-left .3s", cursor: "default" }}>
                 <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, color: "#008f11", letterSpacing: ".14em" }}>{svc.id}</span>
                 <h3 style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 400, fontSize: "clamp(16px,2.1vw,27px)", color: "#00ff41", letterSpacing: "-.02em" }}><Glitch>{svc.name}</Glitch></h3>
                 <p style={{ color: "#008f11", fontSize: 14, lineHeight: 1.6, fontFamily: "'JetBrains Mono',monospace" }}>{svc.desc}</p>
@@ -759,9 +751,7 @@ function Price() {
         </Reveal>
         <Reveal>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, background: "rgba(0,255,65,.12)", border: "1px solid rgba(0,255,65,.18)", animation: "borderGlow 4.5s ease-in-out infinite" }}>
-            <div style={{ background: "#050f05", padding: "clamp(22px,4vw,42px)", display: "flex", flexDirection: "column", gap: 20, transition: "background .4s" }}
-              onMouseEnter={e => (e.currentTarget.style.background = "#0a1a0a")}
-              onMouseLeave={e => (e.currentTarget.style.background = "#050f05")}>
+            <div className="card-price-base" style={{ background: "#050f05", padding: "clamp(22px,4vw,42px)", display: "flex", flexDirection: "column", gap: 20, transition: "background .4s" }}>
               <div style={{ display: "flex", justifyContent: "space-between", fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "#008f11" }}><span>Пакет «База»</span><span>2 недели</span></div>
               <div style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: "clamp(28px,4.8vw,66px)", lineHeight: .9, color: "#00ff41", textShadow: "0 0 20px rgba(0,255,65,.3)" }}>
                 50 000 ₽<small style={{ display: "block", fontSize: ".3em", fontWeight: 400, color: "#008f11", marginTop: 10 }}>Сайт-визитка или лендинг</small>
@@ -772,9 +762,7 @@ function Price() {
               </ul>
               <a href="#contact" style={{ marginTop: "auto", paddingTop: 16, borderTop: "1px solid rgba(0,255,65,.18)", display: "flex", justifyContent: "space-between", alignItems: "center", fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "#00ff41", textDecoration: "none" }}>Обсудить проект <span>→</span></a>
             </div>
-            <div style={{ background: "#003b00", padding: "clamp(22px,4vw,42px)", display: "flex", flexDirection: "column", gap: 20, transition: "background .4s" }}
-              onMouseEnter={e => (e.currentTarget.style.background = "#004d00")}
-              onMouseLeave={e => (e.currentTarget.style.background = "#003b00")}>
+            <div className="card-price-full" style={{ background: "#003b00", padding: "clamp(22px,4vw,42px)", display: "flex", flexDirection: "column", gap: 20, transition: "background .4s" }}>
               <div style={{ display: "flex", justifyContent: "space-between", fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "#7dffaa" }}><span>Пакет «Полный»</span><span>3–4 недели</span></div>
               <div style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: "clamp(28px,4.8vw,66px)", lineHeight: .9, color: "#00ff41", textShadow: "0 0 30px rgba(0,255,65,.5)" }}>
                 100 000 ₽<small style={{ display: "block", fontSize: ".3em", fontWeight: 400, color: "#7dffaa", marginTop: 10 }}>Многостраничный сайт или каталог</small>
@@ -822,9 +810,7 @@ function Process() {
         <Reveal>
           <div className="process-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 1, background: "rgba(0,255,65,.1)", borderTop: "1px solid rgba(0,255,65,.18)", borderBottom: "1px solid rgba(0,255,65,.18)" }}>
             {steps.map(step => (
-              <div key={step.n} style={{ background: "#000", padding: "28px 22px 32px", display: "flex", flexDirection: "column", gap: 11, minHeight: 220, transition: "background .3s" }}
-                onMouseEnter={e => (e.currentTarget.style.background = "#050f05")}
-                onMouseLeave={e => (e.currentTarget.style.background = "#000")}>
+              <div key={step.n} className="card-process" style={{ background: "#000", padding: "28px 22px 32px", display: "flex", flexDirection: "column", gap: 11, minHeight: 220, transition: "background .3s" }}>
                 <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: ".14em", color: "#00ff41" }}>{step.n}</span>
                 <h3 style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 400, fontSize: 18, color: "#00ff41", letterSpacing: "-.02em" }}>{step.title}</h3>
                 <p style={{ fontSize: 13, color: "#008f11", fontFamily: "'JetBrains Mono',monospace", lineHeight: 1.55 }}>{step.desc}</p>
@@ -869,9 +855,7 @@ function Contact() {
               { href: "tel:+79217959654", label: "Телефон", sub: "8-921-795-9654" },
               { href: "mailto:zakhsergey7@gmail.com", label: "Почта", sub: "zakhsergey7@gmail.com" },
             ].map(ch => (
-              <a key={ch.href} href={ch.href} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, padding: "16px 0", borderBottom: "1px solid rgba(0,255,65,.18)", fontFamily: "'JetBrains Mono',monospace", fontSize: "clamp(14px,1.8vw,20px)", letterSpacing: "-.02em", color: "#00ff41", textDecoration: "none", transition: "padding-left .3s" }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.paddingLeft = "10px"; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.paddingLeft = "0"; }}>
+              <a key={ch.href} href={ch.href} className="link-channel" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, padding: "16px 0", borderBottom: "1px solid rgba(0,255,65,.18)", fontFamily: "'JetBrains Mono',monospace", fontSize: "clamp(14px,1.8vw,20px)", letterSpacing: "-.02em", color: "#00ff41", textDecoration: "none", transition: "padding-left .3s" }}>
                 {ch.label}
                 <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "#008f11" }}>{ch.sub}</span>
               </a>
@@ -900,9 +884,7 @@ function Contact() {
                   onFocus={e => (e.currentTarget.style.borderColor = "#00ff41")}
                   onBlur={e => (e.currentTarget.style.borderColor = "rgba(0,255,65,.25)")} />
               </div>
-              <button type="submit" style={{ marginTop: 10, background: "#00ff41", color: "#000", padding: "15px 22px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 14, fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: ".16em", textTransform: "uppercase", cursor: "pointer", border: "none", fontWeight: 700, transition: "background .3s,box-shadow .3s" }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "#7dffaa"; (e.currentTarget as HTMLElement).style.boxShadow = "0 0 24px rgba(0,255,65,.45)"; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "#00ff41"; (e.currentTarget as HTMLElement).style.boxShadow = "none"; }}>
+              <button type="submit" className="btn-submit" style={{ marginTop: 10, background: "#00ff41", color: "#000", padding: "15px 22px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 14, fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: ".16em", textTransform: "uppercase", cursor: "pointer", border: "none", fontWeight: 700, transition: "background .3s,box-shadow .3s" }}>
                 <span>./send_request.sh</span><span>→</span>
               </button>
               <p style={{ fontSize: 12, color: "#008f11", fontFamily: "'JetBrains Mono',monospace", lineHeight: 1.5 }}>Форма откроет ваш почтовый клиент с готовым письмом.</p>
@@ -961,6 +943,24 @@ const KEYFRAMES = `
   @keyframes rowGlowActive  { 0%,100% { background: rgba(0,255,65,.04);  } 50% { background: rgba(0,255,65,.14); } }
   @keyframes rowGlowRunning { 0%,100% { background: rgba(0,255,65,.03);  } 50% { background: rgba(0,255,65,.10); } }
   @keyframes rowGlowQueued  { 0%,100% { background: rgba(0,255,65,.015); } 50% { background: rgba(0,255,65,.05); } }
+
+  /* Hover states, mouse-only. These were previously JS onMouseEnter/
+     onMouseLeave handlers toggling inline styles — on touchscreens,
+     synthetic mouse events fire inconsistently on tap (stuck states,
+     double-fires), which read as a "shake"/flicker in these blocks on
+     mobile that never showed up on desktop. Scoping to real hover
+     devices removes the touch flicker entirely instead of chasing it. */
+  @media (hover: hover) and (pointer: fine) {
+    .link-nav:hover        { color: #00ff41; }
+    .btn-next:hover        { background: rgba(0,255,65,.12); }
+    .row-ai:hover           { padding-left: 22px; }
+    .row-service:hover      { background: rgba(0,255,65,.04); padding-left: 12px; }
+    .card-price-base:hover  { background: #0a1a0a; }
+    .card-price-full:hover  { background: #004d00; }
+    .card-process:hover     { background: #050f05; }
+    .link-channel:hover     { padding-left: 10px; }
+    .btn-submit:hover       { background: #7dffaa; box-shadow: 0 0 24px rgba(0,255,65,.45); }
+  }
 
   @media (max-width: 900px) {
     .process-grid { grid-template-columns: repeat(2,1fr) !important; }
