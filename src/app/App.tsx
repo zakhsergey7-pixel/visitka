@@ -273,84 +273,143 @@ function Hero() {
 }
 
 /* ─────────────────────────────────────────
+   AI icon set — abstract, generic glyphs
+   (node graph / chip / spark / layers /
+   terminal / sync-loop). Deliberately NOT
+   any real AI company's logo — square,
+   line-drawn, matrix-green, pixel-styled
+   to match the rest of the site.
+───────────────────────────────────────── */
+const AI_ICON_STROKE = "#00ff41";
+
+function IconNode() {
+  return (
+    <svg viewBox="0 0 18 18" width={16} height={16} fill="none" stroke={AI_ICON_STROKE} strokeWidth={1.3}>
+      <rect x="7.4" y="7.4" width="3.2" height="3.2" />
+      <rect x="0.8" y="0.8" width="2.6" height="2.6" />
+      <rect x="14.6" y="0.8" width="2.6" height="2.6" />
+      <rect x="0.8" y="14.6" width="2.6" height="2.6" />
+      <rect x="14.6" y="14.6" width="2.6" height="2.6" />
+      <line x1="3.4" y1="3.4" x2="7.4" y2="7.4" />
+      <line x1="14.6" y1="3.4" x2="10.6" y2="7.4" />
+      <line x1="3.4" y1="14.6" x2="7.4" y2="10.6" />
+      <line x1="14.6" y1="14.6" x2="10.6" y2="10.6" />
+    </svg>
+  );
+}
+
+function IconChipGlyph() {
+  return (
+    <svg viewBox="0 0 18 18" width={16} height={16} fill="none" stroke={AI_ICON_STROKE} strokeWidth={1.3}>
+      <rect x="4" y="4" width="10" height="10" />
+      <rect x="7.2" y="7.2" width="3.6" height="3.6" />
+      <line x1="6" y1="0.5" x2="6" y2="4" /><line x1="9" y1="0.5" x2="9" y2="4" /><line x1="12" y1="0.5" x2="12" y2="4" />
+      <line x1="6" y1="14" x2="6" y2="17.5" /><line x1="9" y1="14" x2="9" y2="17.5" /><line x1="12" y1="14" x2="12" y2="17.5" />
+      <line x1="0.5" y1="6" x2="4" y2="6" /><line x1="0.5" y1="9" x2="4" y2="9" /><line x1="0.5" y1="12" x2="4" y2="12" />
+      <line x1="14" y1="6" x2="17.5" y2="6" /><line x1="14" y1="9" x2="17.5" y2="9" /><line x1="14" y1="12" x2="17.5" y2="12" />
+    </svg>
+  );
+}
+
+function IconSpark() {
+  return (
+    <svg viewBox="0 0 18 18" width={16} height={16} fill="none" stroke={AI_ICON_STROKE} strokeWidth={1.4}>
+      <line x1="9" y1="1" x2="9" y2="17" />
+      <line x1="1" y1="9" x2="17" y2="9" />
+      <line x1="3.3" y1="3.3" x2="14.7" y2="14.7" />
+      <line x1="14.7" y1="3.3" x2="3.3" y2="14.7" />
+    </svg>
+  );
+}
+
+function IconLayers() {
+  return (
+    <svg viewBox="0 0 18 18" width={16} height={16} fill="none" stroke={AI_ICON_STROKE} strokeWidth={1.3} strokeLinejoin="miter">
+      <polygon points="9,1.5 16.5,6 9,10.5 1.5,6" />
+      <polyline points="1.5,10.2 9,14.4 16.5,10.2" />
+      <polyline points="1.5,13.4 9,17.2 16.5,13.4" />
+    </svg>
+  );
+}
+
+function IconTerminalGlyph() {
+  return (
+    <svg viewBox="0 0 18 18" width={16} height={16} fill="none" stroke={AI_ICON_STROKE} strokeWidth={1.3}>
+      <rect x="1" y="2" width="16" height="14" />
+      <polyline points="4,7 7.5,9 4,11" />
+      <line x1="9" y1="11.5" x2="14" y2="11.5" />
+    </svg>
+  );
+}
+
+function IconLoop() {
+  return (
+    <svg viewBox="0 0 18 18" width={16} height={16} fill="none" stroke={AI_ICON_STROKE} strokeWidth={1.4}>
+      <path d="M14.6 9a5.6 5.6 0 1 1-1.7-4" />
+      <polyline points="14.6,3 14.6,6.6 11,6.6" />
+    </svg>
+  );
+}
+
+const AI_ICONS = [IconNode, IconChipGlyph, IconSpark, IconLayers, IconTerminalGlyph, IconLoop];
+
+function IconChip({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{ width: "clamp(26px,7vw,34px)", height: "clamp(26px,7vw,34px)", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid rgba(0,255,65,.35)", background: "rgba(0,255,65,.04)" }}>
+      {children}
+    </div>
+  );
+}
+
+function AIIconStream() {
+  const row = (
+    <div style={{ display: "flex", gap: "clamp(12px,3vw,22px)", paddingRight: "clamp(12px,3vw,22px)" }}>
+      {AI_ICONS.concat(AI_ICONS).map((Icon, i) => (
+        <IconChip key={i}><Icon /></IconChip>
+      ))}
+    </div>
+  );
+  return (
+    <div style={{ position: "absolute", inset: 0, overflow: "hidden", display: "flex", alignItems: "center" }}>
+      <div style={{ display: "flex", animation: "marqAnim 34s linear infinite" }}>
+        {row}
+        {row}
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────
    Decode Stream Divider — replaces Ticker
-   Instead of a smooth oscilloscope curve,
-   a flat row of matrix glyphs flickers at
-   random and a "decode head" sweeps across,
-   resolving nearby characters to solid bright
-   green — same code-rain language as the rest
-   of the site, laid on its side, no wave shape.
+   A row of abstract AI-glyph icons (node
+   graph, chip, spark, layers, terminal,
+   sync-loop — no real company logos) drifts
+   across a matrix-green pixel strip, framed
+   by STREAM_IN / STREAM_OUT readouts.
 ───────────────────────────────────────── */
 function DecodeStreamDivider() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const readoutRef = useRef<HTMLSpanElement>(null);
-  const headRef = useRef(0);
 
   useEffect(() => {
-    const canvas = canvasRef.current; if (!canvas) return;
-    const ctx = canvas.getContext("2d")!;
-    const chars = "01ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎ<>/\\{}|·+—=".split("");
-    const cell = 15;
-    let w = 0, h = 0, cols = 0, cells: string[] = [], raf = 0, last = 0;
-
-    function resize() {
-      const dpr = Math.min(2, devicePixelRatio || 1);
-      w = canvas!.offsetWidth; h = canvas!.offsetHeight;
-      canvas!.width = w * dpr; canvas!.height = h * dpr;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      cols = Math.max(1, Math.floor(w / cell));
-      cells = Array.from({ length: cols }, () => chars[(Math.random() * chars.length) | 0]);
-    }
-
-    function draw(t: number) {
-      raf = requestAnimationFrame(draw);
-      if (t - last < 60) return; last = t;
-      ctx.clearRect(0, 0, w, h);
-      ctx.font = `${cell - 2}px "JetBrains Mono", monospace`;
-      ctx.textBaseline = "middle";
-
-      const span = cols + 40;
-      headRef.current += 0.7;
-      const headPos = (headRef.current % span) - 20;
-
-      for (let i = 0; i < cols; i++) {
-        if (Math.random() < 0.05) cells[i] = chars[(Math.random() * chars.length) | 0];
-        const dist = Math.abs(i - headPos);
-        const resolved = dist < 5;
-        const near = dist < 13;
-        ctx.shadowBlur = resolved ? 8 : 0;
-        ctx.shadowColor = "#00ff41";
-        ctx.fillStyle = resolved ? "#ffffff" : near ? "#00ff41" : "rgba(0,255,65,.2)";
-        ctx.fillText(cells[i], i * cell + 2, h / 2);
-      }
-      ctx.shadowBlur = 0;
-
-      const hx = headPos * cell;
-      const grad = ctx.createLinearGradient(hx - 34, 0, hx + 34, 0);
-      grad.addColorStop(0, "rgba(0,255,65,0)");
-      grad.addColorStop(0.5, "rgba(0,255,65,.3)");
-      grad.addColorStop(1, "rgba(0,255,65,0)");
-      ctx.fillStyle = grad;
-      ctx.fillRect(hx - 34, 0, 68, h);
-
+    let t = 0;
+    const id = setInterval(() => {
+      t += 1;
       if (readoutRef.current) {
-        const pct = Math.max(0, Math.min(99.9, ((headRef.current % span) / span) * 100));
-        const sync = Math.floor((headRef.current * 137) % 0xffff).toString(16).toUpperCase().padStart(4, "0");
-        readoutRef.current.textContent = `PACKETS ${Math.floor(48213 + headRef.current * 37).toString().padStart(6, "0")} · SYNC 0x${sync} · INTEGRITY ${pct.toFixed(1)}%`;
+        const pct = (t * 1.7) % 100;
+        const sync = Math.floor((t * 733) % 0xffff).toString(16).toUpperCase().padStart(4, "0");
+        readoutRef.current.textContent = `PACKETS ${Math.floor(48213 + t * 37).toString().padStart(6, "0")} · SYNC 0x${sync} · INTEGRITY ${pct.toFixed(1)}%`;
       }
-    }
-
-    resize(); window.addEventListener("resize", resize); raf = requestAnimationFrame(draw);
-    return () => { cancelAnimationFrame(raf); window.removeEventListener("resize", resize); };
+    }, 220);
+    return () => clearInterval(id);
   }, []);
 
   const pixel: React.CSSProperties = { fontFamily: "'Silkscreen',monospace", letterSpacing: ".08em", textTransform: "uppercase" };
   return (
     <div style={{ position: "relative", height: 76, background: "#000", borderTop: "1px solid rgba(0,255,65,.13)", borderBottom: "1px solid rgba(0,255,65,.13)", overflow: "hidden" }}>
-      <canvas ref={canvasRef} style={{ display: "block", width: "100%", height: "100%" }} />
-      <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 clamp(20px,5vw,90px)", pointerEvents: "none" }}>
+      <AIIconStream />
+      <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 clamp(20px,5vw,90px)", pointerEvents: "none", background: "linear-gradient(90deg, #000 0%, rgba(0,0,0,.7) 16%, rgba(0,0,0,0) 32%, rgba(0,0,0,0) 68%, rgba(0,0,0,.7) 84%, #000 100%)" }}>
         <span style={{ ...pixel, fontSize: 10, color: "rgba(0,255,65,.6)" }}>STREAM_IN ▶</span>
-        <span ref={readoutRef} style={{ ...pixel, fontSize: 9, color: "rgba(0,255,65,.32)" }}>PACKETS 048213 · SYNC 0x4F2A · INTEGRITY 0.0%</span>
+        <span ref={readoutRef} className="stream-readout" style={{ ...pixel, fontSize: 9, color: "rgba(0,255,65,.32)" }}>PACKETS 048213 · SYNC 0x4F2A · INTEGRITY 0.0%</span>
         <span style={{ ...pixel, fontSize: 10, color: "rgba(0,255,65,.6)" }}>▶ STREAM_OUT</span>
       </div>
     </div>
@@ -970,6 +1029,7 @@ const KEYFRAMES = `
     .nav-toggle    { display: inline-flex !important; }
     .process-grid  { grid-template-columns: 1fr !important; }
     .contact-grid  { grid-template-columns: 1fr !important; }
+    .stream-readout { display: none !important; }
   }
 `;
 
