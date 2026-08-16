@@ -16,9 +16,10 @@ import poseDazed from "../assets/pose-dazed.png";
 import poseClimb from "../assets/pose-climb.png";
 import poseIdleThink from "../assets/pose-idle-think.png";
 import poseIdleCheer from "../assets/pose-idle-cheer.png";
-import poseWalk1 from "../assets/pose-walk-1.png";
-import poseWalk2 from "../assets/pose-walk-2.png";
-import poseWalk3 from "../assets/pose-walk-3.png";
+import poseCrouch from "../assets/pose-crouch.png";
+import poseClimbReach from "../assets/pose-climb-reach.png";
+import poseClimbCrest from "../assets/pose-climb-crest.png";
+import posePeek from "../assets/pose-peek.png";
 
 /* ─────────────────────────────────────────
    Matrix Rain Canvas
@@ -423,19 +424,33 @@ const CHAR_IDLE_LOOK = [
   { src: poseIdleThink, ratio: 76 / 148 },
   { src: poseIdleCheer, ratio: 89 / 160 },
 ];
-// real walking-stride frames, played as a ping-pong (0,1,2,1,...) so the
-// non-cyclic reference stride reads as a continuous loop while translating
-const CHAR_WALK = [poseWalk1, poseWalk2, poseWalk3];
-const CHAR_WALK_RATIO = [79 / 171, 84 / 171, 90 / 170];
-const CHAR_WALK_CYCLE = [0, 1, 2, 1];
-const CHAR_WALK_STEP_PX = 14;
+const CHAR_CROUCH_RATIO = 126 / 178;
+const CHAR_PEEK_RATIO = 74 / 88;
+// A real multi-stage climb instead of one held frame: each entry takes over
+// once the eased vertical rise passes `at`, so the character visibly coils at
+// the base, jumps for the ledge, hauls himself up and finally swings a knee
+// over the top edge before settling into the sit.
+const CHAR_CLIMB_FRAMES = [
+  { at: 0, src: poseCrouch, ratio: CHAR_CROUCH_RATIO },
+  { at: 0.12, src: poseClimbReach, ratio: 130 / 158 },
+  { at: 0.42, src: poseClimb, ratio: CHAR_CLIMB_RATIO },
+  { at: 0.76, src: poseClimbCrest, ratio: 79 / 118 },
+];
+const CHAR_CLIMB_MS = 1180;
+const CHAR_CLIMB_SWAY_PX = 9;
+// boxes wide/tall enough to actually disappear behind
+const CHAR_HIDE_SELECTOR = ".card-service, .card-price-base, .card-price-full, .pill-stack";
+const CHAR_HIDE_CLIP_PCT = 52;
 const CHAR_PERCH_SELECTOR = "h1, h2, .pill-stack, .card-service, .card-price-base, .card-price-full";
 const CHAR_HEIGHT_PX = 84;
 function charBoxHeightPx() { return Math.min(84, Math.max(64, window.innerWidth * 0.135)); }
 function sitSeatOffsetPx() { return charBoxHeightPx() * CHAR_SIT_HIP_FRACTION; }
 
 type CharPhase = "introSit" | "fallShout" | "landBounce" | "landSit" | "roam";
-type CharActivity = "walk" | "walkToExamine" | "examine" | "look" | "perchMove" | "perchClimb" | "perchHold";
+type CharActivity =
+  | "walk" | "walkToExamine" | "examine" | "look"
+  | "perchMove" | "perchLook" | "perchClimb" | "perchHold"
+  | "hideMove" | "hideDuck" | "hiding";
 
 function WalkingCharacter() {
   const [left, setLeft] = useState(0);
@@ -448,6 +463,7 @@ function WalkingCharacter() {
   const [tumbling, setTumbling] = useState(false);
   const [ready, setReady] = useState(false);
   const [bubble, setBubble] = useState<{ text: string; key: number } | null>(null);
+  const [clipPct, setClipPct] = useState(0);
 
   useEffect(() => {
     if (!bubble) return;
@@ -485,7 +501,10 @@ function WalkingCharacter() {
     const untilRef = { v: 0 };
     const perchElRef: { v: HTMLElement | null } = { v: null };
     const lookVariantRef = { v: false };
-    const walkDistRef = { v: 0 };
+    const climbStartRef = { v: 0 };
+    const climbFromRef = { v: 0 };
+    const climbFrameRef = { v: -1 };
+    const hideSideRef: { v: 1 | -1 } = { v: 1 };
     let lastPoseStep = 0;
     let raf = 0;
     let transitionTimer = 0;
@@ -522,13 +541,31 @@ function WalkingCharacter() {
       return el;
     }
 
+    // something wide/tall enough that ducking behind its edge reads as hiding
+    function pickHideTarget(): HTMLElement | null {
+      const els = Array.from(document.querySelectorAll(CHAR_HIDE_SELECTOR)) as HTMLElement[];
+      const vis = els.filter(el => {
+        const r = el.getBoundingClientRect();
+        return r.top > 90 && r.bottom < window.innerHeight - 40 && r.width > 110 && r.height > 54;
+      });
+      return vis.length ? vis[(Math.random() * vis.length) | 0] : null;
+    }
+
+    function startWalkAnywhere(t: number) {
+      const [lo, hi] = floorLeftBounds();
+      targetXRef.v = lo + Math.random() * (hi - lo);
+      activityRef.v = "walk";
+      untilRef.v = t + 2200 + Math.random() * 2400;
+    }
+
     function decideNext(t: number) {
+      setClipPct(0);
       const roll = Math.random();
-      if (roll < 0.4) {
+      if (roll < 0.36) {
         activityRef.v = "look";
         lookVariantRef.v = false;
         untilRef.v = t + 2200 + Math.random() * 2400;
-      } else if (roll < 0.52) {
+      } else if (roll < 0.46) {
         const el = pickExamineTarget();
         if (el) {
           const r = el.getBoundingClientRect();
@@ -536,30 +573,30 @@ function WalkingCharacter() {
           perchElRef.v = el;
           targetXRef.v = Math.min(window.innerWidth - 24, Math.max(24, r.left + (side === 1 ? r.width + 30 : -30)));
           activityRef.v = "walkToExamine";
-        } else {
-          const [lo, hi] = floorLeftBounds();
-          targetXRef.v = lo + Math.random() * (hi - lo);
-          activityRef.v = "walk";
-          untilRef.v = t + 2200 + Math.random() * 2400;
-        }
-      } else if (roll < 0.8) {
+          untilRef.v = t + 6000;
+        } else { startWalkAnywhere(t); }
+      } else if (roll < 0.58) {
+        const el = pickHideTarget();
+        if (el) {
+          const r = el.getBoundingClientRect();
+          // duck behind the near edge, so he doesn't cross the whole box first
+          hideSideRef.v = leftRef.v < r.left + r.width / 2 ? -1 : 1;
+          perchElRef.v = el;
+          targetXRef.v = Math.min(window.innerWidth - 24, Math.max(24, hideSideRef.v === 1 ? r.right : r.left));
+          activityRef.v = "hideMove";
+          untilRef.v = t + 6000;
+        } else { startWalkAnywhere(t); }
+      } else if (roll < 0.84) {
         const el = pickPerchTarget();
         if (el) {
           perchElRef.v = el;
           const r = el.getBoundingClientRect();
           targetXRef.v = Math.min(window.innerWidth - 24, Math.max(24, perchLandingX(el, r)));
           activityRef.v = "perchMove";
-        } else {
-          const [lo, hi] = floorLeftBounds();
-          targetXRef.v = lo + Math.random() * (hi - lo);
-          activityRef.v = "walk";
-          untilRef.v = t + 2200 + Math.random() * 2400;
-        }
+          untilRef.v = t + 6000;
+        } else { startWalkAnywhere(t); }
       } else {
-        const [lo, hi] = floorLeftBounds();
-        targetXRef.v = lo + Math.random() * (hi - lo);
-        activityRef.v = "walk";
-        untilRef.v = t + 2200 + Math.random() * 2400;
+        startWalkAnywhere(t);
       }
     }
 
@@ -638,7 +675,7 @@ function WalkingCharacter() {
     function onTalk() {
       if (phaseRef.v !== "roam") return;
       const until = performance.now() + 2500;
-      if (activityRef.v === "perchMove" || activityRef.v === "walkToExamine" || activityRef.v === "perchClimb") return;
+      if (activityRef.v !== "walk" && activityRef.v !== "look" && activityRef.v !== "examine") return;
       if (activityRef.v !== "look") lookVariantRef.v = false;
       activityRef.v = "look";
       untilRef.v = Math.max(untilRef.v, until);
@@ -677,17 +714,33 @@ function WalkingCharacter() {
       if (phaseRef.v !== "roam") return;
       const activity = activityRef.v;
 
-      if (activity === "walk" || activity === "perchMove" || activity === "walkToExamine") {
+      if (activity === "walk" || activity === "perchMove" || activity === "walkToExamine" || activity === "hideMove") {
         const dx = targetXRef.v - leftRef.v;
         if (Math.abs(dx) < 2) {
           if (activity === "perchMove") {
             const el = perchElRef.v;
             if (el) {
+              // stand at the foot of the block and size it up before climbing
               topRef.v = floorTopPx();
               setTop(topRef.v); setOnFloor(false);
-              setSprite({ src: poseClimb, ratio: CHAR_CLIMB_RATIO });
-              activityRef.v = "perchClimb";
-              untilRef.v = t + 480;
+              const r = el.getBoundingClientRect();
+              mirrorRef.v = leftRef.v < r.left + r.width / 2;
+              setMirror(mirrorRef.v);
+              setSprite({ src: posePeek, ratio: CHAR_PEEK_RATIO });
+              activityRef.v = "perchLook";
+              untilRef.v = t + 560 + Math.random() * 360;
+            } else { decideNext(t); }
+          } else if (activity === "hideMove") {
+            const el = perchElRef.v;
+            if (el) {
+              topRef.v = floorTopPx();
+              setTop(topRef.v); setOnFloor(false);
+              mirrorRef.v = hideSideRef.v === 1;
+              setMirror(mirrorRef.v);
+              setSprite({ src: poseCrouch, ratio: CHAR_CROUCH_RATIO });
+              climbStartRef.v = t;
+              climbFromRef.v = topRef.v;
+              activityRef.v = "hideDuck";
             } else { decideNext(t); }
           } else if (activity === "walkToExamine") {
             const el = perchElRef.v;
@@ -703,33 +756,80 @@ function WalkingCharacter() {
           const dir = dx > 0 ? 1 : -1;
           const ready2 = stepPoseToward(2, dir === 1, t);
           if (ready2) {
-            const step = 110 * (1 / 60);
-            leftRef.v = Math.max(24, Math.min(window.innerWidth - 24, leftRef.v + dir * step));
+            leftRef.v = Math.max(24, Math.min(window.innerWidth - 24, leftRef.v + dir * 110 * (1 / 60)));
             setLeft(leftRef.v);
-            walkDistRef.v += step;
-            const wIdx = CHAR_WALK_CYCLE[Math.floor(walkDistRef.v / CHAR_WALK_STEP_PX) % CHAR_WALK_CYCLE.length];
-            setSprite({ src: CHAR_WALK[wIdx], ratio: CHAR_WALK_RATIO[wIdx] });
-          } else {
-            walkDistRef.v = 0;
           }
-          if (activity === "walk" && t > untilRef.v) decideNext(t);
+          // every directed walk has a deadline too, so an unreachable target
+          // (element clipped to the screen edge) can never wedge him in place
+          if (t > untilRef.v) { perchElRef.v = null; decideNext(t); }
+        }
+      } else if (activity === "perchLook") {
+        const el = perchElRef.v;
+        if (!el) { setOnFloor(true); decideNext(t); }
+        else if (t > untilRef.v) {
+          climbStartRef.v = t;
+          climbFromRef.v = topRef.v;
+          climbFrameRef.v = -1;
+          activityRef.v = "perchClimb";
         }
       } else if (activity === "perchClimb") {
         const el = perchElRef.v;
         if (el) {
           const r = el.getBoundingClientRect();
           const targetTop = r.top - sitSeatOffsetPx();
-          topRef.v += (targetTop - topRef.v) * 0.22;
+          const p = Math.min(1, (t - climbStartRef.v) / CHAR_CLIMB_MS);
+          // smoothstep: slow coil at the base, fast haul, soft crest
+          const eased = p * p * (3 - 2 * p);
+          topRef.v = climbFromRef.v + (targetTop - climbFromRef.v) * eased;
           setTop(topRef.v);
-          const closeEnough = Math.abs(targetTop - topRef.v) < 3;
-          if (closeEnough || t > untilRef.v) {
-            topRef.v = targetTop; setTop(targetTop); setOnFloor(false);
+          // lean into the block while hauling, then settle back over the edge
+          const sway = Math.sin(p * Math.PI) * CHAR_CLIMB_SWAY_PX * (mirrorRef.v ? 1 : -1);
+          setLeft(leftRef.v + sway);
+          let idx = 0;
+          while (idx + 1 < CHAR_CLIMB_FRAMES.length && p >= CHAR_CLIMB_FRAMES[idx + 1].at) idx++;
+          if (idx !== climbFrameRef.v) {
+            climbFrameRef.v = idx;
+            const f = CHAR_CLIMB_FRAMES[idx];
+            setSprite({ src: f.src, ratio: f.ratio });
+          }
+          if (p >= 1) {
+            topRef.v = targetTop; setTop(targetTop); setLeft(leftRef.v); setOnFloor(false);
             setSprite({ src: poseSitFront, ratio: CHAR_SIT_RATIO });
-            setFallToken(v => v + 1);
+            // deliberately no charFall replay here: he climbed up under his own
+            // power, so he must settle into the sit from the crest frame rather
+            // than pop 160px into the air and drop back onto the block
             activityRef.v = "perchHold";
             untilRef.v = t + 3000 + Math.random() * 2600;
           }
         } else { setOnFloor(true); decideNext(t); }
+      } else if (activity === "hideDuck" || activity === "hiding") {
+        const el = perchElRef.v;
+        const r = el ? el.getBoundingClientRect() : null;
+        if (!el || !r || r.width < 10 || r.top < 40 || r.bottom > window.innerHeight - 10) {
+          setClipPct(0); setTop(null); setOnFloor(true); perchElRef.v = null; setFallToken(v => v + 1); decideNext(t);
+        } else {
+          // hug the box's near edge: only the head/shoulder side stays visible
+          leftRef.v = hideSideRef.v === 1 ? r.right : r.left;
+          setLeft(leftRef.v);
+          const targetTop = r.bottom - charBoxHeightPx();
+          if (activity === "hideDuck") {
+            const p = Math.min(1, (t - climbStartRef.v) / 420);
+            topRef.v = climbFromRef.v + (targetTop - climbFromRef.v) * (p * p * (3 - 2 * p));
+            setTop(topRef.v);
+            if (p >= 1) {
+              setSprite({ src: posePeek, ratio: CHAR_PEEK_RATIO });
+              setClipPct(CHAR_HIDE_CLIP_PCT);
+              activityRef.v = "hiding";
+              untilRef.v = t + 2400 + Math.random() * 2200;
+            }
+          } else {
+            topRef.v = targetTop;
+            setTop(topRef.v);
+            if (t > untilRef.v) {
+              setClipPct(0); setTop(null); setOnFloor(true); perchElRef.v = null; setFallToken(v => v + 1); decideNext(t);
+            }
+          }
+        }
       } else if (activity === "examine") {
         const el = perchElRef.v;
         if (el) {
@@ -797,7 +897,7 @@ function WalkingCharacter() {
                 <img
                   src={sprite.src}
                   onClick={handleTalk}
-                  style={{ display: "block", maxWidth: "100%", maxHeight: "100%", width: "auto", height: "auto", filter: "drop-shadow(0 6px 6px rgba(0,0,0,.5))", pointerEvents: "auto", cursor: "pointer" }}
+                  style={{ display: "block", maxWidth: "100%", maxHeight: "100%", width: "auto", height: "auto", filter: "drop-shadow(0 6px 6px rgba(0,0,0,.5))", pointerEvents: "auto", cursor: "pointer", clipPath: clipPct ? `inset(0 ${clipPct}% 0 0)` : "none", transition: "clip-path .25s ease" }}
                 />
               </div>
             </div>
