@@ -393,6 +393,12 @@ function Footer(){return <footer style={{background:"#050f05",borderTop:"1px sol
    precisely to specific elements.
 ───────────────────────────────────────── */
 const CHAR_SECTION_IDS = ["hero", "ai", "services", "stack", "price", "process", "contact"];
+const CHAR_TALK_PHRASES = [
+  "hi, i'm ai agent", "ai-pixel here", "01001000 01001001", "system.exe running",
+  "просто прохожу мимо", "не тыкай, я работаю", "заряжен на 87%", "сижу, смотрю на тебя",
+  "compiling thoughts...", "я не баг, я фича", "matrix has you", "нажми ещё раз",
+  "loading personality...", "печатаю твой сайт",
+];
 const CHAR_STAND = [poseFront, poseFrontSide, poseSide, poseBackSide, poseBack];
 const CHAR_STAND_RATIO = [211 / 500, 201 / 500, 119 / 500, 201 / 500, 215 / 500];
 const CHAR_SIT_RATIO = 206 / 343;
@@ -416,6 +422,19 @@ function WalkingCharacter() {
   const [fallToken, setFallToken] = useState(0);
   const [tumbling, setTumbling] = useState(false);
   const [ready, setReady] = useState(false);
+  const [bubble, setBubble] = useState<{ text: string; key: number } | null>(null);
+
+  useEffect(() => {
+    if (!bubble) return;
+    const id = window.setTimeout(() => setBubble(b => (b && b.key === bubble.key ? null : b)), 2600);
+    return () => clearTimeout(id);
+  }, [bubble]);
+
+  function handleTalk() {
+    const text = CHAR_TALK_PHRASES[(Math.random() * CHAR_TALK_PHRASES.length) | 0];
+    setBubble({ text, key: Date.now() });
+    window.dispatchEvent(new CustomEvent("char:talk"));
+  }
 
   useEffect(() => {
     const consoleBox = document.getElementById("console-box");
@@ -581,6 +600,15 @@ function WalkingCharacter() {
     function onNext() { if (phaseRef.v === "introSit") startFall(); }
     window.addEventListener("char:next", onNext);
 
+    function onTalk() {
+      if (phaseRef.v !== "roam") return;
+      const until = performance.now() + 2500;
+      if (activityRef.v === "perchMove" || activityRef.v === "walkToExamine") return;
+      activityRef.v = "look";
+      untilRef.v = Math.max(untilRef.v, until);
+    }
+    window.addEventListener("char:talk", onTalk);
+
     function tick(t: number) {
       raf = requestAnimationFrame(tick);
 
@@ -672,7 +700,7 @@ function WalkingCharacter() {
       }
     }
     raf = requestAnimationFrame(tick);
-    return () => { cancelAnimationFrame(raf); clearTimeout(transitionTimer); window.removeEventListener("char:next", onNext); };
+    return () => { cancelAnimationFrame(raf); clearTimeout(transitionTimer); window.removeEventListener("char:next", onNext); window.removeEventListener("char:talk", onTalk); };
   }, [ready]);
 
   useEffect(() => {
@@ -696,8 +724,20 @@ function WalkingCharacter() {
         <div key={fallToken} style={{ animation: "charFall .75s cubic-bezier(.34,1.4,.4,1) both" }}>
           <div style={{ animation: tumbling ? "none" : "charBob .6s ease-in-out infinite" }}>
             <div style={{ animation: tumbling ? "charTumble .55s linear infinite" : "none" }}>
-              <div style={{ width: "clamp(80px,17vw,105px)", height: "clamp(64px,13.5vw,84px)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
-                <img src={sprite.src} style={{ display: "block", maxWidth: "100%", maxHeight: "100%", width: "auto", height: "auto", filter: "drop-shadow(0 6px 6px rgba(0,0,0,.5))" }} />
+              <div style={{ position: "relative", width: "clamp(80px,17vw,105px)", height: "clamp(64px,13.5vw,84px)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
+                {bubble && (
+                  <div key={bubble.key} style={{ position: "absolute", bottom: "100%", left: "50%", marginBottom: 8, transform: `translateX(-50%) scaleX(${mirror ? -1 : 1})`, zIndex: 61 }}>
+                    <div style={{ position: "relative", background: "#050f05", border: "1px solid rgba(0,255,65,.55)", boxShadow: "0 0 14px rgba(0,255,65,.22)", color: "#00ff41", fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: ".02em", padding: "7px 11px", whiteSpace: "nowrap", animation: "bubblePop .22s cubic-bezier(.34,1.4,.4,1) both, bubbleFade .3s ease-in 2.2s forwards" }}>
+                      {bubble.text}
+                      <span style={{ position: "absolute", bottom: -5, left: "50%", width: 9, height: 9, background: "#050f05", borderRight: "1px solid rgba(0,255,65,.55)", borderBottom: "1px solid rgba(0,255,65,.55)", transform: "translateX(-50%) rotate(45deg)" }} />
+                    </div>
+                  </div>
+                )}
+                <img
+                  src={sprite.src}
+                  onClick={handleTalk}
+                  style={{ display: "block", maxWidth: "100%", maxHeight: "100%", width: "auto", height: "auto", filter: "drop-shadow(0 6px 6px rgba(0,0,0,.5))", pointerEvents: "auto", cursor: "pointer" }}
+                />
               </div>
             </div>
           </div>
@@ -707,5 +747,5 @@ function WalkingCharacter() {
   );
 }
 
-const KEYFRAMES=`@keyframes slideBar{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}} @keyframes marqAnim{from{transform:translateX(0)}to{transform:translateX(-50%)}} @keyframes neonPulse{0%,100%{text-shadow:0 0 10px rgba(0,255,65,.4),0 0 28px rgba(0,255,65,.18)}50%{text-shadow:0 0 20px rgba(0,255,65,.85),0 0 52px rgba(0,255,65,.4)}} @keyframes hudBlink{0%,93%,100%{opacity:1}94%,96%{opacity:0}95%,97%{opacity:1}98%,99%{opacity:.3}} @keyframes borderGlow{0%,100%{border-color:rgba(0,255,65,.2)}50%{border-color:rgba(0,255,65,.5)}} @keyframes rowGlowDone{0%,100%{background:rgba(0,255,65,.02)}50%{background:rgba(0,255,65,.07)}} @keyframes rowGlowActive{0%,100%{background:rgba(0,255,65,.04)}50%{background:rgba(0,255,65,.14)}} @keyframes rowGlowRunning{0%,100%{background:rgba(0,255,65,.03)}50%{background:rgba(0,255,65,.10)}} @keyframes rowGlowQueued{0%,100%{background:rgba(0,255,65,.015)}50%{background:rgba(0,255,65,.05)}} @keyframes charFall{0%{transform:translateY(-160px);opacity:0}55%{transform:translateY(14px);opacity:1}75%{transform:translateY(-8px)}100%{transform:translateY(0)}} @keyframes charBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}} @keyframes charShake{0%,100%{transform:rotate(0deg)}20%{transform:rotate(-7deg)}40%{transform:rotate(6deg)}60%{transform:rotate(-4deg)}80%{transform:rotate(3deg)}} @keyframes charTumble{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}} @keyframes matrixHighlight{0%{text-shadow:0 0 2px rgba(0,255,65,.25)}30%{text-shadow:0 0 16px rgba(0,255,65,1),0 0 34px rgba(0,255,65,.65)}100%{text-shadow:0 0 6px rgba(0,255,65,.35)}} @media (hover:hover) and (pointer:fine){.link-nav:hover{color:#00ff41}.btn-next:hover{background:rgba(0,255,65,.12)}.card-service:hover{background:#0a1a0a}.pill-stack:hover{color:#00ff41;border-color:rgba(0,255,65,.6)}.row-ai:hover{padding-left:22px}} @media (min-width:1024px){.hero-grid{grid-template-columns:3fr 2fr!important}} @media (max-width:900px){.stack-grid{grid-template-columns:1fr!important}.process-grid{grid-template-columns:1fr 1fr!important}} @media (max-width:640px){.nav-links{display:none!important}.nav-toggle{display:inline-flex!important}.contact-grid{grid-template-columns:1fr!important}.services-grid{grid-template-columns:1fr!important}.process-grid{grid-template-columns:1fr!important}.price-grid{grid-template-columns:1fr!important}.stream-readout{display:none!important}.ai-table-head{display:none!important}.ai-table-row{grid-template-columns:28px 1fr!important}.ai-table-row>*:nth-child(3){grid-column:1/-1!important;margin-top:8px}.ai-table-row>*:nth-child(4){grid-column:1/-1!important;margin-top:4px}}`;
+const KEYFRAMES=`@keyframes slideBar{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}} @keyframes marqAnim{from{transform:translateX(0)}to{transform:translateX(-50%)}} @keyframes neonPulse{0%,100%{text-shadow:0 0 10px rgba(0,255,65,.4),0 0 28px rgba(0,255,65,.18)}50%{text-shadow:0 0 20px rgba(0,255,65,.85),0 0 52px rgba(0,255,65,.4)}} @keyframes hudBlink{0%,93%,100%{opacity:1}94%,96%{opacity:0}95%,97%{opacity:1}98%,99%{opacity:.3}} @keyframes borderGlow{0%,100%{border-color:rgba(0,255,65,.2)}50%{border-color:rgba(0,255,65,.5)}} @keyframes rowGlowDone{0%,100%{background:rgba(0,255,65,.02)}50%{background:rgba(0,255,65,.07)}} @keyframes rowGlowActive{0%,100%{background:rgba(0,255,65,.04)}50%{background:rgba(0,255,65,.14)}} @keyframes rowGlowRunning{0%,100%{background:rgba(0,255,65,.03)}50%{background:rgba(0,255,65,.10)}} @keyframes rowGlowQueued{0%,100%{background:rgba(0,255,65,.015)}50%{background:rgba(0,255,65,.05)}} @keyframes charFall{0%{transform:translateY(-160px);opacity:0}55%{transform:translateY(14px);opacity:1}75%{transform:translateY(-8px)}100%{transform:translateY(0)}} @keyframes charBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}} @keyframes charShake{0%,100%{transform:rotate(0deg)}20%{transform:rotate(-7deg)}40%{transform:rotate(6deg)}60%{transform:rotate(-4deg)}80%{transform:rotate(3deg)}} @keyframes charTumble{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}} @keyframes bubblePop{0%{opacity:0;transform:scale(.7) translateY(4px)}100%{opacity:1;transform:scale(1) translateY(0)}} @keyframes bubbleFade{0%{opacity:1}100%{opacity:0}} @keyframes matrixHighlight{0%{text-shadow:0 0 2px rgba(0,255,65,.25)}30%{text-shadow:0 0 16px rgba(0,255,65,1),0 0 34px rgba(0,255,65,.65)}100%{text-shadow:0 0 6px rgba(0,255,65,.35)}} @media (hover:hover) and (pointer:fine){.link-nav:hover{color:#00ff41}.btn-next:hover{background:rgba(0,255,65,.12)}.card-service:hover{background:#0a1a0a}.pill-stack:hover{color:#00ff41;border-color:rgba(0,255,65,.6)}.row-ai:hover{padding-left:22px}} @media (min-width:1024px){.hero-grid{grid-template-columns:3fr 2fr!important}} @media (max-width:900px){.stack-grid{grid-template-columns:1fr!important}.process-grid{grid-template-columns:1fr 1fr!important}} @media (max-width:640px){.nav-links{display:none!important}.nav-toggle{display:inline-flex!important}.contact-grid{grid-template-columns:1fr!important}.services-grid{grid-template-columns:1fr!important}.process-grid{grid-template-columns:1fr!important}.price-grid{grid-template-columns:1fr!important}.stream-readout{display:none!important}.ai-table-head{display:none!important}.ai-table-row{grid-template-columns:28px 1fr!important}.ai-table-row>*:nth-child(3){grid-column:1/-1!important;margin-top:8px}.ai-table-row>*:nth-child(4){grid-column:1/-1!important;margin-top:4px}}`;
 export default function App(){return <div style={{background:"#000",color:"#00ff41",minHeight:"100vh"}}><style>{KEYFRAMES}</style><Nav/><main id="top"><LiveConsole/><Hero/><DecodeStreamDivider/><Mission/><AIConsierge/><Services/><Stack/><Price/><Process/><Contact/><Footer/></main><WalkingCharacter/></div>;}
