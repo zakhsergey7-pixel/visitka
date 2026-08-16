@@ -2,7 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import iconNode from "../assets/icon-node.png";
 import iconSpark from "../assets/icon-spark.png";
 import iconWhale from "../assets/icon-whale.png";
-import characterSheet from "../assets/character-sheet.png";
+import poseFront from "../assets/pose-front.png";
+import poseFrontSide from "../assets/pose-frontside.png";
+import poseSide from "../assets/pose-side.png";
+import poseBackSide from "../assets/pose-backside.png";
+import poseBack from "../assets/pose-back.png";
 
 /* ─────────────────────────────────────────
    Matrix Rain Canvas
@@ -101,7 +105,7 @@ function AILogoChip({ src }: { src: string }) {
 }
 function AIIconStream() {
   const row = (key: string) => (
-    <div key={key} style={{ display: "flex", gap: "clamp(6px,1.6vw,10px)", paddingRight: "clamp(6px,1.6vw,10px)" }}>
+    <div key={key} style={{ display: "flex", gap: "clamp(20px,5vw,40px)", paddingRight: "clamp(20px,5vw,40px)" }}>
       {AI_LOGO_ICONS.concat(AI_LOGO_ICONS).map((src, i) => <AILogoChip key={`${key}-${i}`} src={src} />)}
     </div>
   );
@@ -284,23 +288,44 @@ function Contact(){const handleSubmit=(e:React.FormEvent<HTMLFormElement>)=>{e.p
 function Footer(){return <footer style={{background:"#050f05",borderTop:"1px solid rgba(0,255,65,.18)",padding:"22px clamp(20px,5vw,90px)",fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:"#008f11",display:"flex",justifyContent:"space-between"}}><span>© 2026 Захаров Сергей</span><a href="#top" style={{color:"#00ff41",textDecoration:"none"}}>Наверх ↑</a></footer>;}
 /* ─────────────────────────────────────────
    Walking character — appears once the
-   visitor clicks past the console gate,
-   "falls" onto the Hero section, then paces
-   side to side at the bottom of the screen.
-   Fixed to the viewport, so it rides along
-   as you scroll; every time a new section
-   becomes the dominant one on screen it
-   replays the fall/land bounce, as if
-   dropping onto that next block.
+   visitor clicks past the console gate and
+   "falls" onto the Hero section. Fixed to
+   the viewport, so it rides along as you
+   scroll, replaying the fall/land bounce
+   whenever a new section becomes dominant.
+
+   Behaviour is a small state machine, not a
+   flat left-right pace:
+   - "walk"  → picks a random spot and heads
+     there, turning through the 5-pose
+     turnaround (front → 3/4 → side → 3/4 →
+     back, mirrored) like a mini 3D turntable
+     instead of flipping instantly.
+   - "look"  → stops and turns to face the
+     viewer for a moment.
+   - "perch" → climbs onto a nearby small
+     block (a stack pill, a price/service
+     card) and stands on its top edge a
+     while before hopping back down.
+   No sitting/leg-swing frame exists in the
+   source art, so "sitting on a block" is
+   approximated as standing on its edge.
 ───────────────────────────────────────── */
 const CHAR_SECTION_IDS = ["hero", "ai", "services", "stack", "price", "process", "contact"];
+const CHAR_POSES = [poseFront, poseFrontSide, poseSide, poseBackSide, poseBack];
+const CHAR_POSE_RATIO = [211 / 500, 201 / 500, 119 / 500, 201 / 500, 215 / 500];
+const CHAR_PERCH_SELECTOR = ".pill-stack, .card-service, .card-price-base, .card-price-full";
+const CHAR_HEIGHT_PX = 88;
+
+type CharActivity = "walk" | "look" | "perchMove" | "perchHold";
+
 function WalkingCharacter() {
   const [visible, setVisible] = useState(false);
   const [fallToken, setFallToken] = useState(0);
   const [x, setX] = useState(50);
-  const [dir, setDir] = useState<1 | -1>(1);
-  const xRef = useRef(50);
-  const dirRef = useRef<1 | -1>(1);
+  const [poseIdx, setPoseIdx] = useState(2);
+  const [mirror, setMirror] = useState(false);
+  const [perchTop, setPerchTop] = useState<number | null>(null);
 
   useEffect(() => {
     const hero = document.getElementById("hero");
@@ -312,16 +337,107 @@ function WalkingCharacter() {
 
   useEffect(() => {
     if (!visible) return;
-    let raf = 0, last = performance.now();
-    const SPEED = 9, MIN = 6, MAX = 92;
+    const xRef = { v: 50 };
+    const poseRef = { v: 2 };
+    const mirrorRef = { v: false };
+    const activityRef: { v: CharActivity } = { v: "walk" };
+    const targetXRef = { v: 50 };
+    const untilRef = { v: 0 };
+    const perchElRef: { v: HTMLElement | null } = { v: null };
+    let lastPoseStep = 0;
+    let raf = 0;
+
+    function pickPerchTarget(): HTMLElement | null {
+      const els = Array.from(document.querySelectorAll(CHAR_PERCH_SELECTOR)) as HTMLElement[];
+      const vis = els.filter(el => {
+        const r = el.getBoundingClientRect();
+        return r.top > 90 && r.bottom < window.innerHeight - 60 && r.width > 26 && r.width < 260 && r.height < 160;
+      });
+      return vis.length ? vis[(Math.random() * vis.length) | 0] : null;
+    }
+
+    function decideNext(t: number) {
+      const roll = Math.random();
+      if (roll < 0.22) {
+        activityRef.v = "look";
+        untilRef.v = t + 1700 + Math.random() * 1800;
+      } else if (roll < 0.4) {
+        const el = pickPerchTarget();
+        if (el) {
+          perchElRef.v = el;
+          const r = el.getBoundingClientRect();
+          targetXRef.v = Math.min(94, Math.max(6, ((r.left + r.width / 2) / window.innerWidth) * 100));
+          activityRef.v = "perchMove";
+        } else {
+          targetXRef.v = 6 + Math.random() * 88;
+          activityRef.v = "walk";
+          untilRef.v = t + 4500 + Math.random() * 4500;
+        }
+      } else {
+        targetXRef.v = 6 + Math.random() * 88;
+        activityRef.v = "walk";
+        untilRef.v = t + 4500 + Math.random() * 4500;
+      }
+    }
+    untilRef.v = performance.now() + 2000 + Math.random() * 2000;
+    targetXRef.v = 6 + Math.random() * 88;
+
+    function stepPoseToward(desiredIdx: number, desiredMirror: boolean, t: number): boolean {
+      if (poseRef.v === desiredIdx && mirrorRef.v === desiredMirror) return true;
+      if (t - lastPoseStep < 95) return false;
+      lastPoseStep = t;
+      if (mirrorRef.v !== desiredMirror) {
+        // wrong mirror: retreat toward front (0) first, flip there, then advance
+        if (poseRef.v > 0) { poseRef.v -= 1; if (poseRef.v === 0) mirrorRef.v = desiredMirror; }
+        else { mirrorRef.v = desiredMirror; }
+      } else if (poseRef.v < desiredIdx) poseRef.v += 1;
+      else if (poseRef.v > desiredIdx) poseRef.v -= 1;
+      setPoseIdx(poseRef.v);
+      setMirror(mirrorRef.v);
+      return poseRef.v === desiredIdx && mirrorRef.v === desiredMirror;
+    }
+
     function tick(t: number) {
       raf = requestAnimationFrame(tick);
-      const dt = (t - last) / 1000; last = t;
-      let nx = xRef.current + dirRef.current * SPEED * dt;
-      if (nx > MAX) { nx = MAX; dirRef.current = -1; setDir(-1); }
-      if (nx < MIN) { nx = MIN; dirRef.current = 1; setDir(1); }
-      xRef.current = nx;
-      setX(nx);
+      const activity = activityRef.v;
+
+      if (activity === "walk" || activity === "perchMove") {
+        const dx = targetXRef.v - xRef.v;
+        if (Math.abs(dx) < 1) {
+          if (activity === "perchMove") {
+            const el = perchElRef.v;
+            if (el) {
+              const r = el.getBoundingClientRect();
+              setPerchTop(r.top);
+              stepPoseToward(0, mirrorRef.v, t);
+              activityRef.v = "perchHold";
+              untilRef.v = t + 2600 + Math.random() * 2400;
+            } else { decideNext(t); }
+          } else { decideNext(t); }
+        } else {
+          const dir = dx > 0 ? 1 : -1;
+          const ready = stepPoseToward(2, dir === 1, t);
+          if (ready) {
+            xRef.v = Math.max(4, Math.min(96, xRef.v + dir * 15 * (1 / 60)));
+            setX(xRef.v);
+          }
+          if (activity === "walk" && t > untilRef.v) decideNext(t);
+        }
+      } else if (activity === "look") {
+        stepPoseToward(0, mirrorRef.v, t);
+        if (t > untilRef.v) decideNext(t);
+      } else if (activity === "perchHold") {
+        const el = perchElRef.v;
+        if (el) {
+          const r = el.getBoundingClientRect();
+          if (r.top < 60 || r.top > window.innerHeight - 40 || r.width < 10) {
+            setPerchTop(null); perchElRef.v = null; decideNext(t);
+          } else {
+            setPerchTop(r.top);
+            if (t > untilRef.v) { setPerchTop(null); perchElRef.v = null; decideNext(t); }
+          }
+        } else { decideNext(t); }
+      }
     }
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
@@ -341,11 +457,14 @@ function WalkingCharacter() {
   }, [visible]);
 
   if (!visible) return null;
+  const posStyle: React.CSSProperties = perchTop != null
+    ? { top: Math.max(8, perchTop - CHAR_HEIGHT_PX + 14) }
+    : { bottom: "clamp(8px,2.6vh,26px)" };
   return (
-    <div style={{ position: "fixed", left: `${x}%`, bottom: "clamp(8px,2.6vh,26px)", transform: `translateX(-50%) scaleX(${dir === 1 ? -1 : 1})`, zIndex: 60, pointerEvents: "none" }}>
+    <div style={{ position: "fixed", left: `${x}%`, ...posStyle, transform: `translateX(-50%) scaleX(${mirror ? -1 : 1})`, zIndex: 60, pointerEvents: "none", transition: "top .4s cubic-bezier(.34,1.2,.4,1)" }}>
       <div key={fallToken} style={{ animation: "charFall .75s cubic-bezier(.34,1.4,.4,1) both" }}>
         <div style={{ animation: "charBob .6s ease-in-out infinite" }}>
-          <div style={{ width: "clamp(38px,9vw,52px)", aspectRatio: "0.6", backgroundImage: `url(${characterSheet})`, backgroundSize: "500% 200%", backgroundPosition: "50% 0%", backgroundRepeat: "no-repeat", filter: "drop-shadow(0 6px 6px rgba(0,0,0,.5))" }} />
+          <img src={CHAR_POSES[poseIdx]} style={{ display: "block", height: "clamp(66px,14vw,88px)", width: "auto", aspectRatio: `${CHAR_POSE_RATIO[poseIdx]}`, filter: "drop-shadow(0 6px 6px rgba(0,0,0,.5))" }} />
         </div>
       </div>
     </div>
