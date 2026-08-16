@@ -2,6 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import iconNode from "../assets/icon-node.png";
 import iconSpark from "../assets/icon-spark.png";
 import iconWhale from "../assets/icon-whale.png";
+import poseShout from "../assets/pose-shout.png";
+import poseSitFront from "../assets/pose-sit-front.png";
+import poseSitSide from "../assets/pose-sit-side.png";
 import poseFront from "../assets/pose-front.png";
 import poseFrontSide from "../assets/pose-frontside.png";
 import poseSide from "../assets/pose-side.png";
@@ -74,7 +77,7 @@ function WhoAmICard() {
     </TerminalBox>
   );
 }
-function Hero(){const[active,setActive]=useState(false);const headline=useDecrypt("Сайт — это инструмент,\nа не просто картинка.",active);const[cur,setCur]=useState(true);const[mouse,setMouse]=useState({x:0,y:0});const secRef=useRef<HTMLElement>(null);useEffect(()=>{const id=setInterval(()=>setCur(p=>!p),550);return()=>clearInterval(id)},[]);useEffect(()=>{const el=secRef.current;if(!el)return;const ob=new IntersectionObserver(([e])=>{if(e.isIntersecting){setActive(true);ob.disconnect()}},{threshold:.3});ob.observe(el);return()=>ob.disconnect()},[]);const onMouseMove=(e:React.MouseEvent)=>{const r=secRef.current?.getBoundingClientRect();if(r)setMouse({x:Math.round(e.clientX-r.left),y:Math.round(e.clientY-r.top)})};return <section id="hero" ref={secRef} onMouseMove={onMouseMove} style={{position:"relative",minHeight:"100svh",display:"flex",flexDirection:"column",justifyContent:"space-between",padding:"clamp(120px,18vh,200px) clamp(20px,5vw,90px) 0",overflow:"hidden"}}><div style={{position:"absolute",inset:0,zIndex:0}}><MatrixRain opacity={.13} fontSize={14} color="#00ff41" trail="rgba(0,0,0,.055)" speed={58}/></div><NoiseOverlay/>{DEAD_PIXELS.map((p,i)=><div key={i} style={{position:"absolute",width:2,height:2,background:"#00ff41",boxShadow:"0 0 3px #00ff41",zIndex:1,pointerEvents:"none",animation:`hudBlink ${3.5+i*1.4}s steps(1) infinite ${i*.8}s`,...p}}/>)}<div style={{position:"absolute",inset:0,zIndex:1,pointerEvents:"none",background:"repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.07) 2px,rgba(0,0,0,.07) 4px)"}}/><div style={{position:"absolute",top:"clamp(80px,13vh,140px)",left:"clamp(20px,5vw,90px)",right:"clamp(20px,5vw,90px)",display:"flex",justifyContent:"space-between",fontFamily:"'JetBrains Mono',monospace",fontSize:10,letterSpacing:".14em",textTransform:"uppercase",color:"rgba(0,255,65,.28)",zIndex:2,pointerEvents:"none"}}><span>SYS.<span style={{color:"#00ff41",animation:"hudBlink 8s steps(1) infinite"}}>ONLINE</span> · UPTIME 05Y</span><span style={{textAlign:"right"}}>55.7522° N · 37.6156° E<br/>BUILD 2026.08</span></div><div className="hero-grid" style={{position:"relative",zIndex:2,display:"grid",gridTemplateColumns:"1fr",gap:"clamp(28px,5vw,48px)",alignItems:"center"}}><h1 style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:700,fontSize:"clamp(28px,5.4vw,86px)",lineHeight:1.06,letterSpacing:"-.02em",color:"#00ff41",animation:"neonPulse 4.5s ease-in-out infinite",maxWidth:"22ch",whiteSpace:"pre-line"}}>{headline}<span style={{opacity:cur?1:0}}>_</span></h1><div className="hero-whoami" style={{display:"none"}}><WhoAmICard/></div></div><div style={{position:"relative",zIndex:2,display:"flex",justifyContent:"space-between",alignItems:"center",gap:20,borderTop:"1px solid rgba(0,255,65,.16)",padding:"22px 0 26px",marginTop:"clamp(36px,8vh,80px)"}}><HeroStatusLine/><span style={{width:48,height:1,background:"#003b00",position:"relative",overflow:"hidden",display:"block",flexShrink:0}}><span style={{position:"absolute",inset:0,background:"#00ff41",animation:"slideBar 2s linear infinite"}}/></span></div></section>;}
+function Hero(){const[active,setActive]=useState(false);const headline=useDecrypt("Сайт — это инструмент,\nа не просто картинка.",active);const[cur,setCur]=useState(true);const[mouse,setMouse]=useState({x:0,y:0});const secRef=useRef<HTMLElement>(null);useEffect(()=>{const id=setInterval(()=>setCur(p=>!p),550);return()=>clearInterval(id)},[]);useEffect(()=>{const el=secRef.current;if(!el)return;const ob=new IntersectionObserver(([e])=>{if(e.isIntersecting){setActive(true);ob.disconnect()}},{threshold:.3});ob.observe(el);return()=>ob.disconnect()},[]);const onMouseMove=(e:React.MouseEvent)=>{const r=secRef.current?.getBoundingClientRect();if(r)setMouse({x:Math.round(e.clientX-r.left),y:Math.round(e.clientY-r.top)})};return <section id="hero" ref={secRef} onMouseMove={onMouseMove} style={{position:"relative",minHeight:"100svh",display:"flex",flexDirection:"column",justifyContent:"space-between",padding:"clamp(120px,18vh,200px) clamp(20px,5vw,90px) 0",overflow:"hidden"}}><div style={{position:"absolute",inset:0,zIndex:0}}><MatrixRain opacity={.13} fontSize={14} color="#00ff41" trail="rgba(0,0,0,.055)" speed={58}/></div><NoiseOverlay/>{DEAD_PIXELS.map((p,i)=><div key={i} style={{position:"absolute",width:2,height:2,background:"#00ff41",boxShadow:"0 0 3px #00ff41",zIndex:1,pointerEvents:"none",animation:`hudBlink ${3.5+i*1.4}s steps(1) infinite ${i*.8}s`,...p}}/>)}<div style={{position:"absolute",inset:0,zIndex:1,pointerEvents:"none",background:"repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.07) 2px,rgba(0,0,0,.07) 4px)"}}/><div style={{position:"absolute",top:"clamp(80px,13vh,140px)",left:"clamp(20px,5vw,90px)",right:"clamp(20px,5vw,90px)",display:"flex",justifyContent:"space-between",fontFamily:"'JetBrains Mono',monospace",fontSize:10,letterSpacing:".14em",textTransform:"uppercase",color:"rgba(0,255,65,.28)",zIndex:2,pointerEvents:"none"}}><span>SYS.<span style={{color:"#00ff41",animation:"hudBlink 8s steps(1) infinite"}}>ONLINE</span> · UPTIME 05Y</span><span style={{textAlign:"right"}}>55.7522° N · 37.6156° E<br/>BUILD 2026.08</span></div><div className="hero-grid" style={{position:"relative",zIndex:2,display:"grid",gridTemplateColumns:"1fr",gap:"clamp(28px,5vw,48px)",alignItems:"center"}}><h1 style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:700,fontSize:"clamp(28px,5.4vw,86px)",lineHeight:1.06,letterSpacing:"-.02em",color:"#00ff41",animation:"neonPulse 4.5s ease-in-out infinite",maxWidth:"22ch",whiteSpace:"pre-line"}}>{headline}<span style={{opacity:cur?1:0}}>_</span></h1><div className="hero-whoami" id="whoami-box" style={{display:"none"}}><WhoAmICard/></div></div><div style={{position:"relative",zIndex:2,display:"flex",justifyContent:"space-between",alignItems:"center",gap:20,borderTop:"1px solid rgba(0,255,65,.16)",padding:"22px 0 26px",marginTop:"clamp(36px,8vh,80px)"}}><HeroStatusLine/><span style={{width:48,height:1,background:"#003b00",position:"relative",overflow:"hidden",display:"block",flexShrink:0}}><span style={{position:"absolute",inset:0,background:"#00ff41",animation:"slideBar 2s linear infinite"}}/></span></div></section>;}
 
 /* ─────────────────────────────────────────
    AI logo stream — three neon marks, cropped
@@ -122,7 +125,7 @@ function DecodeStreamDivider(){const readoutRef=useRef<HTMLSpanElement>(null);us
 function Mission(){const ref=useRef<HTMLDivElement>(null);const[active,setActive]=useState(false);useEffect(()=>{const el=ref.current;if(!el)return;const ob=new IntersectionObserver(([e])=>{if(e.isIntersecting){setActive(true);ob.disconnect()}},{threshold:.15});ob.observe(el);return()=>ob.disconnect()},[]);const stmt=useDecrypt("Я превращаю бизнес\nв цифровой актив.",active,30);const lines=[{t:"AI — инструмент,",pad:"0"},{t:"который оптимизирует бизнес.",pad:"clamp(28px,5vw,80px)"},{t:"Код пишу и проверяю",pad:"clamp(14px,2.5vw,40px)"},{t:"я сам.",pad:"clamp(42px,7vw,110px)"}];const[shown,setShown]=useState<boolean[]>([false,false,false,false]);useEffect(()=>{if(!active)return;lines.forEach((_,i)=>setTimeout(()=>setShown(p=>{const n=[...p];n[i]=true;return n}),600+i*220))},[active]);return <section style={{padding:"clamp(90px,14vh,160px) clamp(20px,5vw,90px)",background:"#000",position:"relative",overflow:"hidden"}}><div style={{position:"absolute",inset:0}}><MatrixRain opacity={.06} fontSize={14} color="#00ff41" trail="rgba(0,0,0,.04)" speed={90}/></div><div style={{position:"absolute",left:"clamp(4px,1.4vw,16px)",top:"50%",width:0,height:0,pointerEvents:"none"}}><div style={{position:"absolute",top:0,left:0,width:340,height:20,overflow:"hidden",transform:"rotate(-90deg)",transformOrigin:"top left"}}><div style={{display:"inline-flex",gap:28,animation:"marqAnim 22s linear infinite",fontFamily:"'JetBrains Mono',monospace",fontWeight:700,fontSize:13,letterSpacing:".28em",textTransform:"uppercase",color:"rgba(0,255,65,.55)",textShadow:"0 0 12px rgba(0,255,65,.35)",whiteSpace:"nowrap"}}><span>МИССИЯ · MISSION · МИССИЯ · </span><span>МИССИЯ · MISSION · МИССИЯ · </span></div></div></div><div ref={ref} style={{position:"relative",zIndex:1,paddingLeft:"clamp(46px,7vw,96px)"}}><div style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:700,fontSize:"clamp(32px,6vw,96px)",lineHeight:1,letterSpacing:"-.03em",color:"#00ff41",animation:active?"neonPulse 5s ease-in-out infinite":"none",whiteSpace:"pre-line",marginBottom:"clamp(40px,7vh,80px)"}}>{stmt}</div><div style={{display:"flex",flexDirection:"column",gap:"clamp(6px,1.2vh,14px)",marginBottom:"clamp(44px,8vh,90px)"}}>{lines.map((l,i)=><div key={i} style={{paddingLeft:l.pad,opacity:shown[i]?1:0,transform:shown[i]?"none":"translateX(-16px)",transition:"opacity .7s cubic-bezier(.16,1,.3,1), transform .7s cubic-bezier(.16,1,.3,1)"}}><span style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:i%2===0?700:300,fontSize:"clamp(18px,2.8vw,42px)",color:i%2===0?"#00ff41":"transparent",WebkitTextStroke:i%2===0?"0px":"1px rgba(0,255,65,.6)",letterSpacing:"-.01em",display:"inline-block",animation:i%2===0&&shown[i]?"neonPulse 4.5s ease-in-out infinite":"none"}}>{i===0?<><Glitch>AI</Glitch> — инструмент,</>:l.t}</span></div>)}</div></div></section>;}
 function TerminalBox({title,children}:{title:string;children:React.ReactNode}){return <div style={{border:"1px solid rgba(0,255,65,.25)",background:"#050f05",fontFamily:"'JetBrains Mono',monospace"}}><div style={{display:"flex",alignItems:"center",gap:8,padding:"8px 14px",borderBottom:"1px solid rgba(0,255,65,.18)",background:"#0a1a0a"}}>{["#ff5f57","#ffbd2e","#28c840"].map((c,i)=><span key={i} style={{width:10,height:10,borderRadius:0,background:c,display:"block",imageRendering:"pixelated"}}/>)}<span style={{marginLeft:8,fontSize:11,color:"#008f11",letterSpacing:".14em"}}>{title}</span></div><div style={{padding:"20px 24px"}}>{children}</div></div>;}
 const CONSOLE_INTRO={cmd:"AI about.txt",out:"Меня зовут Сергей Захаров. Пять лет делаю сайты для малого бизнеса — от визитки на один экран до многостраничного каталога. Дизайн, вёрстка, запуск и поддержка: со мной, а не с шестью подрядчиками."};const CONSOLE_LOOP=[{cmd:"AI services.list",out:"визитка · лендинг · каталог · редизайн"},{cmd:"./launch.sh --client=вы",out:"бриф принят. приступаю."}];
-function LiveConsole(){const[phase,setPhase]=useState<"intro"|"loop">("intro");const[idx,setIdx]=useState(0);const[step,setStep]=useState(0);const[cur,setCur]=useState(true);useEffect(()=>{const id=setInterval(()=>setStep(s=>s+1),30);return()=>clearInterval(id)},[]);useEffect(()=>{const id=setInterval(()=>setCur(c=>!c),500);return()=>clearInterval(id)},[]);useEffect(()=>{const locked=phase==="intro";document.documentElement.style.overflow=locked?"hidden":"";document.body.style.overflow=locked?"hidden":"";return()=>{document.documentElement.style.overflow="";document.body.style.overflow=""}},[phase]);const entry=phase==="intro"?CONSOLE_INTRO:CONSOLE_LOOP[idx];const PAUSE=8,HOLD=46,cmdLen=entry.cmd.length,outStart=cmdLen+PAUSE,outLen=entry.out.length,total=outStart+outLen+HOLD,introDone=phase==="intro"&&step>outStart+outLen;useEffect(()=>{if(phase==="loop"&&step>=total){setStep(0);setIdx(i=>(i+1)%CONSOLE_LOOP.length)}},[phase,step,total]);const cmdText=entry.cmd.slice(0,Math.min(step,cmdLen)),typingCmd=step<=cmdLen,showOut=step>outStart,outText=showOut?entry.out.slice(0,Math.max(0,Math.min(step-outStart,outLen))):"",typingOut=showOut&&step<outStart+outLen;const handleNext=()=>{setPhase("loop");setIdx(0);setStep(0);setTimeout(()=>document.getElementById("hero")?.scrollIntoView({behavior:"smooth"}),30)};return <section style={{minHeight:"100svh",display:"flex",alignItems:"center",justifyContent:"center",padding:"clamp(40px,6vh,64px) clamp(20px,5vw,90px)",background:"#000",position:"relative",overflow:"hidden"}}><div style={{position:"absolute",inset:0}}><MatrixRain opacity={.1} fontSize={14} color="#00ff41" trail="rgba(0,0,0,.05)" speed={60}/></div><div style={{position:"relative",zIndex:1,width:"100%",maxWidth:640}}><TerminalBox title="~/console"><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:14,minHeight:44}}><div><span style={{color:"#00ff41"}}>$ </span><span style={{color:"#00ff41"}}>{cmdText}</span>{typingCmd&&<span style={{opacity:cur?1:0}}>_</span>}</div>{showOut&&<div style={{color:"#008f11",marginTop:8,lineHeight:1.6}}>{outText}{typingOut&&<span style={{opacity:cur?1:0}}>_</span>}</div>}{introDone&&<button onClick={handleNext} className="btn-next" style={{marginTop:18,background:"transparent",border:"1px solid rgba(0,255,65,.4)",color:"#00ff41",padding:"9px 18px",fontFamily:"'JetBrains Mono',monospace",fontSize:12,letterSpacing:".12em",textTransform:"uppercase",cursor:"pointer"}}>▶ Дальше</button>}</div></TerminalBox></div></section>;}
+function LiveConsole(){const[phase,setPhase]=useState<"intro"|"loop">("intro");const[idx,setIdx]=useState(0);const[step,setStep]=useState(0);const[cur,setCur]=useState(true);useEffect(()=>{const id=setInterval(()=>setStep(s=>s+1),30);return()=>clearInterval(id)},[]);useEffect(()=>{const id=setInterval(()=>setCur(c=>!c),500);return()=>clearInterval(id)},[]);useEffect(()=>{const locked=phase==="intro";document.documentElement.style.overflow=locked?"hidden":"";document.body.style.overflow=locked?"hidden":"";return()=>{document.documentElement.style.overflow="";document.body.style.overflow=""}},[phase]);const entry=phase==="intro"?CONSOLE_INTRO:CONSOLE_LOOP[idx];const PAUSE=8,HOLD=46,cmdLen=entry.cmd.length,outStart=cmdLen+PAUSE,outLen=entry.out.length,total=outStart+outLen+HOLD,introDone=phase==="intro"&&step>outStart+outLen;useEffect(()=>{if(phase==="loop"&&step>=total){setStep(0);setIdx(i=>(i+1)%CONSOLE_LOOP.length)}},[phase,step,total]);const cmdText=entry.cmd.slice(0,Math.min(step,cmdLen)),typingCmd=step<=cmdLen,showOut=step>outStart,outText=showOut?entry.out.slice(0,Math.max(0,Math.min(step-outStart,outLen))):"",typingOut=showOut&&step<outStart+outLen;const handleNext=()=>{setPhase("loop");setIdx(0);setStep(0);window.dispatchEvent(new CustomEvent("char:next"));setTimeout(()=>document.getElementById("hero")?.scrollIntoView({behavior:"smooth"}),30)};return <section style={{minHeight:"100svh",display:"flex",alignItems:"center",justifyContent:"center",padding:"clamp(40px,6vh,64px) clamp(20px,5vw,90px)",background:"#000",position:"relative",overflow:"hidden"}}><div style={{position:"absolute",inset:0}}><MatrixRain opacity={.1} fontSize={14} color="#00ff41" trail="rgba(0,0,0,.05)" speed={60}/></div><div id="console-box" style={{position:"relative",zIndex:1,width:"100%",maxWidth:640}}><TerminalBox title="~/console"><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:14,minHeight:44}}><div><span style={{color:"#00ff41"}}>$ </span><span style={{color:"#00ff41"}}>{cmdText}</span>{typingCmd&&<span style={{opacity:cur?1:0}}>_</span>}</div>{showOut&&<div style={{color:"#008f11",marginTop:8,lineHeight:1.6}}>{outText}{typingOut&&<span style={{opacity:cur?1:0}}>_</span>}</div>}{introDone&&<button onClick={handleNext} className="btn-next" style={{marginTop:18,background:"transparent",border:"1px solid rgba(0,255,65,.4)",color:"#00ff41",padding:"9px 18px",fontFamily:"'JetBrains Mono',monospace",fontSize:12,letterSpacing:".12em",textTransform:"uppercase",cursor:"pointer"}}>▶ Дальше</button>}</div></TerminalBox></div></section>;}
 function ProcessBar({ target, delay, animate, scanSpeed }: { target: number; delay: number; animate: boolean; scanSpeed: number }) {
   const [fill, setFill] = useState(0);
   const [scan, setScan] = useState(0);
@@ -287,139 +290,229 @@ function Process(){return <section style={{padding:"clamp(80px,12vh,140px) clamp
 function Contact(){const handleSubmit=(e:React.FormEvent<HTMLFormElement>)=>{e.preventDefault();const d=new FormData(e.currentTarget);const body=`Имя: ${d.get("name")||""}\nКонтакт: ${d.get("contact")||""}\n\nЗадача:\n${d.get("task")||""}`;window.location.href=`mailto:zakhsergey7@gmail.com?subject=${encodeURIComponent("Заявка с сайта")}&body=${encodeURIComponent(body)}`};return <section id="contact" style={{padding:"clamp(80px,12vh,140px) clamp(20px,5vw,90px)",borderTop:"1px solid rgba(0,255,65,.18)"}}><div className="contact-grid" style={{display:"grid",gridTemplateColumns:"1.1fr .9fr",gap:60}}><div><span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:"#008f11"}}>05 / Связаться</span><h2 style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:700,fontSize:"clamp(26px,5vw,70px)",color:"#00ff41",marginTop:20}}>Расскажите,<br/>что нужно<br/>сделать.</h2></div><TerminalBox title="~/contact/form.sh"><form onSubmit={handleSubmit} style={{display:"flex",flexDirection:"column",gap:14}}><input name="name" placeholder="Ваше имя" required style={{background:"transparent",border:0,borderBottom:"1px solid rgba(0,255,65,.25)",padding:10,color:"#00ff41"}}/><input name="contact" placeholder="Telegram или телефон" required style={{background:"transparent",border:0,borderBottom:"1px solid rgba(0,255,65,.25)",padding:10,color:"#00ff41"}}/><textarea name="task" placeholder="Что нужно сделать" style={{background:"transparent",border:0,borderBottom:"1px solid rgba(0,255,65,.25)",padding:10,color:"#00ff41",minHeight:100}}/><button type="submit" style={{background:"#00ff41",color:"#000",padding:15,border:0,fontFamily:"'JetBrains Mono',monospace",fontWeight:700}}>./send_request.sh →</button></form></TerminalBox></div></section>;}
 function Footer(){return <footer style={{background:"#050f05",borderTop:"1px solid rgba(0,255,65,.18)",padding:"22px clamp(20px,5vw,90px)",fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:"#008f11",display:"flex",justifyContent:"space-between"}}><span>© 2026 Захаров Сергей</span><a href="#top" style={{color:"#00ff41",textDecoration:"none"}}>Наверх ↑</a></footer>;}
 /* ─────────────────────────────────────────
-   Walking character — appears once the
-   visitor clicks past the console gate and
-   "falls" onto the Hero section. Fixed to
-   the viewport, so it rides along as you
-   scroll, replaying the fall/land bounce
-   whenever a new section becomes dominant.
+   Walking character — a small narrative +
+   roaming state machine, not a flat pace:
 
-   Behaviour is a small state machine, not a
-   flat left-right pace:
-   - "walk"  → picks a random spot and heads
-     there, turning through the 5-pose
-     turnaround (front → 3/4 → side → 3/4 →
-     back, mirrored) like a mini 3D turntable
-     instead of flipping instantly.
-   - "look"  → stops and turns to face the
-     viewer for a moment.
-   - "perch" → climbs onto a nearby small
-     block (a stack pill, a price/service
-     card) and stands on its top edge a
-     while before hopping back down.
-   No sitting/leg-swing frame exists in the
-   source art, so "sitting on a block" is
-   approximated as standing on its edge.
+   1. "introSit"  → sits on the ~/console box
+      (right side of its header) from the
+      moment the page loads, legs hanging
+      over the front, while the boot gate is
+      up.
+   2. On "Дальше" → "fallShout": screams and
+      falls from the console over to the
+      zakharov.dev terminal card (or, if that
+      card is hidden on narrow screens, to
+      the bottom of the viewport).
+   3. "landBounce" → a quick recovery shake
+      ("dusts off" — no dedicated frame, so
+      approximated with a wobble).
+   4. "landSit" → sits on that block for a
+      few seconds.
+   5. "roam" → the ongoing loop: walks to
+      random spots (turning through the
+      5-pose turnaround like a mini 3D
+      turntable instead of flipping), stops
+      to look at the viewer, or climbs onto a
+      nearby block/heading and actually sits
+      on it (front/side sit poses) for a
+      while before hopping down.
+
+   Positions are tracked in raw viewport
+   pixels (not percent) so it can dock
+   precisely to specific elements.
 ───────────────────────────────────────── */
 const CHAR_SECTION_IDS = ["hero", "ai", "services", "stack", "price", "process", "contact"];
-const CHAR_POSES = [poseFront, poseFrontSide, poseSide, poseBackSide, poseBack];
-const CHAR_POSE_RATIO = [211 / 500, 201 / 500, 119 / 500, 201 / 500, 215 / 500];
-const CHAR_PERCH_SELECTOR = ".pill-stack, .card-service, .card-price-base, .card-price-full";
-const CHAR_HEIGHT_PX = 88;
+const CHAR_STAND = [poseFront, poseFrontSide, poseSide, poseBackSide, poseBack];
+const CHAR_STAND_RATIO = [211 / 500, 201 / 500, 119 / 500, 201 / 500, 215 / 500];
+const CHAR_SIT = [poseSitFront, poseSitSide];
+const CHAR_SIT_RATIO = [217 / 354, 217 / 351];
+const CHAR_SHOUT_RATIO = 288 / 237;
+const CHAR_PERCH_SELECTOR = "h1, h2, .pill-stack, .card-service, .card-price-base, .card-price-full";
+const CHAR_HEIGHT_PX = 84;
 
+type CharPhase = "introSit" | "fallShout" | "landBounce" | "landSit" | "roam";
 type CharActivity = "walk" | "look" | "perchMove" | "perchHold";
 
 function WalkingCharacter() {
-  const [visible, setVisible] = useState(false);
-  const [fallToken, setFallToken] = useState(0);
-  const [x, setX] = useState(50);
-  const [poseIdx, setPoseIdx] = useState(2);
+  const [left, setLeft] = useState(0);
+  const [top, setTop] = useState<number | null>(null);
+  const [onFloor, setOnFloor] = useState(false);
   const [mirror, setMirror] = useState(false);
-  const [perchTop, setPerchTop] = useState<number | null>(null);
+  const [sprite, setSprite] = useState<{ src: string; ratio: number }>({ src: poseSitFront, ratio: CHAR_SIT_RATIO[0] });
+  const [shake, setShake] = useState(0);
+  const [fallToken, setFallToken] = useState(0);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const hero = document.getElementById("hero");
-    if (!hero) return;
-    const ob = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setVisible(true); ob.disconnect(); } }, { threshold: 0.25 });
-    ob.observe(hero);
-    return () => ob.disconnect();
+    const consoleBox = document.getElementById("console-box");
+    if (!consoleBox) { setReady(true); return; }
+    const r = consoleBox.getBoundingClientRect();
+    setLeft(r.left + r.width * 0.8);
+    setTop(r.top - 8);
+    setOnFloor(false);
+    setSprite({ src: poseSitFront, ratio: CHAR_SIT_RATIO[0] });
+    setMirror(false);
+    setReady(true);
   }, []);
 
   useEffect(() => {
-    if (!visible) return;
-    const xRef = { v: 50 };
+    if (!ready) return;
+    const phaseRef: { v: CharPhase } = { v: "introSit" };
+    const activityRef: { v: CharActivity } = { v: "walk" };
+    const leftRef = { v: left };
+    const topRef = { v: top ?? 0 };
     const poseRef = { v: 2 };
     const mirrorRef = { v: false };
-    const activityRef: { v: CharActivity } = { v: "walk" };
-    const targetXRef = { v: 50 };
+    const targetXRef = { v: left };
     const untilRef = { v: 0 };
     const perchElRef: { v: HTMLElement | null } = { v: null };
     let lastPoseStep = 0;
     let raf = 0;
+    let transitionTimer = 0;
+
+    function floorLeftBounds() { return [24, window.innerWidth - 24]; }
+    function floorTopPx() { return window.innerHeight - 24 - CHAR_HEIGHT_PX; }
 
     function pickPerchTarget(): HTMLElement | null {
       const els = Array.from(document.querySelectorAll(CHAR_PERCH_SELECTOR)) as HTMLElement[];
       const vis = els.filter(el => {
         const r = el.getBoundingClientRect();
-        return r.top > 90 && r.bottom < window.innerHeight - 60 && r.width > 26 && r.width < 260 && r.height < 160;
+        return r.top > 90 && r.bottom < window.innerHeight - 60 && r.width > 26 && r.width < 520 && r.height < 220;
       });
       return vis.length ? vis[(Math.random() * vis.length) | 0] : null;
     }
 
     function decideNext(t: number) {
       const roll = Math.random();
-      if (roll < 0.22) {
+      if (roll < 0.26) {
         activityRef.v = "look";
         untilRef.v = t + 1700 + Math.random() * 1800;
-      } else if (roll < 0.4) {
+      } else if (roll < 0.7) {
         const el = pickPerchTarget();
         if (el) {
           perchElRef.v = el;
           const r = el.getBoundingClientRect();
-          targetXRef.v = Math.min(94, Math.max(6, ((r.left + r.width / 2) / window.innerWidth) * 100));
+          targetXRef.v = Math.min(window.innerWidth - 24, Math.max(24, r.left + r.width / 2));
           activityRef.v = "perchMove";
         } else {
-          targetXRef.v = 6 + Math.random() * 88;
+          const [lo, hi] = floorLeftBounds();
+          targetXRef.v = lo + Math.random() * (hi - lo);
           activityRef.v = "walk";
-          untilRef.v = t + 4500 + Math.random() * 4500;
+          untilRef.v = t + 3000 + Math.random() * 3000;
         }
       } else {
-        targetXRef.v = 6 + Math.random() * 88;
+        const [lo, hi] = floorLeftBounds();
+        targetXRef.v = lo + Math.random() * (hi - lo);
         activityRef.v = "walk";
-        untilRef.v = t + 4500 + Math.random() * 4500;
+        untilRef.v = t + 3000 + Math.random() * 3000;
       }
     }
-    untilRef.v = performance.now() + 2000 + Math.random() * 2000;
-    targetXRef.v = 6 + Math.random() * 88;
 
     function stepPoseToward(desiredIdx: number, desiredMirror: boolean, t: number): boolean {
       if (poseRef.v === desiredIdx && mirrorRef.v === desiredMirror) return true;
       if (t - lastPoseStep < 95) return false;
       lastPoseStep = t;
       if (mirrorRef.v !== desiredMirror) {
-        // wrong mirror: retreat toward front (0) first, flip there, then advance
         if (poseRef.v > 0) { poseRef.v -= 1; if (poseRef.v === 0) mirrorRef.v = desiredMirror; }
         else { mirrorRef.v = desiredMirror; }
       } else if (poseRef.v < desiredIdx) poseRef.v += 1;
       else if (poseRef.v > desiredIdx) poseRef.v -= 1;
-      setPoseIdx(poseRef.v);
+      setSprite({ src: CHAR_STAND[poseRef.v], ratio: CHAR_STAND_RATIO[poseRef.v] });
       setMirror(mirrorRef.v);
       return poseRef.v === desiredIdx && mirrorRef.v === desiredMirror;
     }
 
+    let fallStart = 0;
+    let fallSettled = false;
+
+    function fallTarget(): { tx: number; ty: number; onFloorNext: boolean } {
+      const whoami = document.getElementById("whoami-box");
+      const wr = whoami ? whoami.getBoundingClientRect() : null;
+      if (wr && wr.width > 20 && wr.top > -200 && wr.top < window.innerHeight + 400) {
+        return { tx: wr.left + wr.width / 2, ty: wr.top - 6, onFloorNext: false };
+      }
+      return { tx: window.innerWidth / 2, ty: floorTopPx(), onFloorNext: true };
+    }
+
+    function startFall() {
+      phaseRef.v = "fallShout";
+      fallStart = performance.now();
+      fallSettled = false;
+      setMirror(fallTarget().tx < leftRef.v);
+      setSprite({ src: poseShout, ratio: CHAR_SHOUT_RATIO });
+      setOnFloor(false);
+    }
+
+    function proceedToLand(onFloorNext: boolean) {
+      phaseRef.v = "landBounce";
+      setSprite({ src: poseFront, ratio: CHAR_STAND_RATIO[0] });
+      setShake(s => s + 1);
+      setOnFloor(onFloorNext);
+      clearTimeout(transitionTimer);
+      transitionTimer = window.setTimeout(() => {
+        phaseRef.v = "landSit";
+        setSprite({ src: poseSitFront, ratio: CHAR_SIT_RATIO[0] });
+        transitionTimer = window.setTimeout(() => {
+          phaseRef.v = "roam";
+          poseRef.v = 2; mirrorRef.v = false;
+          setSprite({ src: CHAR_STAND[2], ratio: CHAR_STAND_RATIO[2] });
+          setTop(null); setOnFloor(true);
+          const [lo, hi] = floorLeftBounds();
+          leftRef.v = Math.min(hi, Math.max(lo, leftRef.v));
+          targetXRef.v = lo + Math.random() * (hi - lo);
+          activityRef.v = "walk";
+          untilRef.v = performance.now() + 3000 + Math.random() * 3000;
+        }, 2800 + Math.random() * 1400);
+      }, 420);
+    }
+
+    function onNext() { if (phaseRef.v === "introSit") startFall(); }
+    window.addEventListener("char:next", onNext);
+
     function tick(t: number) {
       raf = requestAnimationFrame(tick);
+
+      if (phaseRef.v === "fallShout") {
+        if (fallSettled) return;
+        const { tx, ty, onFloorNext } = fallTarget();
+        const elapsed = t - fallStart;
+        leftRef.v += (tx - leftRef.v) * 0.16;
+        topRef.v += (ty - topRef.v) * 0.16;
+        setLeft(leftRef.v); setTop(topRef.v);
+        const close = Math.abs(tx - leftRef.v) < 3 && Math.abs(ty - topRef.v) < 3;
+        if ((close && elapsed > 500) || elapsed > 1500) {
+          fallSettled = true;
+          leftRef.v = tx; topRef.v = ty;
+          setLeft(tx); setTop(ty);
+          proceedToLand(onFloorNext);
+        }
+        return;
+      }
+      if (phaseRef.v !== "roam") return;
       const activity = activityRef.v;
 
       if (activity === "walk" || activity === "perchMove") {
-        const dx = targetXRef.v - xRef.v;
-        if (Math.abs(dx) < 1) {
+        const dx = targetXRef.v - leftRef.v;
+        if (Math.abs(dx) < 2) {
           if (activity === "perchMove") {
             const el = perchElRef.v;
             if (el) {
               const r = el.getBoundingClientRect();
-              setPerchTop(r.top);
-              stepPoseToward(0, mirrorRef.v, t);
+              const sitIdx = Math.random() < 0.5 ? 0 : 1;
+              topRef.v = r.top - CHAR_HEIGHT_PX + 16;
+              setTop(topRef.v); setOnFloor(false);
+              setSprite({ src: CHAR_SIT[sitIdx], ratio: CHAR_SIT_RATIO[sitIdx] });
+              setFallToken(v => v + 1);
               activityRef.v = "perchHold";
-              untilRef.v = t + 2600 + Math.random() * 2400;
+              untilRef.v = t + 3000 + Math.random() * 2600;
             } else { decideNext(t); }
           } else { decideNext(t); }
         } else {
           const dir = dx > 0 ? 1 : -1;
-          const ready = stepPoseToward(2, dir === 1, t);
-          if (ready) {
-            xRef.v = Math.max(4, Math.min(96, xRef.v + dir * 15 * (1 / 60)));
-            setX(xRef.v);
+          const ready2 = stepPoseToward(2, dir === 1, t);
+          if (ready2) {
+            leftRef.v = Math.max(24, Math.min(window.innerWidth - 24, leftRef.v + dir * 110 * (1 / 60)));
+            setLeft(leftRef.v);
           }
           if (activity === "walk" && t > untilRef.v) decideNext(t);
         }
@@ -431,45 +524,46 @@ function WalkingCharacter() {
         if (el) {
           const r = el.getBoundingClientRect();
           if (r.top < 60 || r.top > window.innerHeight - 40 || r.width < 10) {
-            setPerchTop(null); perchElRef.v = null; decideNext(t);
+            setTop(null); setOnFloor(true); perchElRef.v = null; setFallToken(v => v + 1); decideNext(t);
           } else {
-            setPerchTop(r.top);
-            if (t > untilRef.v) { setPerchTop(null); perchElRef.v = null; decideNext(t); }
+            topRef.v = r.top - CHAR_HEIGHT_PX + 16;
+            setTop(topRef.v);
+            if (t > untilRef.v) { setTop(null); setOnFloor(true); perchElRef.v = null; setFallToken(v => v + 1); decideNext(t); }
           }
         } else { decideNext(t); }
       }
     }
     raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [visible]);
+    return () => { cancelAnimationFrame(raf); clearTimeout(transitionTimer); window.removeEventListener("char:next", onNext); };
+  }, [ready]);
 
   useEffect(() => {
-    if (!visible) return;
+    if (!ready) return;
     const els = CHAR_SECTION_IDS.map(id => document.getElementById(id)).filter(Boolean) as HTMLElement[];
     let current = "";
     const ob = new IntersectionObserver((entries) => {
       let best: IntersectionObserverEntry | null = null;
       for (const en of entries) if (en.isIntersecting && (!best || en.intersectionRatio > best.intersectionRatio)) best = en;
-      if (best && best.target.id !== current) { current = best.target.id; setFallToken(t => t + 1); }
+      if (best && best.target.id !== current) { if (current) setFallToken(v => v + 1); current = best.target.id; }
     }, { threshold: [0.3, 0.5, 0.7] });
     els.forEach(el => ob.observe(el));
     return () => ob.disconnect();
-  }, [visible]);
+  }, [ready]);
 
-  if (!visible) return null;
-  const posStyle: React.CSSProperties = perchTop != null
-    ? { top: Math.max(8, perchTop - CHAR_HEIGHT_PX + 14) }
-    : { bottom: "clamp(8px,2.6vh,26px)" };
+  if (!ready) return null;
+  const posStyle: React.CSSProperties = onFloor ? { bottom: 24 } : { top: top ?? 0 };
   return (
-    <div style={{ position: "fixed", left: `${x}%`, ...posStyle, transform: `translateX(-50%) scaleX(${mirror ? -1 : 1})`, zIndex: 60, pointerEvents: "none", transition: "top .4s cubic-bezier(.34,1.2,.4,1)" }}>
-      <div key={fallToken} style={{ animation: "charFall .75s cubic-bezier(.34,1.4,.4,1) both" }}>
-        <div style={{ animation: "charBob .6s ease-in-out infinite" }}>
-          <img src={CHAR_POSES[poseIdx]} style={{ display: "block", height: "clamp(66px,14vw,88px)", width: "auto", aspectRatio: `${CHAR_POSE_RATIO[poseIdx]}`, filter: "drop-shadow(0 6px 6px rgba(0,0,0,.5))" }} />
+    <div style={{ position: "fixed", left, ...posStyle, transform: `translateX(-50%) scaleX(${mirror ? -1 : 1})`, zIndex: 60, pointerEvents: "none" }}>
+      <div key={shake} style={{ animation: "charShake .42s ease-in-out" }}>
+        <div key={fallToken} style={{ animation: "charFall .75s cubic-bezier(.34,1.4,.4,1) both" }}>
+          <div style={{ animation: "charBob .6s ease-in-out infinite" }}>
+            <img src={sprite.src} style={{ display: "block", height: "clamp(64px,13.5vw,84px)", width: "auto", aspectRatio: `${sprite.ratio}`, filter: "drop-shadow(0 6px 6px rgba(0,0,0,.5))" }} />
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-const KEYFRAMES=`@keyframes slideBar{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}} @keyframes marqAnim{from{transform:translateX(0)}to{transform:translateX(-50%)}} @keyframes neonPulse{0%,100%{text-shadow:0 0 10px rgba(0,255,65,.4),0 0 28px rgba(0,255,65,.18)}50%{text-shadow:0 0 20px rgba(0,255,65,.85),0 0 52px rgba(0,255,65,.4)}} @keyframes hudBlink{0%,93%,100%{opacity:1}94%,96%{opacity:0}95%,97%{opacity:1}98%,99%{opacity:.3}} @keyframes borderGlow{0%,100%{border-color:rgba(0,255,65,.2)}50%{border-color:rgba(0,255,65,.5)}} @keyframes rowGlowDone{0%,100%{background:rgba(0,255,65,.02)}50%{background:rgba(0,255,65,.07)}} @keyframes rowGlowActive{0%,100%{background:rgba(0,255,65,.04)}50%{background:rgba(0,255,65,.14)}} @keyframes rowGlowRunning{0%,100%{background:rgba(0,255,65,.03)}50%{background:rgba(0,255,65,.10)}} @keyframes rowGlowQueued{0%,100%{background:rgba(0,255,65,.015)}50%{background:rgba(0,255,65,.05)}} @keyframes charFall{0%{transform:translateY(-160px);opacity:0}55%{transform:translateY(14px);opacity:1}75%{transform:translateY(-8px)}100%{transform:translateY(0)}} @keyframes charBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}} @media (hover:hover) and (pointer:fine){.link-nav:hover{color:#00ff41}.btn-next:hover{background:rgba(0,255,65,.12)}.card-service:hover{background:#0a1a0a}.pill-stack:hover{color:#00ff41;border-color:rgba(0,255,65,.6)}.row-ai:hover{padding-left:22px}} @media (min-width:1024px){.hero-grid{grid-template-columns:3fr 2fr!important}.hero-whoami{display:block!important}} @media (max-width:900px){.stack-grid{grid-template-columns:1fr!important}} @media (max-width:640px){.nav-links{display:none!important}.nav-toggle{display:inline-flex!important}.contact-grid{grid-template-columns:1fr!important}.services-grid{grid-template-columns:1fr!important}.stream-readout{display:none!important}.ai-table-head{display:none!important}.ai-table-row{grid-template-columns:28px 1fr!important}.ai-table-row>*:nth-child(3){grid-column:1/-1!important;margin-top:8px}.ai-table-row>*:nth-child(4){grid-column:1/-1!important;margin-top:4px}}`;
+const KEYFRAMES=`@keyframes slideBar{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}} @keyframes marqAnim{from{transform:translateX(0)}to{transform:translateX(-50%)}} @keyframes neonPulse{0%,100%{text-shadow:0 0 10px rgba(0,255,65,.4),0 0 28px rgba(0,255,65,.18)}50%{text-shadow:0 0 20px rgba(0,255,65,.85),0 0 52px rgba(0,255,65,.4)}} @keyframes hudBlink{0%,93%,100%{opacity:1}94%,96%{opacity:0}95%,97%{opacity:1}98%,99%{opacity:.3}} @keyframes borderGlow{0%,100%{border-color:rgba(0,255,65,.2)}50%{border-color:rgba(0,255,65,.5)}} @keyframes rowGlowDone{0%,100%{background:rgba(0,255,65,.02)}50%{background:rgba(0,255,65,.07)}} @keyframes rowGlowActive{0%,100%{background:rgba(0,255,65,.04)}50%{background:rgba(0,255,65,.14)}} @keyframes rowGlowRunning{0%,100%{background:rgba(0,255,65,.03)}50%{background:rgba(0,255,65,.10)}} @keyframes rowGlowQueued{0%,100%{background:rgba(0,255,65,.015)}50%{background:rgba(0,255,65,.05)}} @keyframes charFall{0%{transform:translateY(-160px);opacity:0}55%{transform:translateY(14px);opacity:1}75%{transform:translateY(-8px)}100%{transform:translateY(0)}} @keyframes charBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}} @keyframes charShake{0%,100%{transform:rotate(0deg)}20%{transform:rotate(-7deg)}40%{transform:rotate(6deg)}60%{transform:rotate(-4deg)}80%{transform:rotate(3deg)}} @media (hover:hover) and (pointer:fine){.link-nav:hover{color:#00ff41}.btn-next:hover{background:rgba(0,255,65,.12)}.card-service:hover{background:#0a1a0a}.pill-stack:hover{color:#00ff41;border-color:rgba(0,255,65,.6)}.row-ai:hover{padding-left:22px}} @media (min-width:1024px){.hero-grid{grid-template-columns:3fr 2fr!important}.hero-whoami{display:block!important}} @media (max-width:900px){.stack-grid{grid-template-columns:1fr!important}} @media (max-width:640px){.nav-links{display:none!important}.nav-toggle{display:inline-flex!important}.contact-grid{grid-template-columns:1fr!important}.services-grid{grid-template-columns:1fr!important}.stream-readout{display:none!important}.ai-table-head{display:none!important}.ai-table-row{grid-template-columns:28px 1fr!important}.ai-table-row>*:nth-child(3){grid-column:1/-1!important;margin-top:8px}.ai-table-row>*:nth-child(4){grid-column:1/-1!important;margin-top:4px}}`;
 export default function App(){return <div style={{background:"#000",color:"#00ff41",minHeight:"100vh"}}><style>{KEYFRAMES}</style><Nav/><main id="top"><LiveConsole/><Hero/><DecodeStreamDivider/><Mission/><AIConsierge/><Services/><Stack/><Price/><Process/><Contact/><Footer/></main><WalkingCharacter/></div>;}
