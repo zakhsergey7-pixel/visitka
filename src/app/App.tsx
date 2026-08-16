@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import aiLogosSprite from "../assets/ai-logos-sprite.png";
 
 /* ─────────────────────────────────────────
    Matrix Rain Canvas
@@ -60,7 +61,7 @@ function WhoAmICard() {
         <p style={out}>5+ лет</p>
         <p style={{ marginTop: 10 }}><span style={prompt}>$ </span>status</p>
         <p style={{ color: "#00ff41", paddingLeft: 12 }}>
-          <span style={{ opacity: cur ? 1 : 0.35, transition: "opacity .2s" }}>●</span> доступен для новых проектов
+          <span style={{ opacity: cur ? 1 : 0.35, transition: "opacity .2s" }}>●</span> online
         </p>
       </div>
     </TerminalBox>
@@ -69,27 +70,143 @@ function WhoAmICard() {
 function Hero(){const[active,setActive]=useState(false);const headline=useDecrypt("Сайт — это инструмент,\nа не просто картинка.",active);const[cur,setCur]=useState(true);const[mouse,setMouse]=useState({x:0,y:0});const secRef=useRef<HTMLElement>(null);useEffect(()=>{const id=setInterval(()=>setCur(p=>!p),550);return()=>clearInterval(id)},[]);useEffect(()=>{const el=secRef.current;if(!el)return;const ob=new IntersectionObserver(([e])=>{if(e.isIntersecting){setActive(true);ob.disconnect()}},{threshold:.3});ob.observe(el);return()=>ob.disconnect()},[]);const onMouseMove=(e:React.MouseEvent)=>{const r=secRef.current?.getBoundingClientRect();if(r)setMouse({x:Math.round(e.clientX-r.left),y:Math.round(e.clientY-r.top)})};return <section id="hero" ref={secRef} onMouseMove={onMouseMove} style={{position:"relative",minHeight:"100svh",display:"flex",flexDirection:"column",justifyContent:"space-between",padding:"clamp(120px,18vh,200px) clamp(20px,5vw,90px) 0",overflow:"hidden"}}><div style={{position:"absolute",inset:0,zIndex:0}}><MatrixRain opacity={.13} fontSize={14} color="#00ff41" trail="rgba(0,0,0,.055)" speed={58}/></div><NoiseOverlay/>{DEAD_PIXELS.map((p,i)=><div key={i} style={{position:"absolute",width:2,height:2,background:"#00ff41",boxShadow:"0 0 3px #00ff41",zIndex:1,pointerEvents:"none",animation:`hudBlink ${3.5+i*1.4}s steps(1) infinite ${i*.8}s`,...p}}/>)}<div style={{position:"absolute",inset:0,zIndex:1,pointerEvents:"none",background:"repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.07) 2px,rgba(0,0,0,.07) 4px)"}}/><div style={{position:"absolute",top:"clamp(80px,13vh,140px)",left:"clamp(20px,5vw,90px)",right:"clamp(20px,5vw,90px)",display:"flex",justifyContent:"space-between",fontFamily:"'JetBrains Mono',monospace",fontSize:10,letterSpacing:".14em",textTransform:"uppercase",color:"rgba(0,255,65,.28)",zIndex:2,pointerEvents:"none"}}><span>SYS.<span style={{color:"#00ff41",animation:"hudBlink 8s steps(1) infinite"}}>ONLINE</span> · UPTIME 05Y</span><span style={{textAlign:"right"}}>55.7522° N · 37.6156° E<br/>BUILD 2026.08</span></div><div className="hero-grid" style={{position:"relative",zIndex:2,display:"grid",gridTemplateColumns:"1fr",gap:"clamp(28px,5vw,48px)",alignItems:"center"}}><h1 style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:700,fontSize:"clamp(28px,5.4vw,86px)",lineHeight:1.06,letterSpacing:"-.02em",color:"#00ff41",animation:"neonPulse 4.5s ease-in-out infinite",maxWidth:"22ch",whiteSpace:"pre-line"}}>{headline}<span style={{opacity:cur?1:0}}>_</span></h1><div className="hero-whoami" style={{display:"none"}}><WhoAmICard/></div></div><div style={{position:"relative",zIndex:2,display:"flex",justifyContent:"space-between",alignItems:"center",gap:20,borderTop:"1px solid rgba(0,255,65,.16)",padding:"22px 0 26px",marginTop:"clamp(36px,8vh,80px)"}}><HeroStatusLine/><span style={{width:48,height:1,background:"#003b00",position:"relative",overflow:"hidden",display:"block",flexShrink:0}}><span style={{position:"absolute",inset:0,background:"#00ff41",animation:"slideBar 2s linear infinite"}}/></span></div></section>;}
 
 /* ─────────────────────────────────────────
-   AI logo stream — GPT / Claude / DeepSeek
-   The original site's matrix-green chip style
-   is retained; recognizable marks are drawn
-   locally as compact terminal badges.
+   AI logo stream — three neon marks sliced
+   from one sprite image via background-
+   position (left/center/right third), each
+   in its own small bordered pixel chip.
 ───────────────────────────────────────── */
-const AI_LOGOS = [
-  { name: "GPT", glyph: "GPT" },
-  { name: "Claude", glyph: "✦" },
-  { name: "DeepSeek", glyph: "DS" },
-];
-function AILogoChip({ name, glyph }: { name: string; glyph: string }) {
-  return <div title={name} aria-label={name} style={{width:"clamp(32px,7vw,40px)",height:"clamp(32px,7vw,40px)",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",border:"1px solid rgba(0,255,65,.38)",background:"rgba(0,255,65,.035)",fontFamily:"'JetBrains Mono',monospace",color:"#00ff41",fontWeight:800,textShadow:"0 0 7px rgba(0,255,65,.85)",boxShadow:"inset 0 0 12px rgba(0,255,65,.04)"}}>{glyph}</div>;
+const AI_LOGO_POSITIONS = ["0% 50%", "50% 50%", "100% 50%"];
+function AILogoChip({ position }: { position: string }) {
+  return (
+    <div
+      style={{
+        width: "clamp(30px,6.5vw,38px)",
+        height: "clamp(30px,6.5vw,38px)",
+        flexShrink: 0,
+        border: "1px solid rgba(0,255,65,.3)",
+        backgroundColor: "#000",
+        backgroundImage: `url(${aiLogosSprite})`,
+        backgroundPosition: position,
+        backgroundSize: "300% auto",
+        backgroundRepeat: "no-repeat",
+        boxShadow: "inset 0 0 12px rgba(0,255,65,.04)",
+        filter: "drop-shadow(0 0 3px rgba(0,255,65,.4))",
+      }}
+    />
+  );
 }
-function AIIconStream(){const row=(key:string)=><div key={key} style={{display:"flex",gap:"clamp(12px,3vw,22px)",paddingRight:"clamp(12px,3vw,22px)"}}>{AI_LOGOS.concat(AI_LOGOS).map((logo,i)=><AILogoChip key={`${key}-${i}`} {...logo}/>)}</div>;return <div className="ai-logo-stream" style={{position:"absolute",inset:0,overflow:"hidden",display:"flex",alignItems:"center"}}><div style={{display:"flex",animation:"marqAnim 28s linear infinite"}}>{row("a")}{row("b")}</div></div>;}
+function AIIconStream() {
+  const row = (key: string) => (
+    <div key={key} style={{ display: "flex", gap: "clamp(6px,1.6vw,10px)", paddingRight: "clamp(6px,1.6vw,10px)" }}>
+      {AI_LOGO_POSITIONS.concat(AI_LOGO_POSITIONS).map((pos, i) => <AILogoChip key={`${key}-${i}`} position={pos} />)}
+    </div>
+  );
+  return (
+    <div className="ai-logo-stream" style={{ position: "absolute", inset: 0, overflow: "hidden", display: "flex", alignItems: "center" }}>
+      <div style={{ display: "flex", animation: "marqAnim 28s linear infinite" }}>
+        {row("a")}{row("b")}
+      </div>
+    </div>
+  );
+}
 function DecodeStreamDivider(){const readoutRef=useRef<HTMLSpanElement>(null);useEffect(()=>{let t=0;const id=setInterval(()=>{t+=1;if(readoutRef.current){const pct=(t*1.7)%100;const sync=Math.floor((t*733)%0xffff).toString(16).toUpperCase().padStart(4,"0");readoutRef.current.textContent=`PACKETS ${Math.floor(48213+t*37).toString().padStart(6,"0")} · SYNC 0x${sync} · INTEGRITY ${pct.toFixed(1)}%`;}},220);return()=>clearInterval(id)},[]);const pixel:React.CSSProperties={fontFamily:"'Silkscreen',monospace",letterSpacing:".08em",textTransform:"uppercase"};return <div style={{position:"relative",height:76,background:"#000",borderTop:"1px solid rgba(0,255,65,.13)",borderBottom:"1px solid rgba(0,255,65,.13)",overflow:"hidden"}}><AIIconStream/><div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"space-between",padding:"0 clamp(20px,5vw,90px)",pointerEvents:"none",background:"linear-gradient(90deg,#000 0%,rgba(0,0,0,.7) 16%,rgba(0,0,0,0) 32%,rgba(0,0,0,0) 68%,rgba(0,0,0,.7) 84%,#000 100%)"}}><span style={{...pixel,fontSize:10,color:"rgba(0,255,65,.6)"}}>STREAM_IN ▶</span><span ref={readoutRef} className="stream-readout" style={{...pixel,fontSize:9,color:"rgba(0,255,65,.32)"}}>PACKETS 048213 · SYNC 0x4F2A · INTEGRITY 0.0%</span><span style={{...pixel,fontSize:10,color:"rgba(0,255,65,.6)"}}>▶ STREAM_OUT</span></div></div>;}
 
-function Mission(){const ref=useRef<HTMLDivElement>(null);const[active,setActive]=useState(false);useEffect(()=>{const el=ref.current;if(!el)return;const ob=new IntersectionObserver(([e])=>{if(e.isIntersecting){setActive(true);ob.disconnect()}},{threshold:.15});ob.observe(el);return()=>ob.disconnect()},[]);const stmt=useDecrypt("Я превращаю бизнес\nв цифровой актив.",active,30);const lines=[{t:"AI — инструмент,",pad:"0"},{t:"который оптимизирует бизнес.",pad:"clamp(28px,5vw,80px)"},{t:"Код пишу и проверяю",pad:"clamp(14px,2.5vw,40px)"},{t:"я сам.",pad:"clamp(42px,7vw,110px)"}];const[shown,setShown]=useState<boolean[]>([false,false,false,false]);useEffect(()=>{if(!active)return;lines.forEach((_,i)=>setTimeout(()=>setShown(p=>{const n=[...p];n[i]=true;return n}),600+i*220))},[active]);return <section style={{padding:"clamp(90px,14vh,160px) clamp(20px,5vw,90px)",background:"#000",position:"relative",overflow:"hidden"}}><div style={{position:"absolute",inset:0}}><MatrixRain opacity={.06} fontSize={14} color="#00ff41" trail="rgba(0,0,0,.04)" speed={90}/></div><div ref={ref} style={{position:"relative",zIndex:1,paddingLeft:"clamp(46px,7vw,96px)"}}><div style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:700,fontSize:"clamp(32px,6vw,96px)",lineHeight:1,letterSpacing:"-.03em",color:"#00ff41",animation:active?"neonPulse 5s ease-in-out infinite":"none",whiteSpace:"pre-line",marginBottom:"clamp(40px,7vh,80px)"}}>{stmt}</div><div style={{display:"flex",flexDirection:"column",gap:"clamp(6px,1.2vh,14px)",marginBottom:"clamp(44px,8vh,90px)"}}>{lines.map((l,i)=><div key={i} style={{paddingLeft:l.pad,opacity:shown[i]?1:0,transform:shown[i]?"none":"translateX(-16px)",transition:"opacity .7s cubic-bezier(.16,1,.3,1), transform .7s cubic-bezier(.16,1,.3,1)"}}><span style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:i%2===0?700:300,fontSize:"clamp(18px,2.8vw,42px)",color:i%2===0?"#00ff41":"transparent",WebkitTextStroke:i%2===0?"0px":"1px rgba(0,255,65,.6)",letterSpacing:"-.01em",display:"inline-block",animation:i%2===0&&shown[i]?"neonPulse 4.5s ease-in-out infinite":"none"}}>{i===0?<><Glitch>AI</Glitch> — инструмент,</>:l.t}</span></div>)}</div></div></section>;}
+function Mission(){const ref=useRef<HTMLDivElement>(null);const[active,setActive]=useState(false);useEffect(()=>{const el=ref.current;if(!el)return;const ob=new IntersectionObserver(([e])=>{if(e.isIntersecting){setActive(true);ob.disconnect()}},{threshold:.15});ob.observe(el);return()=>ob.disconnect()},[]);const stmt=useDecrypt("Я превращаю бизнес\nв цифровой актив.",active,30);const lines=[{t:"AI — инструмент,",pad:"0"},{t:"который оптимизирует бизнес.",pad:"clamp(28px,5vw,80px)"},{t:"Код пишу и проверяю",pad:"clamp(14px,2.5vw,40px)"},{t:"я сам.",pad:"clamp(42px,7vw,110px)"}];const[shown,setShown]=useState<boolean[]>([false,false,false,false]);useEffect(()=>{if(!active)return;lines.forEach((_,i)=>setTimeout(()=>setShown(p=>{const n=[...p];n[i]=true;return n}),600+i*220))},[active]);return <section style={{padding:"clamp(90px,14vh,160px) clamp(20px,5vw,90px)",background:"#000",position:"relative",overflow:"hidden"}}><div style={{position:"absolute",inset:0}}><MatrixRain opacity={.06} fontSize={14} color="#00ff41" trail="rgba(0,0,0,.04)" speed={90}/></div><div style={{position:"absolute",left:"clamp(4px,1.4vw,16px)",top:"50%",width:0,height:0,pointerEvents:"none"}}><div style={{position:"absolute",top:0,left:0,width:340,height:20,overflow:"hidden",transform:"rotate(-90deg)",transformOrigin:"top left"}}><div style={{display:"inline-flex",gap:28,animation:"marqAnim 22s linear infinite",fontFamily:"'JetBrains Mono',monospace",fontWeight:700,fontSize:13,letterSpacing:".28em",textTransform:"uppercase",color:"rgba(0,255,65,.55)",textShadow:"0 0 12px rgba(0,255,65,.35)",whiteSpace:"nowrap"}}><span>МИССИЯ · MISSION · МИССИЯ · </span><span>МИССИЯ · MISSION · МИССИЯ · </span></div></div></div><div ref={ref} style={{position:"relative",zIndex:1,paddingLeft:"clamp(46px,7vw,96px)"}}><div style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:700,fontSize:"clamp(32px,6vw,96px)",lineHeight:1,letterSpacing:"-.03em",color:"#00ff41",animation:active?"neonPulse 5s ease-in-out infinite":"none",whiteSpace:"pre-line",marginBottom:"clamp(40px,7vh,80px)"}}>{stmt}</div><div style={{display:"flex",flexDirection:"column",gap:"clamp(6px,1.2vh,14px)",marginBottom:"clamp(44px,8vh,90px)"}}>{lines.map((l,i)=><div key={i} style={{paddingLeft:l.pad,opacity:shown[i]?1:0,transform:shown[i]?"none":"translateX(-16px)",transition:"opacity .7s cubic-bezier(.16,1,.3,1), transform .7s cubic-bezier(.16,1,.3,1)"}}><span style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:i%2===0?700:300,fontSize:"clamp(18px,2.8vw,42px)",color:i%2===0?"#00ff41":"transparent",WebkitTextStroke:i%2===0?"0px":"1px rgba(0,255,65,.6)",letterSpacing:"-.01em",display:"inline-block",animation:i%2===0&&shown[i]?"neonPulse 4.5s ease-in-out infinite":"none"}}>{i===0?<><Glitch>AI</Glitch> — инструмент,</>:l.t}</span></div>)}</div></div></section>;}
 function TerminalBox({title,children}:{title:string;children:React.ReactNode}){return <div style={{border:"1px solid rgba(0,255,65,.25)",background:"#050f05",fontFamily:"'JetBrains Mono',monospace"}}><div style={{display:"flex",alignItems:"center",gap:8,padding:"8px 14px",borderBottom:"1px solid rgba(0,255,65,.18)",background:"#0a1a0a"}}>{["#ff5f57","#ffbd2e","#28c840"].map((c,i)=><span key={i} style={{width:10,height:10,borderRadius:0,background:c,display:"block",imageRendering:"pixelated"}}/>)}<span style={{marginLeft:8,fontSize:11,color:"#008f11",letterSpacing:".14em"}}>{title}</span></div><div style={{padding:"20px 24px"}}>{children}</div></div>;}
 const CONSOLE_INTRO={cmd:"AI about.txt",out:"Меня зовут Сергей Захаров. Пять лет делаю сайты для малого бизнеса — от визитки на один экран до многостраничного каталога. Дизайн, вёрстка, запуск и поддержка: со мной, а не с шестью подрядчиками."};const CONSOLE_LOOP=[{cmd:"AI services.list",out:"визитка · лендинг · каталог · редизайн"},{cmd:"./launch.sh --client=вы",out:"бриф принят. приступаю."}];
 function LiveConsole(){const[phase,setPhase]=useState<"intro"|"loop">("intro");const[idx,setIdx]=useState(0);const[step,setStep]=useState(0);const[cur,setCur]=useState(true);useEffect(()=>{const id=setInterval(()=>setStep(s=>s+1),30);return()=>clearInterval(id)},[]);useEffect(()=>{const id=setInterval(()=>setCur(c=>!c),500);return()=>clearInterval(id)},[]);useEffect(()=>{const locked=phase==="intro";document.documentElement.style.overflow=locked?"hidden":"";document.body.style.overflow=locked?"hidden":"";return()=>{document.documentElement.style.overflow="";document.body.style.overflow=""}},[phase]);const entry=phase==="intro"?CONSOLE_INTRO:CONSOLE_LOOP[idx];const PAUSE=8,HOLD=46,cmdLen=entry.cmd.length,outStart=cmdLen+PAUSE,outLen=entry.out.length,total=outStart+outLen+HOLD,introDone=phase==="intro"&&step>outStart+outLen;useEffect(()=>{if(phase==="loop"&&step>=total){setStep(0);setIdx(i=>(i+1)%CONSOLE_LOOP.length)}},[phase,step,total]);const cmdText=entry.cmd.slice(0,Math.min(step,cmdLen)),typingCmd=step<=cmdLen,showOut=step>outStart,outText=showOut?entry.out.slice(0,Math.max(0,Math.min(step-outStart,outLen))):"",typingOut=showOut&&step<outStart+outLen;const handleNext=()=>{setPhase("loop");setIdx(0);setStep(0);setTimeout(()=>document.getElementById("hero")?.scrollIntoView({behavior:"smooth"}),30)};return <section style={{minHeight:"100svh",display:"flex",alignItems:"center",justifyContent:"center",padding:"clamp(40px,6vh,64px) clamp(20px,5vw,90px)",background:"#000",position:"relative",overflow:"hidden"}}><div style={{position:"absolute",inset:0}}><MatrixRain opacity={.1} fontSize={14} color="#00ff41" trail="rgba(0,0,0,.05)" speed={60}/></div><div style={{position:"relative",zIndex:1,width:"100%",maxWidth:640}}><TerminalBox title="~/console"><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:14,minHeight:44}}><div><span style={{color:"#00ff41"}}>$ </span><span style={{color:"#00ff41"}}>{cmdText}</span>{typingCmd&&<span style={{opacity:cur?1:0}}>_</span>}</div>{showOut&&<div style={{color:"#008f11",marginTop:8,lineHeight:1.6}}>{outText}{typingOut&&<span style={{opacity:cur?1:0}}>_</span>}</div>}{introDone&&<button onClick={handleNext} className="btn-next" style={{marginTop:18,background:"transparent",border:"1px solid rgba(0,255,65,.4)",color:"#00ff41",padding:"9px 18px",fontFamily:"'JetBrains Mono',monospace",fontSize:12,letterSpacing:".12em",textTransform:"uppercase",cursor:"pointer"}}>▶ Дальше</button>}</div></TerminalBox></div></section>;}
-function AIConsierge(){return <section id="ai" style={{padding:"clamp(80px,12vh,140px) clamp(20px,5vw,90px)",background:"#050f05",position:"relative",overflow:"hidden"}}><div style={{position:"absolute",inset:0}}><MatrixRain opacity={.05} fontSize={13} color="#00ff41" trail="rgba(5,15,5,.06)" speed={85}/></div><div style={{position:"relative",zIndex:1}}><Reveal><div style={{borderTop:"1px solid rgba(0,255,65,.18)",paddingTop:20,marginBottom:40}}><span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:"#008f11"}}>00 / Уникальность</span><h2 style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:700,fontSize:"clamp(20px,3.4vw,50px)",color:"#00ff41",lineHeight:1.05,marginTop:18}}>AI-консьерж сервис — уровень крупного агентства для одного клиента.</h2></div></Reveal><Reveal><TerminalBox title="~/ai-concierge/ps_aux"><div style={{fontFamily:"'JetBrains Mono',monospace",color:"#008f11",fontSize:12,lineHeight:2}}>001 · захват_брифа ........ DONE ✓<br/>002 · анализ_конкурентов ... DONE ✓<br/>003 · персональный_дизайн .. ACTIVE<br/>004 · итерации_без_лимита .. RUNNING<br/>005 · поддержка_после_запуска QUEUED</div></TerminalBox></Reveal></div></section>;}
+function ProcessBar({ target, delay, animate, scanSpeed }: { target: number; delay: number; animate: boolean; scanSpeed: number }) {
+  const [fill, setFill] = useState(0);
+  const [scan, setScan] = useState(0);
+  useEffect(() => {
+    if (!animate) return;
+    const t = setTimeout(() => setFill(target), delay);
+    return () => clearTimeout(t);
+  }, [animate, target, delay]);
+  useEffect(() => {
+    const id = setInterval(() => setScan(s => s + 1), scanSpeed);
+    return () => clearInterval(id);
+  }, [scanSpeed]);
+  const total = 15;
+  const filled = Math.round((fill / 100) * total);
+  return (
+    <div style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 13, letterSpacing: "-.05em", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 10 }}>
+      <span>
+        {Array.from({ length: total }, (_, i) => {
+          const isFilled = i < filled;
+          const isCursor = isFilled && filled > 0 && i === scan % filled;
+          return <span key={i} style={{ color: !isFilled ? "rgba(0,255,65,.15)" : isCursor ? "#ffffff" : "#00ff41", textShadow: isCursor ? "0 0 6px #fff" : "none", transition: "color .25s" }}>█</span>;
+        })}
+      </span>
+      <span style={{ fontSize: 10, color: "rgba(0,255,65,.4)" }}>{fill}%</span>
+    </div>
+  );
+}
+function AIConsierge() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [animate, setAnimate] = useState(false);
+  useEffect(() => {
+    const el = ref.current; if (!el) return;
+    const ob = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setAnimate(true); ob.disconnect(); } }, { threshold: 0.18 });
+    ob.observe(el); return () => ob.disconnect();
+  }, []);
+  const procs = [
+    { pid: "001", name: "захват_брифа", fill: 100, delay: 0, status: "DONE ✓", desc: "AI разбирает ваш бизнес на части, до начала работы" },
+    { pid: "002", name: "анализ_конкурентов", fill: 100, delay: 280, status: "DONE ✓", desc: "Понимаем контекст рынка, а не работаем в вакууме" },
+    { pid: "003", name: "персональный_дизайн", fill: 76, delay: 560, status: "ACTIVE", desc: "Решение под вас — без шаблонов из общего доступа" },
+    { pid: "004", name: "итерации_без_лимита", fill: 51, delay: 840, status: "RUNNING", desc: "Правки до результата, без доплат за каждый круг" },
+    { pid: "005", name: "поддержка_после_запуска", fill: 22, delay: 1120, status: "QUEUED", desc: "Остаюсь на связи — сайт живёт, а не стоит" },
+  ];
+  const mono: React.CSSProperties = { fontFamily: "'JetBrains Mono',monospace" };
+  const statusColor = (s: string) => s.startsWith("DONE") ? "#00ff41" : s === "ACTIVE" ? "#7dffaa" : s === "RUNNING" ? "#008f11" : "rgba(0,255,65,.35)";
+  const rowGlow = (s: string) => s.startsWith("DONE") ? { anim: "rowGlowDone", dur: 11 } : s === "ACTIVE" ? { anim: "rowGlowActive", dur: 4.5 } : s === "RUNNING" ? { anim: "rowGlowRunning", dur: 6.5 } : { anim: "rowGlowQueued", dur: 8.5 };
+  const scanSpeed = (s: string) => s === "ACTIVE" ? 90 : s === "RUNNING" ? 140 : s.startsWith("DONE") ? 340 : 260;
+  return (
+    <section id="ai" style={{ padding: "clamp(80px,12vh,140px) clamp(20px,5vw,90px)", background: "#050f05", position: "relative", overflow: "hidden" }}>
+      <div style={{ position: "absolute", inset: 0 }}>
+        <MatrixRain opacity={0.05} fontSize={13} color="#00ff41" trail="rgba(5,15,5,.06)" speed={85} />
+      </div>
+      <div ref={ref} style={{ position: "relative", zIndex: 1 }}>
+        <Reveal>
+          <div style={{ borderTop: "1px solid rgba(0,255,65,.18)", paddingTop: 20, marginBottom: 40 }}>
+            <span style={{ ...mono, fontSize: 11, color: "#008f11" }}>00 / Уникальность</span>
+            <h2 style={{ ...mono, fontWeight: 700, fontSize: "clamp(20px,3.4vw,50px)", color: "#00ff41", lineHeight: 1.05, marginTop: 18 }}>
+              AI-консьерж сервис — уровень крупного агентства для одного клиента.
+            </h2>
+          </div>
+        </Reveal>
+        <Reveal delay={100}>
+          <div style={{ border: "1px solid rgba(0,255,65,.2)", animation: "borderGlow 4s ease-in-out infinite" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 16px", borderBottom: "1px solid rgba(0,255,65,.15)", background: "#0a1a0a" }}>
+              <div style={{ display: "flex", gap: 7, alignItems: "center" }}>
+                {["#ff5f57", "#ffbd2e", "#28c840"].map((c, i) => <span key={i} style={{ width: 9, height: 9, background: c, display: "block" }} />)}
+                <span style={{ ...mono, fontSize: 10, color: "#008f11", letterSpacing: ".14em", marginLeft: 8 }}>~/ai-concierge/ps_aux</span>
+              </div>
+              <span style={{ ...mono, fontSize: 10, color: "#ff0040", letterSpacing: ".1em" }}>VER 2.0 ●</span>
+            </div>
+            <div className="ai-table-head" style={{ display: "grid", gridTemplateColumns: "44px 1fr 210px 90px", gap: "0 clamp(12px,2vw,28px)", padding: "10px 16px 8px", borderBottom: "1px solid rgba(0,255,65,.1)", ...mono, fontSize: 10, letterSpacing: ".14em", textTransform: "uppercase", color: "rgba(0,255,65,.35)" }}>
+              <span>PID</span><span>СЕРВИС</span><span>ПРОГРЕСС</span><span>СТАТУС</span>
+            </div>
+            {procs.map((p, i) => {
+              const glow = rowGlow(p.status);
+              return (
+                <div key={p.pid} className="row-ai ai-table-row" style={{ display: "grid", gridTemplateColumns: "44px 1fr 210px 90px", gap: "0 clamp(12px,2vw,28px)", padding: "14px 16px", borderBottom: i < procs.length - 1 ? "1px solid rgba(0,255,65,.07)" : "none", alignItems: "center", animation: `${glow.anim} ${glow.dur}s ease-in-out infinite`, animationDelay: `${i * 0.3}s`, transition: "padding-left .3s" }}>
+                  <span style={{ ...mono, fontSize: 11, color: "rgba(0,255,65,.4)" }}>{p.pid}</span>
+                  <div>
+                    <span style={{ ...mono, fontSize: 12, color: "#008f11" }}>{p.name}</span>
+                    <div style={{ ...mono, fontSize: 11, color: "rgba(0,255,65,.3)", marginTop: 3 }}>{p.desc}</div>
+                  </div>
+                  <ProcessBar target={p.fill} delay={p.delay} animate={animate} scanSpeed={scanSpeed(p.status)} />
+                  <span style={{ ...mono, fontSize: 10, color: statusColor(p.status), letterSpacing: ".04em" }}>{p.status}</span>
+                </div>
+              );
+            })}
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
 function Services() {
   const services = [
     { id: "A", name: "Сайт-визитка", desc: "Компактный сайт о вас и вашей услуге: кто вы, что делаете, сколько стоит, как связаться. Открывается быстро, читается с телефона." },
@@ -161,5 +278,5 @@ function Price(){return <section id="price" style={{padding:"clamp(80px,12vh,140
 function Process(){return <section style={{padding:"clamp(80px,12vh,140px) clamp(20px,5vw,90px)"}}><Reveal><div style={{borderTop:"1px solid rgba(0,255,65,.18)",paddingTop:20}}><span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:"#008f11"}}>04 / Процесс</span><h2 style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:700,fontSize:"clamp(22px,3.6vw,52px)",color:"#00ff41",marginTop:18}}>Четыре шага. Вы видите результат на каждом.</h2></div></Reveal></section>;}
 function Contact(){const handleSubmit=(e:React.FormEvent<HTMLFormElement>)=>{e.preventDefault();const d=new FormData(e.currentTarget);const body=`Имя: ${d.get("name")||""}\nКонтакт: ${d.get("contact")||""}\n\nЗадача:\n${d.get("task")||""}`;window.location.href=`mailto:zakhsergey7@gmail.com?subject=${encodeURIComponent("Заявка с сайта")}&body=${encodeURIComponent(body)}`};return <section id="contact" style={{padding:"clamp(80px,12vh,140px) clamp(20px,5vw,90px)",borderTop:"1px solid rgba(0,255,65,.18)"}}><div className="contact-grid" style={{display:"grid",gridTemplateColumns:"1.1fr .9fr",gap:60}}><div><span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:"#008f11"}}>05 / Связаться</span><h2 style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:700,fontSize:"clamp(26px,5vw,70px)",color:"#00ff41",marginTop:20}}>Расскажите,<br/>что нужно<br/>сделать.</h2></div><TerminalBox title="~/contact/form.sh"><form onSubmit={handleSubmit} style={{display:"flex",flexDirection:"column",gap:14}}><input name="name" placeholder="Ваше имя" required style={{background:"transparent",border:0,borderBottom:"1px solid rgba(0,255,65,.25)",padding:10,color:"#00ff41"}}/><input name="contact" placeholder="Telegram или телефон" required style={{background:"transparent",border:0,borderBottom:"1px solid rgba(0,255,65,.25)",padding:10,color:"#00ff41"}}/><textarea name="task" placeholder="Что нужно сделать" style={{background:"transparent",border:0,borderBottom:"1px solid rgba(0,255,65,.25)",padding:10,color:"#00ff41",minHeight:100}}/><button type="submit" style={{background:"#00ff41",color:"#000",padding:15,border:0,fontFamily:"'JetBrains Mono',monospace",fontWeight:700}}>./send_request.sh →</button></form></TerminalBox></div></section>;}
 function Footer(){return <footer style={{background:"#050f05",borderTop:"1px solid rgba(0,255,65,.18)",padding:"22px clamp(20px,5vw,90px)",fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:"#008f11",display:"flex",justifyContent:"space-between"}}><span>© 2026 Захаров Сергей</span><a href="#top" style={{color:"#00ff41",textDecoration:"none"}}>Наверх ↑</a></footer>;}
-const KEYFRAMES=`@keyframes slideBar{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}} @keyframes marqAnim{from{transform:translateX(0)}to{transform:translateX(-50%)}} @keyframes neonPulse{0%,100%{text-shadow:0 0 10px rgba(0,255,65,.4),0 0 28px rgba(0,255,65,.18)}50%{text-shadow:0 0 20px rgba(0,255,65,.85),0 0 52px rgba(0,255,65,.4)}} @keyframes hudBlink{0%,93%,100%{opacity:1}94%,96%{opacity:0}95%,97%{opacity:1}98%,99%{opacity:.3}} @media (hover:hover) and (pointer:fine){.link-nav:hover{color:#00ff41}.btn-next:hover{background:rgba(0,255,65,.12)}.card-service:hover{background:#0a1a0a}.pill-stack:hover{color:#00ff41;border-color:rgba(0,255,65,.6)}} @media (min-width:1024px){.hero-grid{grid-template-columns:3fr 2fr!important}.hero-whoami{display:block!important}} @media (max-width:900px){.stack-grid{grid-template-columns:1fr!important}} @media (max-width:640px){.nav-links{display:none!important}.nav-toggle{display:inline-flex!important}.contact-grid{grid-template-columns:1fr!important}.services-grid{grid-template-columns:1fr!important}.stream-readout{display:none!important}}`;
+const KEYFRAMES=`@keyframes slideBar{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}} @keyframes marqAnim{from{transform:translateX(0)}to{transform:translateX(-50%)}} @keyframes neonPulse{0%,100%{text-shadow:0 0 10px rgba(0,255,65,.4),0 0 28px rgba(0,255,65,.18)}50%{text-shadow:0 0 20px rgba(0,255,65,.85),0 0 52px rgba(0,255,65,.4)}} @keyframes hudBlink{0%,93%,100%{opacity:1}94%,96%{opacity:0}95%,97%{opacity:1}98%,99%{opacity:.3}} @keyframes borderGlow{0%,100%{border-color:rgba(0,255,65,.2)}50%{border-color:rgba(0,255,65,.5)}} @keyframes rowGlowDone{0%,100%{background:rgba(0,255,65,.02)}50%{background:rgba(0,255,65,.07)}} @keyframes rowGlowActive{0%,100%{background:rgba(0,255,65,.04)}50%{background:rgba(0,255,65,.14)}} @keyframes rowGlowRunning{0%,100%{background:rgba(0,255,65,.03)}50%{background:rgba(0,255,65,.10)}} @keyframes rowGlowQueued{0%,100%{background:rgba(0,255,65,.015)}50%{background:rgba(0,255,65,.05)}} @media (hover:hover) and (pointer:fine){.link-nav:hover{color:#00ff41}.btn-next:hover{background:rgba(0,255,65,.12)}.card-service:hover{background:#0a1a0a}.pill-stack:hover{color:#00ff41;border-color:rgba(0,255,65,.6)}.row-ai:hover{padding-left:22px}} @media (min-width:1024px){.hero-grid{grid-template-columns:3fr 2fr!important}.hero-whoami{display:block!important}} @media (max-width:900px){.stack-grid{grid-template-columns:1fr!important}} @media (max-width:640px){.nav-links{display:none!important}.nav-toggle{display:inline-flex!important}.contact-grid{grid-template-columns:1fr!important}.services-grid{grid-template-columns:1fr!important}.stream-readout{display:none!important}.ai-table-head{display:none!important}.ai-table-row{grid-template-columns:28px 1fr!important}.ai-table-row>*:nth-child(3){grid-column:1/-1!important;margin-top:8px}.ai-table-row>*:nth-child(4){grid-column:1/-1!important;margin-top:4px}}`;
 export default function App(){return <div style={{background:"#000",color:"#00ff41",minHeight:"100vh"}}><style>{KEYFRAMES}</style><Nav/><main id="top"><LiveConsole/><Hero/><DecodeStreamDivider/><Mission/><AIConsierge/><Services/><Stack/><Price/><Process/><Contact/><Footer/></main></div>;}
