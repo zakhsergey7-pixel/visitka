@@ -4,7 +4,6 @@ import iconSpark from "../assets/icon-spark.png";
 import iconWhale from "../assets/icon-whale.png";
 import poseShout from "../assets/pose-shout.png";
 import poseSitFront from "../assets/pose-sit-front.png";
-import poseSitSide from "../assets/pose-sit-side.png";
 import poseFront from "../assets/pose-front.png";
 import poseFrontSide from "../assets/pose-frontside.png";
 import poseSide from "../assets/pose-side.png";
@@ -324,8 +323,7 @@ function Footer(){return <footer style={{background:"#050f05",borderTop:"1px sol
 const CHAR_SECTION_IDS = ["hero", "ai", "services", "stack", "price", "process", "contact"];
 const CHAR_STAND = [poseFront, poseFrontSide, poseSide, poseBackSide, poseBack];
 const CHAR_STAND_RATIO = [211 / 500, 201 / 500, 119 / 500, 201 / 500, 215 / 500];
-const CHAR_SIT = [poseSitFront, poseSitSide];
-const CHAR_SIT_RATIO = [217 / 354, 217 / 351];
+const CHAR_SIT_RATIO = 217 / 354;
 const CHAR_SHOUT_RATIO = 288 / 237;
 const CHAR_PERCH_SELECTOR = "h1, h2, .pill-stack, .card-service, .card-price-base, .card-price-full";
 const CHAR_HEIGHT_PX = 84;
@@ -338,7 +336,7 @@ function WalkingCharacter() {
   const [top, setTop] = useState<number | null>(null);
   const [onFloor, setOnFloor] = useState(false);
   const [mirror, setMirror] = useState(false);
-  const [sprite, setSprite] = useState<{ src: string; ratio: number }>({ src: poseSitFront, ratio: CHAR_SIT_RATIO[0] });
+  const [sprite, setSprite] = useState<{ src: string; ratio: number }>({ src: poseSitFront, ratio: CHAR_SIT_RATIO });
   const [shake, setShake] = useState(0);
   const [fallToken, setFallToken] = useState(0);
   const [ready, setReady] = useState(false);
@@ -350,7 +348,7 @@ function WalkingCharacter() {
     setLeft(r.left + r.width * 0.8);
     setTop(r.top - 8);
     setOnFloor(false);
-    setSprite({ src: poseSitFront, ratio: CHAR_SIT_RATIO[0] });
+    setSprite({ src: poseSitFront, ratio: CHAR_SIT_RATIO });
     setMirror(false);
     setReady(true);
   }, []);
@@ -451,7 +449,7 @@ function WalkingCharacter() {
       clearTimeout(transitionTimer);
       transitionTimer = window.setTimeout(() => {
         phaseRef.v = "landSit";
-        setSprite({ src: poseSitFront, ratio: CHAR_SIT_RATIO[0] });
+        setSprite({ src: poseSitFront, ratio: CHAR_SIT_RATIO });
         transitionTimer = window.setTimeout(() => {
           phaseRef.v = "roam";
           poseRef.v = 2; mirrorRef.v = false;
@@ -498,10 +496,9 @@ function WalkingCharacter() {
             const el = perchElRef.v;
             if (el) {
               const r = el.getBoundingClientRect();
-              const sitIdx = Math.random() < 0.5 ? 0 : 1;
               topRef.v = r.top - CHAR_HEIGHT_PX + 16;
               setTop(topRef.v); setOnFloor(false);
-              setSprite({ src: CHAR_SIT[sitIdx], ratio: CHAR_SIT_RATIO[sitIdx] });
+              setSprite({ src: poseSitFront, ratio: CHAR_SIT_RATIO });
               setFallToken(v => v + 1);
               activityRef.v = "perchHold";
               untilRef.v = t + 3000 + Math.random() * 2600;
@@ -557,7 +554,9 @@ function WalkingCharacter() {
       <div key={shake} style={{ animation: "charShake .42s ease-in-out" }}>
         <div key={fallToken} style={{ animation: "charFall .75s cubic-bezier(.34,1.4,.4,1) both" }}>
           <div style={{ animation: "charBob .6s ease-in-out infinite" }}>
-            <img src={sprite.src} style={{ display: "block", height: "clamp(64px,13.5vw,84px)", width: "auto", aspectRatio: `${sprite.ratio}`, filter: "drop-shadow(0 6px 6px rgba(0,0,0,.5))" }} />
+            <div style={{ width: "clamp(80px,17vw,105px)", height: "clamp(64px,13.5vw,84px)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
+              <img src={sprite.src} style={{ display: "block", maxWidth: "100%", maxHeight: "100%", width: "auto", height: "auto", filter: "drop-shadow(0 6px 6px rgba(0,0,0,.5))" }} />
+            </div>
           </div>
         </div>
       </div>
