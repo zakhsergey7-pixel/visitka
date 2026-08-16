@@ -1,10 +1,41 @@
-/* Real AI logos supplied in the repository — GPT · Claude · DeepSeek */
-.ai-logo-stream > div > div > div { position: relative; overflow: hidden; background-color: rgba(0,255,65,.035) !important; background-repeat: no-repeat !important; background-position: center !important; background-size: 78% 78% !important; }
-.ai-logo-stream > div > div > div::after { content: none !important; }
+/* AI ticker — transparent neon icons in the exact matrix-green site language */
+.ai-logo-stream svg { display: none !important; }
+.ai-logo-stream > div > div > div {
+  position: relative;
+  width: clamp(42px, 7vw, 54px) !important;
+  height: clamp(42px, 7vw, 54px) !important;
+  flex: 0 0 clamp(42px, 7vw, 54px) !important;
+  border: 0 !important;
+  background-color: transparent !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  background-size: contain !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  color: transparent !important;
+  overflow: visible;
+}
+.ai-logo-stream > div > div > div::before,
+.ai-logo-stream > div > div > div::after {
+  content: none !important;
+  display: none !important;
+}
 .ai-logo-stream > div > div > div:nth-child(6n+1),
-.ai-logo-stream > div > div > div:nth-child(6n+4) { background-image: url('https://raw.githubusercontent.com/zakhsergey7-pixel/visitka/main/chatgpt.jpg') !important; }
+.ai-logo-stream > div > div > div:nth-child(6n+4) {
+  background-image: url("data:image/webp;base64,REPLACE_GPT") !important;
+}
 .ai-logo-stream > div > div > div:nth-child(6n+2),
-.ai-logo-stream > div > div > div:nth-child(6n+5) { background-image: url('https://raw.githubusercontent.com/zakhsergey7-pixel/visitka/main/images.jfif') !important; }
+.ai-logo-stream > div > div > div:nth-child(6n+5) {
+  background-image: url("data:image/webp;base64,REPLACE_CLAUDE") !important;
+}
 .ai-logo-stream > div > div > div:nth-child(6n+3),
-.ai-logo-stream > div > div > div:nth-child(6n+6) { background-image: url('https://raw.githubusercontent.com/zakhsergey7-pixel/visitka/main/deepseek.jpg.webp') !important; }
-@media (max-width: 640px) { .ai-logo-stream > div > div > div { width: 30px !important; height: 30px !important; } }
+.ai-logo-stream > div > div > div:nth-child(6n+6) {
+  background-image: url("data:image/webp;base64,REPLACE_DEEPSEEK") !important;
+}
+@media (max-width: 640px) {
+  .ai-logo-stream > div > div > div {
+    width: 36px !important;
+    height: 36px !important;
+    flex-basis: 36px !important;
+  }
+}
