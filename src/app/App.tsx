@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import aiLogosSprite from "../assets/ai-logos-sprite.png";
+import iconNode from "../assets/icon-node.png";
+import iconSpark from "../assets/icon-spark.png";
+import iconWhale from "../assets/icon-whale.png";
+import characterSheet from "../assets/character-sheet.png";
 
 /* ─────────────────────────────────────────
    Matrix Rain Canvas
@@ -70,13 +73,14 @@ function WhoAmICard() {
 function Hero(){const[active,setActive]=useState(false);const headline=useDecrypt("Сайт — это инструмент,\nа не просто картинка.",active);const[cur,setCur]=useState(true);const[mouse,setMouse]=useState({x:0,y:0});const secRef=useRef<HTMLElement>(null);useEffect(()=>{const id=setInterval(()=>setCur(p=>!p),550);return()=>clearInterval(id)},[]);useEffect(()=>{const el=secRef.current;if(!el)return;const ob=new IntersectionObserver(([e])=>{if(e.isIntersecting){setActive(true);ob.disconnect()}},{threshold:.3});ob.observe(el);return()=>ob.disconnect()},[]);const onMouseMove=(e:React.MouseEvent)=>{const r=secRef.current?.getBoundingClientRect();if(r)setMouse({x:Math.round(e.clientX-r.left),y:Math.round(e.clientY-r.top)})};return <section id="hero" ref={secRef} onMouseMove={onMouseMove} style={{position:"relative",minHeight:"100svh",display:"flex",flexDirection:"column",justifyContent:"space-between",padding:"clamp(120px,18vh,200px) clamp(20px,5vw,90px) 0",overflow:"hidden"}}><div style={{position:"absolute",inset:0,zIndex:0}}><MatrixRain opacity={.13} fontSize={14} color="#00ff41" trail="rgba(0,0,0,.055)" speed={58}/></div><NoiseOverlay/>{DEAD_PIXELS.map((p,i)=><div key={i} style={{position:"absolute",width:2,height:2,background:"#00ff41",boxShadow:"0 0 3px #00ff41",zIndex:1,pointerEvents:"none",animation:`hudBlink ${3.5+i*1.4}s steps(1) infinite ${i*.8}s`,...p}}/>)}<div style={{position:"absolute",inset:0,zIndex:1,pointerEvents:"none",background:"repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.07) 2px,rgba(0,0,0,.07) 4px)"}}/><div style={{position:"absolute",top:"clamp(80px,13vh,140px)",left:"clamp(20px,5vw,90px)",right:"clamp(20px,5vw,90px)",display:"flex",justifyContent:"space-between",fontFamily:"'JetBrains Mono',monospace",fontSize:10,letterSpacing:".14em",textTransform:"uppercase",color:"rgba(0,255,65,.28)",zIndex:2,pointerEvents:"none"}}><span>SYS.<span style={{color:"#00ff41",animation:"hudBlink 8s steps(1) infinite"}}>ONLINE</span> · UPTIME 05Y</span><span style={{textAlign:"right"}}>55.7522° N · 37.6156° E<br/>BUILD 2026.08</span></div><div className="hero-grid" style={{position:"relative",zIndex:2,display:"grid",gridTemplateColumns:"1fr",gap:"clamp(28px,5vw,48px)",alignItems:"center"}}><h1 style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:700,fontSize:"clamp(28px,5.4vw,86px)",lineHeight:1.06,letterSpacing:"-.02em",color:"#00ff41",animation:"neonPulse 4.5s ease-in-out infinite",maxWidth:"22ch",whiteSpace:"pre-line"}}>{headline}<span style={{opacity:cur?1:0}}>_</span></h1><div className="hero-whoami" style={{display:"none"}}><WhoAmICard/></div></div><div style={{position:"relative",zIndex:2,display:"flex",justifyContent:"space-between",alignItems:"center",gap:20,borderTop:"1px solid rgba(0,255,65,.16)",padding:"22px 0 26px",marginTop:"clamp(36px,8vh,80px)"}}><HeroStatusLine/><span style={{width:48,height:1,background:"#003b00",position:"relative",overflow:"hidden",display:"block",flexShrink:0}}><span style={{position:"absolute",inset:0,background:"#00ff41",animation:"slideBar 2s linear infinite"}}/></span></div></section>;}
 
 /* ─────────────────────────────────────────
-   AI logo stream — three neon marks sliced
-   from one sprite image via background-
-   position (left/center/right third), each
-   in its own small bordered pixel chip.
+   AI logo stream — three neon marks, cropped
+   ahead of time (via canvas, pixel-perfect
+   bounding boxes) out of the source sprite
+   into their own transparent PNGs, each in
+   a small bordered pixel chip.
 ───────────────────────────────────────── */
-const AI_LOGO_POSITIONS = ["0% 50%", "50% 50%", "100% 50%"];
-function AILogoChip({ position }: { position: string }) {
+const AI_LOGO_ICONS = [iconNode, iconSpark, iconWhale];
+function AILogoChip({ src }: { src: string }) {
   return (
     <div
       style={{
@@ -85,9 +89,9 @@ function AILogoChip({ position }: { position: string }) {
         flexShrink: 0,
         border: "1px solid rgba(0,255,65,.3)",
         backgroundColor: "#000",
-        backgroundImage: `url(${aiLogosSprite})`,
-        backgroundPosition: position,
-        backgroundSize: "300% auto",
+        backgroundImage: `url(${src})`,
+        backgroundPosition: "center",
+        backgroundSize: "72%",
         backgroundRepeat: "no-repeat",
         boxShadow: "inset 0 0 12px rgba(0,255,65,.04)",
         filter: "drop-shadow(0 0 3px rgba(0,255,65,.4))",
@@ -98,7 +102,7 @@ function AILogoChip({ position }: { position: string }) {
 function AIIconStream() {
   const row = (key: string) => (
     <div key={key} style={{ display: "flex", gap: "clamp(6px,1.6vw,10px)", paddingRight: "clamp(6px,1.6vw,10px)" }}>
-      {AI_LOGO_POSITIONS.concat(AI_LOGO_POSITIONS).map((pos, i) => <AILogoChip key={`${key}-${i}`} position={pos} />)}
+      {AI_LOGO_ICONS.concat(AI_LOGO_ICONS).map((src, i) => <AILogoChip key={`${key}-${i}`} src={src} />)}
     </div>
   );
   return (
@@ -278,5 +282,75 @@ function Price(){return <section id="price" style={{padding:"clamp(80px,12vh,140
 function Process(){return <section style={{padding:"clamp(80px,12vh,140px) clamp(20px,5vw,90px)"}}><Reveal><div style={{borderTop:"1px solid rgba(0,255,65,.18)",paddingTop:20}}><span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:"#008f11"}}>04 / Процесс</span><h2 style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:700,fontSize:"clamp(22px,3.6vw,52px)",color:"#00ff41",marginTop:18}}>Четыре шага. Вы видите результат на каждом.</h2></div></Reveal></section>;}
 function Contact(){const handleSubmit=(e:React.FormEvent<HTMLFormElement>)=>{e.preventDefault();const d=new FormData(e.currentTarget);const body=`Имя: ${d.get("name")||""}\nКонтакт: ${d.get("contact")||""}\n\nЗадача:\n${d.get("task")||""}`;window.location.href=`mailto:zakhsergey7@gmail.com?subject=${encodeURIComponent("Заявка с сайта")}&body=${encodeURIComponent(body)}`};return <section id="contact" style={{padding:"clamp(80px,12vh,140px) clamp(20px,5vw,90px)",borderTop:"1px solid rgba(0,255,65,.18)"}}><div className="contact-grid" style={{display:"grid",gridTemplateColumns:"1.1fr .9fr",gap:60}}><div><span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:"#008f11"}}>05 / Связаться</span><h2 style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:700,fontSize:"clamp(26px,5vw,70px)",color:"#00ff41",marginTop:20}}>Расскажите,<br/>что нужно<br/>сделать.</h2></div><TerminalBox title="~/contact/form.sh"><form onSubmit={handleSubmit} style={{display:"flex",flexDirection:"column",gap:14}}><input name="name" placeholder="Ваше имя" required style={{background:"transparent",border:0,borderBottom:"1px solid rgba(0,255,65,.25)",padding:10,color:"#00ff41"}}/><input name="contact" placeholder="Telegram или телефон" required style={{background:"transparent",border:0,borderBottom:"1px solid rgba(0,255,65,.25)",padding:10,color:"#00ff41"}}/><textarea name="task" placeholder="Что нужно сделать" style={{background:"transparent",border:0,borderBottom:"1px solid rgba(0,255,65,.25)",padding:10,color:"#00ff41",minHeight:100}}/><button type="submit" style={{background:"#00ff41",color:"#000",padding:15,border:0,fontFamily:"'JetBrains Mono',monospace",fontWeight:700}}>./send_request.sh →</button></form></TerminalBox></div></section>;}
 function Footer(){return <footer style={{background:"#050f05",borderTop:"1px solid rgba(0,255,65,.18)",padding:"22px clamp(20px,5vw,90px)",fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:"#008f11",display:"flex",justifyContent:"space-between"}}><span>© 2026 Захаров Сергей</span><a href="#top" style={{color:"#00ff41",textDecoration:"none"}}>Наверх ↑</a></footer>;}
-const KEYFRAMES=`@keyframes slideBar{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}} @keyframes marqAnim{from{transform:translateX(0)}to{transform:translateX(-50%)}} @keyframes neonPulse{0%,100%{text-shadow:0 0 10px rgba(0,255,65,.4),0 0 28px rgba(0,255,65,.18)}50%{text-shadow:0 0 20px rgba(0,255,65,.85),0 0 52px rgba(0,255,65,.4)}} @keyframes hudBlink{0%,93%,100%{opacity:1}94%,96%{opacity:0}95%,97%{opacity:1}98%,99%{opacity:.3}} @keyframes borderGlow{0%,100%{border-color:rgba(0,255,65,.2)}50%{border-color:rgba(0,255,65,.5)}} @keyframes rowGlowDone{0%,100%{background:rgba(0,255,65,.02)}50%{background:rgba(0,255,65,.07)}} @keyframes rowGlowActive{0%,100%{background:rgba(0,255,65,.04)}50%{background:rgba(0,255,65,.14)}} @keyframes rowGlowRunning{0%,100%{background:rgba(0,255,65,.03)}50%{background:rgba(0,255,65,.10)}} @keyframes rowGlowQueued{0%,100%{background:rgba(0,255,65,.015)}50%{background:rgba(0,255,65,.05)}} @media (hover:hover) and (pointer:fine){.link-nav:hover{color:#00ff41}.btn-next:hover{background:rgba(0,255,65,.12)}.card-service:hover{background:#0a1a0a}.pill-stack:hover{color:#00ff41;border-color:rgba(0,255,65,.6)}.row-ai:hover{padding-left:22px}} @media (min-width:1024px){.hero-grid{grid-template-columns:3fr 2fr!important}.hero-whoami{display:block!important}} @media (max-width:900px){.stack-grid{grid-template-columns:1fr!important}} @media (max-width:640px){.nav-links{display:none!important}.nav-toggle{display:inline-flex!important}.contact-grid{grid-template-columns:1fr!important}.services-grid{grid-template-columns:1fr!important}.stream-readout{display:none!important}.ai-table-head{display:none!important}.ai-table-row{grid-template-columns:28px 1fr!important}.ai-table-row>*:nth-child(3){grid-column:1/-1!important;margin-top:8px}.ai-table-row>*:nth-child(4){grid-column:1/-1!important;margin-top:4px}}`;
-export default function App(){return <div style={{background:"#000",color:"#00ff41",minHeight:"100vh"}}><style>{KEYFRAMES}</style><Nav/><main id="top"><LiveConsole/><Hero/><DecodeStreamDivider/><Mission/><AIConsierge/><Services/><Stack/><Price/><Process/><Contact/><Footer/></main></div>;}
+/* ─────────────────────────────────────────
+   Walking character — appears once the
+   visitor clicks past the console gate,
+   "falls" onto the Hero section, then paces
+   side to side at the bottom of the screen.
+   Fixed to the viewport, so it rides along
+   as you scroll; every time a new section
+   becomes the dominant one on screen it
+   replays the fall/land bounce, as if
+   dropping onto that next block.
+───────────────────────────────────────── */
+const CHAR_SECTION_IDS = ["hero", "ai", "services", "stack", "price", "process", "contact"];
+function WalkingCharacter() {
+  const [visible, setVisible] = useState(false);
+  const [fallToken, setFallToken] = useState(0);
+  const [x, setX] = useState(50);
+  const [dir, setDir] = useState<1 | -1>(1);
+  const xRef = useRef(50);
+  const dirRef = useRef<1 | -1>(1);
+
+  useEffect(() => {
+    const hero = document.getElementById("hero");
+    if (!hero) return;
+    const ob = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setVisible(true); ob.disconnect(); } }, { threshold: 0.25 });
+    ob.observe(hero);
+    return () => ob.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!visible) return;
+    let raf = 0, last = performance.now();
+    const SPEED = 9, MIN = 6, MAX = 92;
+    function tick(t: number) {
+      raf = requestAnimationFrame(tick);
+      const dt = (t - last) / 1000; last = t;
+      let nx = xRef.current + dirRef.current * SPEED * dt;
+      if (nx > MAX) { nx = MAX; dirRef.current = -1; setDir(-1); }
+      if (nx < MIN) { nx = MIN; dirRef.current = 1; setDir(1); }
+      xRef.current = nx;
+      setX(nx);
+    }
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [visible]);
+
+  useEffect(() => {
+    if (!visible) return;
+    const els = CHAR_SECTION_IDS.map(id => document.getElementById(id)).filter(Boolean) as HTMLElement[];
+    let current = "";
+    const ob = new IntersectionObserver((entries) => {
+      let best: IntersectionObserverEntry | null = null;
+      for (const en of entries) if (en.isIntersecting && (!best || en.intersectionRatio > best.intersectionRatio)) best = en;
+      if (best && best.target.id !== current) { current = best.target.id; setFallToken(t => t + 1); }
+    }, { threshold: [0.3, 0.5, 0.7] });
+    els.forEach(el => ob.observe(el));
+    return () => ob.disconnect();
+  }, [visible]);
+
+  if (!visible) return null;
+  return (
+    <div style={{ position: "fixed", left: `${x}%`, bottom: "clamp(8px,2.6vh,26px)", transform: `translateX(-50%) scaleX(${dir === 1 ? -1 : 1})`, zIndex: 60, pointerEvents: "none" }}>
+      <div key={fallToken} style={{ animation: "charFall .75s cubic-bezier(.34,1.4,.4,1) both" }}>
+        <div style={{ animation: "charBob .6s ease-in-out infinite" }}>
+          <div style={{ width: "clamp(38px,9vw,52px)", aspectRatio: "0.6", backgroundImage: `url(${characterSheet})`, backgroundSize: "500% 200%", backgroundPosition: "50% 0%", backgroundRepeat: "no-repeat", filter: "drop-shadow(0 6px 6px rgba(0,0,0,.5))" }} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const KEYFRAMES=`@keyframes slideBar{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}} @keyframes marqAnim{from{transform:translateX(0)}to{transform:translateX(-50%)}} @keyframes neonPulse{0%,100%{text-shadow:0 0 10px rgba(0,255,65,.4),0 0 28px rgba(0,255,65,.18)}50%{text-shadow:0 0 20px rgba(0,255,65,.85),0 0 52px rgba(0,255,65,.4)}} @keyframes hudBlink{0%,93%,100%{opacity:1}94%,96%{opacity:0}95%,97%{opacity:1}98%,99%{opacity:.3}} @keyframes borderGlow{0%,100%{border-color:rgba(0,255,65,.2)}50%{border-color:rgba(0,255,65,.5)}} @keyframes rowGlowDone{0%,100%{background:rgba(0,255,65,.02)}50%{background:rgba(0,255,65,.07)}} @keyframes rowGlowActive{0%,100%{background:rgba(0,255,65,.04)}50%{background:rgba(0,255,65,.14)}} @keyframes rowGlowRunning{0%,100%{background:rgba(0,255,65,.03)}50%{background:rgba(0,255,65,.10)}} @keyframes rowGlowQueued{0%,100%{background:rgba(0,255,65,.015)}50%{background:rgba(0,255,65,.05)}} @keyframes charFall{0%{transform:translateY(-160px);opacity:0}55%{transform:translateY(14px);opacity:1}75%{transform:translateY(-8px)}100%{transform:translateY(0)}} @keyframes charBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}} @media (hover:hover) and (pointer:fine){.link-nav:hover{color:#00ff41}.btn-next:hover{background:rgba(0,255,65,.12)}.card-service:hover{background:#0a1a0a}.pill-stack:hover{color:#00ff41;border-color:rgba(0,255,65,.6)}.row-ai:hover{padding-left:22px}} @media (min-width:1024px){.hero-grid{grid-template-columns:3fr 2fr!important}.hero-whoami{display:block!important}} @media (max-width:900px){.stack-grid{grid-template-columns:1fr!important}} @media (max-width:640px){.nav-links{display:none!important}.nav-toggle{display:inline-flex!important}.contact-grid{grid-template-columns:1fr!important}.services-grid{grid-template-columns:1fr!important}.stream-readout{display:none!important}.ai-table-head{display:none!important}.ai-table-row{grid-template-columns:28px 1fr!important}.ai-table-row>*:nth-child(3){grid-column:1/-1!important;margin-top:8px}.ai-table-row>*:nth-child(4){grid-column:1/-1!important;margin-top:4px}}`;
+export default function App(){return <div style={{background:"#000",color:"#00ff41",minHeight:"100vh"}}><style>{KEYFRAMES}</style><Nav/><main id="top"><LiveConsole/><Hero/><DecodeStreamDivider/><Mission/><AIConsierge/><Services/><Stack/><Price/><Process/><Contact/><Footer/></main><WalkingCharacter/></div>;}
