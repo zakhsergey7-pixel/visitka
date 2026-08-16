@@ -16,6 +16,9 @@ import poseDazed from "../assets/pose-dazed.png";
 import poseClimb from "../assets/pose-climb.png";
 import poseIdleThink from "../assets/pose-idle-think.png";
 import poseIdleCheer from "../assets/pose-idle-cheer.png";
+import poseWalk1 from "../assets/pose-walk-1.png";
+import poseWalk2 from "../assets/pose-walk-2.png";
+import poseWalk3 from "../assets/pose-walk-3.png";
 
 /* ─────────────────────────────────────────
    Matrix Rain Canvas
@@ -420,6 +423,12 @@ const CHAR_IDLE_LOOK = [
   { src: poseIdleThink, ratio: 76 / 148 },
   { src: poseIdleCheer, ratio: 89 / 160 },
 ];
+// real walking-stride frames, played as a ping-pong (0,1,2,1,...) so the
+// non-cyclic reference stride reads as a continuous loop while translating
+const CHAR_WALK = [poseWalk1, poseWalk2, poseWalk3];
+const CHAR_WALK_RATIO = [79 / 171, 84 / 171, 90 / 170];
+const CHAR_WALK_CYCLE = [0, 1, 2, 1];
+const CHAR_WALK_STEP_PX = 14;
 const CHAR_PERCH_SELECTOR = "h1, h2, .pill-stack, .card-service, .card-price-base, .card-price-full";
 const CHAR_HEIGHT_PX = 84;
 function charBoxHeightPx() { return Math.min(84, Math.max(64, window.innerWidth * 0.135)); }
@@ -476,6 +485,7 @@ function WalkingCharacter() {
     const untilRef = { v: 0 };
     const perchElRef: { v: HTMLElement | null } = { v: null };
     const lookVariantRef = { v: false };
+    const walkDistRef = { v: 0 };
     let lastPoseStep = 0;
     let raf = 0;
     let transitionTimer = 0;
@@ -693,8 +703,14 @@ function WalkingCharacter() {
           const dir = dx > 0 ? 1 : -1;
           const ready2 = stepPoseToward(2, dir === 1, t);
           if (ready2) {
-            leftRef.v = Math.max(24, Math.min(window.innerWidth - 24, leftRef.v + dir * 110 * (1 / 60)));
+            const step = 110 * (1 / 60);
+            leftRef.v = Math.max(24, Math.min(window.innerWidth - 24, leftRef.v + dir * step));
             setLeft(leftRef.v);
+            walkDistRef.v += step;
+            const wIdx = CHAR_WALK_CYCLE[Math.floor(walkDistRef.v / CHAR_WALK_STEP_PX) % CHAR_WALK_CYCLE.length];
+            setSprite({ src: CHAR_WALK[wIdx], ratio: CHAR_WALK_RATIO[wIdx] });
+          } else {
+            walkDistRef.v = 0;
           }
           if (activity === "walk" && t > untilRef.v) decideNext(t);
         }
