@@ -332,7 +332,7 @@ function charBoxHeightPx() { return Math.min(84, Math.max(64, window.innerWidth 
 function sitSeatOffsetPx() { return charBoxHeightPx() * CHAR_SIT_HIP_FRACTION; }
 
 type CharPhase = "introSit" | "fallShout" | "landBounce" | "landSit" | "roam";
-type CharActivity = "walk" | "look" | "perchMove" | "perchHold";
+type CharActivity = "walk" | "walkToExamine" | "examine" | "look" | "perchMove" | "perchHold";
 
 function WalkingCharacter() {
   const [left, setLeft] = useState(0);
@@ -342,6 +342,7 @@ function WalkingCharacter() {
   const [sprite, setSprite] = useState<{ src: string; ratio: number }>({ src: poseSitFront, ratio: CHAR_SIT_RATIO });
   const [shake, setShake] = useState(0);
   const [fallToken, setFallToken] = useState(0);
+  const [tumbling, setTumbling] = useState(false);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -378,22 +379,55 @@ function WalkingCharacter() {
       const els = Array.from(document.querySelectorAll(CHAR_PERCH_SELECTOR)) as HTMLElement[];
       const vis = els.filter(el => {
         const r = el.getBoundingClientRect();
-        return r.top > 90 && r.bottom < window.innerHeight - 60 && r.width > 26 && r.width < 520 && r.height < 220;
+        const isHeading = el.tagName === "H1" || el.tagName === "H2";
+        const maxW = isHeading ? window.innerWidth - 48 : 520;
+        return r.top > 90 && r.bottom < window.innerHeight - 60 && r.width > 26 && r.width < maxW && r.height < 260;
       });
       return vis.length ? vis[(Math.random() * vis.length) | 0] : null;
     }
 
+    // for wide headings, land somewhere along the phrase rather than dead
+    // center — reads as climbing onto "some word" rather than the middle
+    function perchLandingX(el: HTMLElement, r: DOMRect): number {
+      const isHeading = el.tagName === "H1" || el.tagName === "H2";
+      if (!isHeading) return r.left + r.width / 2;
+      const margin = Math.min(r.width * 0.15, 60);
+      return r.left + margin + Math.random() * Math.max(1, r.width - margin * 2);
+    }
+
+    function pickExamineTarget(): HTMLElement | null {
+      const el = document.getElementById("whoami-box");
+      if (!el) return null;
+      const r = el.getBoundingClientRect();
+      if (r.width < 20 || r.top < 90 || r.bottom > window.innerHeight - 60) return null;
+      return el;
+    }
+
     function decideNext(t: number) {
       const roll = Math.random();
-      if (roll < 0.26) {
+      if (roll < 0.2) {
         activityRef.v = "look";
         untilRef.v = t + 1700 + Math.random() * 1800;
-      } else if (roll < 0.7) {
+      } else if (roll < 0.34) {
+        const el = pickExamineTarget();
+        if (el) {
+          const r = el.getBoundingClientRect();
+          const side = leftRef.v < r.left + r.width / 2 ? -1 : 1;
+          perchElRef.v = el;
+          targetXRef.v = Math.min(window.innerWidth - 24, Math.max(24, r.left + (side === 1 ? r.width + 30 : -30)));
+          activityRef.v = "walkToExamine";
+        } else {
+          const [lo, hi] = floorLeftBounds();
+          targetXRef.v = lo + Math.random() * (hi - lo);
+          activityRef.v = "walk";
+          untilRef.v = t + 3000 + Math.random() * 3000;
+        }
+      } else if (roll < 0.72) {
         const el = pickPerchTarget();
         if (el) {
           perchElRef.v = el;
           const r = el.getBoundingClientRect();
-          targetXRef.v = Math.min(window.innerWidth - 24, Math.max(24, r.left + r.width / 2));
+          targetXRef.v = Math.min(window.innerWidth - 24, Math.max(24, perchLandingX(el, r)));
           activityRef.v = "perchMove";
         } else {
           const [lo, hi] = floorLeftBounds();
@@ -442,10 +476,15 @@ function WalkingCharacter() {
       setMirror(fallTarget().tx < leftRef.v);
       setSprite({ src: poseShout, ratio: CHAR_SHOUT_RATIO });
       setOnFloor(false);
+      transitionTimer = window.setTimeout(() => {
+        setSprite({ src: poseBack, ratio: CHAR_STAND_RATIO[4] });
+        setTumbling(true);
+      }, 260);
     }
 
     function proceedToLand(onFloorNext: boolean) {
       phaseRef.v = "landBounce";
+      setTumbling(false);
       setSprite({ src: poseFront, ratio: CHAR_STAND_RATIO[0] });
       setShake(s => s + 1);
       setOnFloor(onFloorNext);
@@ -473,6 +512,16 @@ function WalkingCharacter() {
     function tick(t: number) {
       raf = requestAnimationFrame(tick);
 
+      if (phaseRef.v === "introSit") {
+        const consoleBox = document.getElementById("console-box");
+        if (consoleBox) {
+          const r = consoleBox.getBoundingClientRect();
+          leftRef.v = r.left + r.width * 0.8;
+          topRef.v = r.top - sitSeatOffsetPx();
+          setLeft(leftRef.v); setTop(topRef.v);
+        }
+        return;
+      }
       if (phaseRef.v === "fallShout") {
         if (fallSettled) return;
         const { tx, ty, onFloorNext } = fallTarget();
@@ -492,7 +541,7 @@ function WalkingCharacter() {
       if (phaseRef.v !== "roam") return;
       const activity = activityRef.v;
 
-      if (activity === "walk" || activity === "perchMove") {
+      if (activity === "walk" || activity === "perchMove" || activity === "walkToExamine") {
         const dx = targetXRef.v - leftRef.v;
         if (Math.abs(dx) < 2) {
           if (activity === "perchMove") {
@@ -506,6 +555,15 @@ function WalkingCharacter() {
               activityRef.v = "perchHold";
               untilRef.v = t + 3000 + Math.random() * 2600;
             } else { decideNext(t); }
+          } else if (activity === "walkToExamine") {
+            const el = perchElRef.v;
+            if (el) {
+              const r = el.getBoundingClientRect();
+              const faceRight = leftRef.v < r.left + r.width / 2;
+              stepPoseToward(2, faceRight, t);
+              activityRef.v = "examine";
+              untilRef.v = t + 2600 + Math.random() * 2200;
+            } else { decideNext(t); }
           } else { decideNext(t); }
         } else {
           const dir = dx > 0 ? 1 : -1;
@@ -516,6 +574,14 @@ function WalkingCharacter() {
           }
           if (activity === "walk" && t > untilRef.v) decideNext(t);
         }
+      } else if (activity === "examine") {
+        const el = perchElRef.v;
+        if (el) {
+          const r = el.getBoundingClientRect();
+          const faceRight = leftRef.v < r.left + r.width / 2;
+          stepPoseToward(2, faceRight, t);
+        }
+        if (t > untilRef.v) decideNext(t);
       } else if (activity === "look") {
         stepPoseToward(0, mirrorRef.v, t);
         if (t > untilRef.v) decideNext(t);
@@ -556,9 +622,11 @@ function WalkingCharacter() {
     <div style={{ position: "fixed", left, ...posStyle, transform: `translateX(-50%) scaleX(${mirror ? -1 : 1})`, zIndex: 60, pointerEvents: "none" }}>
       <div key={shake} style={{ animation: "charShake .42s ease-in-out" }}>
         <div key={fallToken} style={{ animation: "charFall .75s cubic-bezier(.34,1.4,.4,1) both" }}>
-          <div style={{ animation: "charBob .6s ease-in-out infinite" }}>
-            <div style={{ width: "clamp(80px,17vw,105px)", height: "clamp(64px,13.5vw,84px)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
-              <img src={sprite.src} style={{ display: "block", maxWidth: "100%", maxHeight: "100%", width: "auto", height: "auto", filter: "drop-shadow(0 6px 6px rgba(0,0,0,.5))" }} />
+          <div style={{ animation: tumbling ? "none" : "charBob .6s ease-in-out infinite" }}>
+            <div style={{ animation: tumbling ? "charTumble .55s linear infinite" : "none" }}>
+              <div style={{ width: "clamp(80px,17vw,105px)", height: "clamp(64px,13.5vw,84px)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
+                <img src={sprite.src} style={{ display: "block", maxWidth: "100%", maxHeight: "100%", width: "auto", height: "auto", filter: "drop-shadow(0 6px 6px rgba(0,0,0,.5))" }} />
+              </div>
             </div>
           </div>
         </div>
@@ -567,5 +635,5 @@ function WalkingCharacter() {
   );
 }
 
-const KEYFRAMES=`@keyframes slideBar{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}} @keyframes marqAnim{from{transform:translateX(0)}to{transform:translateX(-50%)}} @keyframes neonPulse{0%,100%{text-shadow:0 0 10px rgba(0,255,65,.4),0 0 28px rgba(0,255,65,.18)}50%{text-shadow:0 0 20px rgba(0,255,65,.85),0 0 52px rgba(0,255,65,.4)}} @keyframes hudBlink{0%,93%,100%{opacity:1}94%,96%{opacity:0}95%,97%{opacity:1}98%,99%{opacity:.3}} @keyframes borderGlow{0%,100%{border-color:rgba(0,255,65,.2)}50%{border-color:rgba(0,255,65,.5)}} @keyframes rowGlowDone{0%,100%{background:rgba(0,255,65,.02)}50%{background:rgba(0,255,65,.07)}} @keyframes rowGlowActive{0%,100%{background:rgba(0,255,65,.04)}50%{background:rgba(0,255,65,.14)}} @keyframes rowGlowRunning{0%,100%{background:rgba(0,255,65,.03)}50%{background:rgba(0,255,65,.10)}} @keyframes rowGlowQueued{0%,100%{background:rgba(0,255,65,.015)}50%{background:rgba(0,255,65,.05)}} @keyframes charFall{0%{transform:translateY(-160px);opacity:0}55%{transform:translateY(14px);opacity:1}75%{transform:translateY(-8px)}100%{transform:translateY(0)}} @keyframes charBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}} @keyframes charShake{0%,100%{transform:rotate(0deg)}20%{transform:rotate(-7deg)}40%{transform:rotate(6deg)}60%{transform:rotate(-4deg)}80%{transform:rotate(3deg)}} @media (hover:hover) and (pointer:fine){.link-nav:hover{color:#00ff41}.btn-next:hover{background:rgba(0,255,65,.12)}.card-service:hover{background:#0a1a0a}.pill-stack:hover{color:#00ff41;border-color:rgba(0,255,65,.6)}.row-ai:hover{padding-left:22px}} @media (min-width:1024px){.hero-grid{grid-template-columns:3fr 2fr!important}.hero-whoami{display:block!important}} @media (max-width:900px){.stack-grid{grid-template-columns:1fr!important}} @media (max-width:640px){.nav-links{display:none!important}.nav-toggle{display:inline-flex!important}.contact-grid{grid-template-columns:1fr!important}.services-grid{grid-template-columns:1fr!important}.stream-readout{display:none!important}.ai-table-head{display:none!important}.ai-table-row{grid-template-columns:28px 1fr!important}.ai-table-row>*:nth-child(3){grid-column:1/-1!important;margin-top:8px}.ai-table-row>*:nth-child(4){grid-column:1/-1!important;margin-top:4px}}`;
+const KEYFRAMES=`@keyframes slideBar{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}} @keyframes marqAnim{from{transform:translateX(0)}to{transform:translateX(-50%)}} @keyframes neonPulse{0%,100%{text-shadow:0 0 10px rgba(0,255,65,.4),0 0 28px rgba(0,255,65,.18)}50%{text-shadow:0 0 20px rgba(0,255,65,.85),0 0 52px rgba(0,255,65,.4)}} @keyframes hudBlink{0%,93%,100%{opacity:1}94%,96%{opacity:0}95%,97%{opacity:1}98%,99%{opacity:.3}} @keyframes borderGlow{0%,100%{border-color:rgba(0,255,65,.2)}50%{border-color:rgba(0,255,65,.5)}} @keyframes rowGlowDone{0%,100%{background:rgba(0,255,65,.02)}50%{background:rgba(0,255,65,.07)}} @keyframes rowGlowActive{0%,100%{background:rgba(0,255,65,.04)}50%{background:rgba(0,255,65,.14)}} @keyframes rowGlowRunning{0%,100%{background:rgba(0,255,65,.03)}50%{background:rgba(0,255,65,.10)}} @keyframes rowGlowQueued{0%,100%{background:rgba(0,255,65,.015)}50%{background:rgba(0,255,65,.05)}} @keyframes charFall{0%{transform:translateY(-160px);opacity:0}55%{transform:translateY(14px);opacity:1}75%{transform:translateY(-8px)}100%{transform:translateY(0)}} @keyframes charBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}} @keyframes charShake{0%,100%{transform:rotate(0deg)}20%{transform:rotate(-7deg)}40%{transform:rotate(6deg)}60%{transform:rotate(-4deg)}80%{transform:rotate(3deg)}} @keyframes charTumble{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}} @media (hover:hover) and (pointer:fine){.link-nav:hover{color:#00ff41}.btn-next:hover{background:rgba(0,255,65,.12)}.card-service:hover{background:#0a1a0a}.pill-stack:hover{color:#00ff41;border-color:rgba(0,255,65,.6)}.row-ai:hover{padding-left:22px}} @media (min-width:1024px){.hero-grid{grid-template-columns:3fr 2fr!important}.hero-whoami{display:block!important}} @media (max-width:900px){.stack-grid{grid-template-columns:1fr!important}} @media (max-width:640px){.nav-links{display:none!important}.nav-toggle{display:inline-flex!important}.contact-grid{grid-template-columns:1fr!important}.services-grid{grid-template-columns:1fr!important}.stream-readout{display:none!important}.ai-table-head{display:none!important}.ai-table-row{grid-template-columns:28px 1fr!important}.ai-table-row>*:nth-child(3){grid-column:1/-1!important;margin-top:8px}.ai-table-row>*:nth-child(4){grid-column:1/-1!important;margin-top:4px}}`;
 export default function App(){return <div style={{background:"#000",color:"#00ff41",minHeight:"100vh"}}><style>{KEYFRAMES}</style><Nav/><main id="top"><LiveConsole/><Hero/><DecodeStreamDivider/><Mission/><AIConsierge/><Services/><Stack/><Price/><Process/><Contact/><Footer/></main><WalkingCharacter/></div>;}
