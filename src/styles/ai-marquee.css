@@ -1,0 +1,10 @@
+/* GPT · Claude · DeepSeek — terminal-style AI logo marquee */
+.ai-logo-stream svg { display: none !important; }
+.ai-logo-stream > div > div > div { position: relative; }
+.ai-logo-stream > div > div > div:nth-child(6n+1)::after,
+.ai-logo-stream > div > div > div:nth-child(6n+4)::after { content: "GPT"; font-family: 'JetBrains Mono', monospace; font-size: 8px; font-weight: 800; letter-spacing: -.06em; color: #00ff41; text-shadow: 0 0 7px rgba(0,255,65,.85); }
+.ai-logo-stream > div > div > div:nth-child(6n+2)::after,
+.ai-logo-stream > div > div > div:nth-child(6n+5)::after { content: "✦"; font-family: Arial, sans-serif; font-size: 18px; line-height: 1; color: #00ff41; text-shadow: 0 0 8px rgba(0,255,65,.9); }
+.ai-logo-stream > div > div > div:nth-child(6n+3)::after,
+.ai-logo-stream > div > div > div:nth-child(6n+6)::after { content: "DS"; font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 900; letter-spacing: -.08em; color: #00ff41; text-shadow: 0 0 7px rgba(0,255,65,.85); }
+@media (max-width: 640px) { .ai-logo-stream > div > div > div { width: 30px !important; height: 30px !important; } }
