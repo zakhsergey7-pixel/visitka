@@ -323,10 +323,13 @@ function Footer(){return <footer style={{background:"#050f05",borderTop:"1px sol
 const CHAR_SECTION_IDS = ["hero", "ai", "services", "stack", "price", "process", "contact"];
 const CHAR_STAND = [poseFront, poseFrontSide, poseSide, poseBackSide, poseBack];
 const CHAR_STAND_RATIO = [211 / 500, 201 / 500, 119 / 500, 201 / 500, 215 / 500];
-const CHAR_SIT_RATIO = 217 / 354;
+const CHAR_SIT_RATIO = 206 / 343;
+const CHAR_SIT_HIP_FRACTION = 0.58;
 const CHAR_SHOUT_RATIO = 288 / 237;
 const CHAR_PERCH_SELECTOR = "h1, h2, .pill-stack, .card-service, .card-price-base, .card-price-full";
 const CHAR_HEIGHT_PX = 84;
+function charBoxHeightPx() { return Math.min(84, Math.max(64, window.innerWidth * 0.135)); }
+function sitSeatOffsetPx() { return charBoxHeightPx() * CHAR_SIT_HIP_FRACTION; }
 
 type CharPhase = "introSit" | "fallShout" | "landBounce" | "landSit" | "roam";
 type CharActivity = "walk" | "look" | "perchMove" | "perchHold";
@@ -346,7 +349,7 @@ function WalkingCharacter() {
     if (!consoleBox) { setReady(true); return; }
     const r = consoleBox.getBoundingClientRect();
     setLeft(r.left + r.width * 0.8);
-    setTop(r.top - 8);
+    setTop(r.top - sitSeatOffsetPx());
     setOnFloor(false);
     setSprite({ src: poseSitFront, ratio: CHAR_SIT_RATIO });
     setMirror(false);
@@ -427,7 +430,7 @@ function WalkingCharacter() {
       const whoami = document.getElementById("whoami-box");
       const wr = whoami ? whoami.getBoundingClientRect() : null;
       if (wr && wr.width > 20 && wr.top > -200 && wr.top < window.innerHeight + 400) {
-        return { tx: wr.left + wr.width / 2, ty: wr.top - 6, onFloorNext: false };
+        return { tx: wr.left + wr.width / 2, ty: wr.top - sitSeatOffsetPx(), onFloorNext: false };
       }
       return { tx: window.innerWidth / 2, ty: floorTopPx(), onFloorNext: true };
     }
@@ -496,7 +499,7 @@ function WalkingCharacter() {
             const el = perchElRef.v;
             if (el) {
               const r = el.getBoundingClientRect();
-              topRef.v = r.top - CHAR_HEIGHT_PX + 16;
+              topRef.v = r.top - sitSeatOffsetPx();
               setTop(topRef.v); setOnFloor(false);
               setSprite({ src: poseSitFront, ratio: CHAR_SIT_RATIO });
               setFallToken(v => v + 1);
@@ -523,7 +526,7 @@ function WalkingCharacter() {
           if (r.top < 60 || r.top > window.innerHeight - 40 || r.width < 10) {
             setTop(null); setOnFloor(true); perchElRef.v = null; setFallToken(v => v + 1); decideNext(t);
           } else {
-            topRef.v = r.top - CHAR_HEIGHT_PX + 16;
+            topRef.v = r.top - sitSeatOffsetPx();
             setTop(topRef.v);
             if (t > untilRef.v) { setTop(null); setOnFloor(true); perchElRef.v = null; setFallToken(v => v + 1); decideNext(t); }
           }
