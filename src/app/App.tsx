@@ -433,7 +433,7 @@ function TerminalContactForm() {
   const inputRef = useRef<HTMLInputElement>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
   const field = CONTACT_FIELDS[step];
-  useEffect(() => { (field?.multiline ? taRef.current : inputRef.current)?.focus(); }, [step, field]);
+  useEffect(() => { if (step > 0) (field?.multiline ? taRef.current : inputRef.current)?.focus(); }, [step, field]);
   function commit() {
     if (!field) return;
     if (!current.trim() && field.key !== "task") return;
