@@ -15,6 +15,7 @@ import poseTumble2 from "../assets/pose-tumble-2.png";
 import poseTumble3 from "../assets/pose-tumble-3.png";
 import poseDazed from "../assets/pose-dazed.png";
 import poseClimb from "../assets/pose-climb.png";
+import portfolioLanding from "../assets/portfolio-landing.jpg";
 import poseIdleThink from "../assets/pose-idle-think.png";
 import poseIdleCheer from "../assets/pose-idle-cheer.png";
 import poseCrouch from "../assets/pose-crouch.png";
@@ -324,10 +325,39 @@ function Services() {
 
 const PORTFOLIO_ITEMS = [
   { id: "01", tag: "визитка", name: "Сайт-визитка", hue: 205 },
-  { id: "02", tag: "лендинг", name: "Лендинг", hue: 24 },
+  { id: "02", tag: "лендинг", name: "Лендинг", hue: 24, photo: portfolioLanding },
   { id: "03", tag: "каталог", name: "Каталог", hue: 275 },
   { id: "04", tag: "редизайн", name: "Редизайн", hue: 150 },
 ];
+function Portfolio3DPhoto({ src }: { src: string }) {
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  function onMouseMove(e: React.MouseEvent) {
+    const r = e.currentTarget.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width - 0.5;
+    const py = (e.clientY - r.top) / r.height - 0.5;
+    setTilt({ x: py * -16, y: px * 16 });
+  }
+  function onMouseLeave() { setTilt({ x: 0, y: 0 }); }
+  return (
+    <div style={{ position: "relative", aspectRatio: "16/10", overflow: "hidden", background: "#000" }}>
+      <div style={{ position: "absolute", inset: 0, perspective: 900 }} onMouseMove={onMouseMove} onMouseLeave={onMouseLeave}>
+        <div style={{ position: "absolute", inset: 0, transformStyle: "preserve-3d", animation: "portfolioFloat 8s ease-in-out infinite" }}>
+          <div style={{ position: "absolute", inset: 0, transformStyle: "preserve-3d", transform: `rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`, transition: "transform .35s cubic-bezier(.16,1,.3,1)" }}>
+            <img src={src} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", transform: "scale(1.2)", filter: "contrast(1.15) brightness(.85) saturate(1.3)" }} />
+            <div style={{ position: "absolute", inset: 0, boxShadow: "inset 0 0 70px rgba(0,0,0,.7)", pointerEvents: "none" }} />
+            <div style={{ position: "absolute", inset: 0, background: "repeating-linear-gradient(0deg,rgba(0,0,0,.4) 0,rgba(0,0,0,.4) 1px,transparent 1px,transparent 3px)", mixBlendMode: "overlay", pointerEvents: "none" }} />
+            <div style={{ position: "absolute", inset: 0, background: "rgba(0,255,65,.08)", mixBlendMode: "color-dodge", pointerEvents: "none" }} />
+            <div style={{ position: "absolute", inset: 0, border: "1px solid rgba(0,255,65,.4)", boxShadow: "0 0 30px rgba(0,255,65,.2), inset 0 0 30px rgba(0,255,65,.08)", pointerEvents: "none" }} />
+          </div>
+        </div>
+      </div>
+      <div style={{ position: "absolute", top: 10, left: 10, display: "flex", gap: 6, zIndex: 2, pointerEvents: "none" }}>
+        {["#ff5f57", "#ffbd2e", "#28c840"].map(c => <span key={c} style={{ width: 6, height: 6, borderRadius: "50%", background: c, opacity: .8 }} />)}
+      </div>
+      <div style={{ position: "absolute", top: 10, right: 12, zIndex: 2, pointerEvents: "none", fontFamily: "'JetBrains Mono',monospace", fontSize: 9, letterSpacing: ".1em", color: "rgba(0,255,65,.7)", textShadow: "0 0 6px rgba(0,255,65,.6)" }}>3D · LIVE</div>
+    </div>
+  );
+}
 function PortfolioShot({ hue }: { hue: number }) {
   return (
     <div className="portfolio-shot" style={{ position: "relative", aspectRatio: "16/10", overflow: "hidden", filter: "saturate(.2) hue-rotate(90deg)", transition: "filter .5s ease" }}>
@@ -359,7 +389,7 @@ function Portfolio() {
           <div className="portfolio-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, background: "rgba(0,255,65,.14)", border: "1px solid rgba(0,255,65,.14)" }}>
             {PORTFOLIO_ITEMS.map(p => (
               <div key={p.id} style={{ background: "#000" }}>
-                <PortfolioShot hue={p.hue} />
+                {"photo" in p && p.photo ? <Portfolio3DPhoto src={p.photo} /> : <PortfolioShot hue={p.hue} />}
                 <div style={{ padding: "clamp(16px,2.6vw,22px)" }}>
                   <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, color: "#008f11", letterSpacing: ".14em" }}>{p.id} · {p.tag}</span>
                   <h3 style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: "clamp(16px,2vw,22px)", color: "#00ff41", marginTop: 8 }}>{p.name}</h3>
@@ -1077,5 +1107,5 @@ function ScrollProgress() {
   );
 }
 
-const KEYFRAMES=`@keyframes slideBar{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}} @keyframes marqAnim{from{transform:translateX(0)}to{transform:translateX(-50%)}} @keyframes neonPulse{0%,100%{text-shadow:0 0 10px rgba(0,255,65,.4),0 0 28px rgba(0,255,65,.18)}50%{text-shadow:0 0 20px rgba(0,255,65,.85),0 0 52px rgba(0,255,65,.4)}} @keyframes hudBlink{0%,93%,100%{opacity:1}94%,96%{opacity:0}95%,97%{opacity:1}98%,99%{opacity:.3}} @keyframes borderGlow{0%,100%{border-color:rgba(0,255,65,.2)}50%{border-color:rgba(0,255,65,.5)}} @keyframes rowGlowDone{0%,100%{background:rgba(0,255,65,.02)}50%{background:rgba(0,255,65,.07)}} @keyframes rowGlowActive{0%,100%{background:rgba(0,255,65,.04)}50%{background:rgba(0,255,65,.14)}} @keyframes rowGlowRunning{0%,100%{background:rgba(0,255,65,.03)}50%{background:rgba(0,255,65,.10)}} @keyframes rowGlowQueued{0%,100%{background:rgba(0,255,65,.015)}50%{background:rgba(0,255,65,.05)}} @keyframes charFall{0%{transform:translateY(-160px);opacity:0}55%{transform:translateY(14px);opacity:1}75%{transform:translateY(-8px)}100%{transform:translateY(0)}} @keyframes charBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}} @keyframes charShake{0%,100%{transform:rotate(0deg)}20%{transform:rotate(-7deg)}40%{transform:rotate(6deg)}60%{transform:rotate(-4deg)}80%{transform:rotate(3deg)}} @keyframes charFlail{0%,100%{transform:rotate(-9deg)}50%{transform:rotate(9deg)}} @keyframes bubblePop{0%{opacity:0;transform:scale(.7) translateY(4px)}100%{opacity:1;transform:scale(1) translateY(0)}} @keyframes bubbleFade{0%{opacity:1}100%{opacity:0}} @keyframes matrixHighlight{0%{text-shadow:0 0 2px rgba(0,255,65,.25)}30%{text-shadow:0 0 16px rgba(0,255,65,1),0 0 34px rgba(0,255,65,.65)}100%{text-shadow:0 0 6px rgba(0,255,65,.35)}} @keyframes rippleOut{0%{transform:translate(-50%,-50%) scale(.5);opacity:1}100%{transform:translate(calc(-50% + var(--tx)),calc(-50% + var(--ty))) scale(1);opacity:0}} @keyframes termCursorBlink{0%,49%{opacity:1}50%,100%{opacity:0}} @media (hover:hover) and (pointer:fine){.link-nav:hover{color:#00ff41}.btn-next:hover{background:rgba(0,255,65,.12)}.card-service:hover{background:#0a1a0a}.pill-stack:hover{color:#00ff41;border-color:rgba(0,255,65,.6)}.row-ai:hover{padding-left:22px}.portfolio-shot:hover{filter:none}} @media (min-width:1024px){.hero-grid{grid-template-columns:3fr 2fr!important}} @media (max-width:900px){.stack-grid{grid-template-columns:1fr!important}.process-grid{grid-template-columns:1fr 1fr!important}} @media (max-width:640px){.nav-links{display:none!important}.nav-toggle{display:inline-flex!important}.contact-grid{grid-template-columns:1fr!important}.services-grid{grid-template-columns:1fr!important}.portfolio-grid{grid-template-columns:1fr!important}.process-grid{grid-template-columns:1fr!important}.price-grid{grid-template-columns:1fr!important}.stream-readout{display:none!important}.ai-table-head{display:none!important}.ai-table-row{grid-template-columns:28px 1fr!important}.ai-table-row>*:nth-child(3){grid-column:1/-1!important;margin-top:8px}.ai-table-row>*:nth-child(4){grid-column:1/-1!important;margin-top:4px}}`;
+const KEYFRAMES=`@keyframes slideBar{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}} @keyframes marqAnim{from{transform:translateX(0)}to{transform:translateX(-50%)}} @keyframes neonPulse{0%,100%{text-shadow:0 0 10px rgba(0,255,65,.4),0 0 28px rgba(0,255,65,.18)}50%{text-shadow:0 0 20px rgba(0,255,65,.85),0 0 52px rgba(0,255,65,.4)}} @keyframes hudBlink{0%,93%,100%{opacity:1}94%,96%{opacity:0}95%,97%{opacity:1}98%,99%{opacity:.3}} @keyframes borderGlow{0%,100%{border-color:rgba(0,255,65,.2)}50%{border-color:rgba(0,255,65,.5)}} @keyframes rowGlowDone{0%,100%{background:rgba(0,255,65,.02)}50%{background:rgba(0,255,65,.07)}} @keyframes rowGlowActive{0%,100%{background:rgba(0,255,65,.04)}50%{background:rgba(0,255,65,.14)}} @keyframes rowGlowRunning{0%,100%{background:rgba(0,255,65,.03)}50%{background:rgba(0,255,65,.10)}} @keyframes rowGlowQueued{0%,100%{background:rgba(0,255,65,.015)}50%{background:rgba(0,255,65,.05)}} @keyframes charFall{0%{transform:translateY(-160px);opacity:0}55%{transform:translateY(14px);opacity:1}75%{transform:translateY(-8px)}100%{transform:translateY(0)}} @keyframes charBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}} @keyframes charShake{0%,100%{transform:rotate(0deg)}20%{transform:rotate(-7deg)}40%{transform:rotate(6deg)}60%{transform:rotate(-4deg)}80%{transform:rotate(3deg)}} @keyframes charFlail{0%,100%{transform:rotate(-9deg)}50%{transform:rotate(9deg)}} @keyframes bubblePop{0%{opacity:0;transform:scale(.7) translateY(4px)}100%{opacity:1;transform:scale(1) translateY(0)}} @keyframes bubbleFade{0%{opacity:1}100%{opacity:0}} @keyframes matrixHighlight{0%{text-shadow:0 0 2px rgba(0,255,65,.25)}30%{text-shadow:0 0 16px rgba(0,255,65,1),0 0 34px rgba(0,255,65,.65)}100%{text-shadow:0 0 6px rgba(0,255,65,.35)}} @keyframes rippleOut{0%{transform:translate(-50%,-50%) scale(.5);opacity:1}100%{transform:translate(calc(-50% + var(--tx)),calc(-50% + var(--ty))) scale(1);opacity:0}} @keyframes termCursorBlink{0%,49%{opacity:1}50%,100%{opacity:0}} @keyframes portfolioFloat{0%,100%{transform:rotateX(3deg) rotateY(-4deg) translateZ(0px)}50%{transform:rotateX(-3deg) rotateY(4deg) translateZ(14px)}} @media (hover:hover) and (pointer:fine){.link-nav:hover{color:#00ff41}.btn-next:hover{background:rgba(0,255,65,.12)}.card-service:hover{background:#0a1a0a}.pill-stack:hover{color:#00ff41;border-color:rgba(0,255,65,.6)}.row-ai:hover{padding-left:22px}.portfolio-shot:hover{filter:none}} @media (min-width:1024px){.hero-grid{grid-template-columns:3fr 2fr!important}} @media (max-width:900px){.stack-grid{grid-template-columns:1fr!important}.process-grid{grid-template-columns:1fr 1fr!important}} @media (max-width:640px){.nav-links{display:none!important}.nav-toggle{display:inline-flex!important}.contact-grid{grid-template-columns:1fr!important}.services-grid{grid-template-columns:1fr!important}.portfolio-grid{grid-template-columns:1fr!important}.process-grid{grid-template-columns:1fr!important}.price-grid{grid-template-columns:1fr!important}.stream-readout{display:none!important}.ai-table-head{display:none!important}.ai-table-row{grid-template-columns:28px 1fr!important}.ai-table-row>*:nth-child(3){grid-column:1/-1!important;margin-top:8px}.ai-table-row>*:nth-child(4){grid-column:1/-1!important;margin-top:4px}}`;
 export default function App(){return <div style={{background:"#000",color:"#00ff41",minHeight:"100vh"}}><style>{KEYFRAMES}</style><ScrollProgress/><ClickRipple/><Nav/><main id="top"><LiveConsole/><Hero/><DecodeStreamDivider/><Mission/><AIConsierge/><Services/><Portfolio/><Stack/><Price/><Process/><Contact/><Footer/></main><WalkingCharacter/></div>;}
