@@ -59,7 +59,7 @@ function useDecrypt(text: string, active: boolean, speed = 36) { const glyphs = 
 function Glitch({ children }: { children: string }) { const [glitching, setGlitching] = useState(false); const g = "01ｱｲｳｴｵ<>[]{}|\\"; useEffect(() => { const id = setInterval(() => { setGlitching(true); setTimeout(() => setGlitching(false), 110); }, 3400 + Math.random() * 5000); return () => clearInterval(id); }, []); if (!glitching) return <span>{children}</span>; return <span style={{ color: "#ff0040", textShadow: "-2px 0 #ff0040, 2px 0 #00ffff" }}>{children.split("").map(c => Math.random() > 0.55 ? g[(Math.random() * g.length) | 0] : c).join("")}</span>; }
 function Reveal({ children, className, delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) { const ref = useRef<HTMLDivElement>(null); const [v, setV] = useState(false); useEffect(() => { const el = ref.current; if (!el) return; const ob = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setV(true); ob.disconnect(); } }, { threshold: 0.08 }); ob.observe(el); return () => ob.disconnect(); }, []); return <div ref={ref} className={className} style={{ opacity: v ? 1 : 0, transform: v ? "none" : "translateY(28px)", filter: v ? "blur(0px)" : "blur(7px)", transition: `opacity 1.15s cubic-bezier(.16,1,.3,1) ${delay}ms, transform 1.15s cubic-bezier(.16,1,.3,1) ${delay}ms, filter 1.15s cubic-bezier(.16,1,.3,1) ${delay}ms` }}>{children}</div>; }
 function SignalBars() { const [level, setLevel] = useState(4); useEffect(() => { const id = setInterval(() => setLevel(Math.random() > 0.15 ? 4 : 3), 2800 + Math.random() * 2000); return () => clearInterval(id); }, []); return <span style={{ display: "inline-flex", alignItems: "flex-end", gap: 2, marginLeft: 10 }}>{[1,2,3,4].map(b => <span key={b} style={{ width: 3, height: b * 3 + 1, background: b <= level ? "#00ff41" : "#003b00", display: "block", transition: "background .5s", boxShadow: b <= level ? "0 0 4px #00ff41" : "none" }} />)}</span>; }
-const NAV_LINKS: [string,string][] = [["#services","Услуги"],["#portfolio","Работы"],["#ai","Консьерж"],["#stack","Инструменты"],["#price","Стоимость"],["#contact","Связаться"]];
+const NAV_LINKS: [string,string][] = [["#services","Услуги"],["#ai","Консьерж"],["#stack","Инструменты"],["#price","Стоимость"],["#contact","Связаться"]];
 function Nav() { const [scrolled,setScrolled]=useState(false); const [open,setOpen]=useState(false); useEffect(()=>{const h=()=>setScrolled(window.scrollY>60);window.addEventListener("scroll",h,{passive:true});return()=>window.removeEventListener("scroll",h)},[]); const mono:React.CSSProperties={fontFamily:"'JetBrains Mono',monospace",fontSize:11,letterSpacing:".14em",textTransform:"uppercase"}; return <header style={{position:"fixed",top:0,left:0,right:0,zIndex:80,borderBottom:scrolled||open?"1px solid rgba(0,255,65,.14)":"1px solid transparent",background:scrolled||open?"rgba(0,0,0,.93)":"transparent",backdropFilter:scrolled||open?"blur(12px)":"none",transition:"background .4s,border-color .4s"}}><div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"15px clamp(20px,5vw,90px)"}}><SignalBars/><nav className="nav-links" style={{display:"flex",gap:"clamp(14px,2.8vw,28px)",...mono}}>{NAV_LINKS.map(([href,label])=><a key={href} href={href} className="link-nav" style={{color:"#008f11",textDecoration:"none",transition:"color .2s"}}>{label}</a>)}</nav><button className="nav-toggle" onClick={()=>setOpen(o=>!o)} style={{...mono,display:"none",background:"transparent",border:"1px solid rgba(0,255,65,.35)",color:"#00ff41",padding:"6px 10px",cursor:"pointer"}}>[ {open?"×":"MENU"} ]</button></div>{open&&<nav className="nav-mobile-panel" style={{display:"flex",flexDirection:"column",padding:"4px clamp(20px,5vw,90px) 18px"}}>{NAV_LINKS.map(([href,label])=><a key={href} href={href} onClick={()=>setOpen(false)} style={{...mono,color:"#00ff41",textDecoration:"none",padding:"13px 0",borderTop:"1px solid rgba(0,255,65,.1)"}}>{label}</a>)}</nav>}</header>; }
 const DEAD_PIXELS=[{top:"28%",left:"9%"},{top:"71%",left:"82%"},{top:"44%",left:"58%"},{top:"17%",left:"73%"},{top:"88%",left:"22%"}];
 const STATUS_PHRASES=["Сайты, которые работают.","Без шаблонов.","Без посредников.","На связи в любое время."];
@@ -290,67 +290,38 @@ function AIConsierge() {
     </section>
   );
 }
-function Services() {
-  const services = [
-    { id: "A", name: "Сайт-визитка", desc: "Компактный сайт о вас и вашей услуге: кто вы, что делаете, сколько стоит, как связаться. Открывается быстро, читается с телефона." },
-    { id: "B", name: "Лендинг", desc: "Одна страница под одну задачу — заявки. Структура строится под ваше предложение и возражения клиентов, а не по универсальному шаблону." },
-    { id: "C", name: "Каталог и многостраничник", desc: "Товары или услуги с фильтрами, страницами разделов и админкой, в которой вы сами меняете тексты и цены без моей помощи." },
-    { id: "D", name: "Редизайн и доработка", desc: "Сайт есть, но выглядит на десять лет старше вашего бизнеса. Разбираю, чиню, обновляю — без переезда на новый домен." },
-  ];
-  return (
-    <section id="services" style={{ padding: "clamp(80px,12vh,140px) clamp(20px,5vw,90px)", position: "relative", overflow: "hidden" }}>
-      <SectionRain />
-      <div style={{ position: "relative", zIndex: 1 }}>
-        <Reveal>
-          <div style={{ borderTop: "1px solid rgba(0,255,65,.18)", paddingTop: 20, marginBottom: 40 }}>
-            <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, color: "#008f11" }}>01 / Что делаю</span>
-            <h2 style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: "clamp(22px,3.6vw,52px)", color: "#00ff41", marginTop: 18 }}>Один человек отвечает за весь результат.</h2>
-          </div>
-        </Reveal>
-        <Reveal delay={80}>
-          <div className="services-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, background: "rgba(0,255,65,.14)", border: "1px solid rgba(0,255,65,.14)" }}>
-            {services.map((svc) => (
-              <div key={svc.id} className="card-service" style={{ background: "#000", padding: "clamp(24px,4vw,44px)", transition: "background .3s" }}>
-                <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, color: "#008f11", letterSpacing: ".14em" }}>{svc.id}</span>
-                <h3 style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: "clamp(18px,2.2vw,26px)", color: "#00ff41", margin: "14px 0 10px" }}>{svc.name}</h3>
-                <p style={{ color: "#008f11", fontSize: 13, lineHeight: 1.65, fontFamily: "'JetBrains Mono',monospace" }}>{svc.desc}</p>
-              </div>
-            ))}
-          </div>
-        </Reveal>
-      </div>
-    </section>
-  );
-}
-
-const PORTFOLIO_ITEMS = [
-  { id: "01", tag: "визитка", name: "Сайт-визитка", hue: 205 },
-  { id: "02", tag: "лендинг", name: "Лендинг", hue: 24, photo: portfolioLanding },
-  { id: "03", tag: "каталог", name: "Каталог", hue: 275 },
-  { id: "04", tag: "редизайн", name: "Редизайн", hue: 150 },
+const CODE_TUNNEL_LINES = [
+  "float x = boost::lexical_cast<float>(item->Attribute(\"x\"));",
+  "GroupDesc::ElementDesc elDesc;",
+  "unsigned layer = 50; // default",
+  "if (item->Attribute(\"layer\") != NULL)",
+  "elDesc.spriteName_ = spritename;",
 ];
 function Portfolio3DPhoto({ src }: { src: string }) {
-  const [tilt, setTilt] = useState({ x: 0, y: 0 });
-  function onMouseMove(e: React.MouseEvent) {
-    const r = e.currentTarget.getBoundingClientRect();
-    const px = (e.clientX - r.left) / r.width - 0.5;
-    const py = (e.clientY - r.top) / r.height - 0.5;
-    setTilt({ x: py * -16, y: px * 16 });
-  }
-  function onMouseLeave() { setTilt({ x: 0, y: 0 }); }
+  const rows = [
+    { z: -70, size: 10, speed: 30, opacity: .35 },
+    { z: -25, size: 12, speed: 22, opacity: .55 },
+    { z: 20, size: 15, speed: 15, opacity: .8 },
+    { z: 65, size: 19, speed: 9, opacity: 1 },
+  ];
   return (
     <div style={{ position: "relative", aspectRatio: "16/10", overflow: "hidden", background: "#000" }}>
-      <div style={{ position: "absolute", inset: 0, perspective: 900 }} onMouseMove={onMouseMove} onMouseLeave={onMouseLeave}>
-        <div style={{ position: "absolute", inset: 0, transformStyle: "preserve-3d", animation: "portfolioFloat 8s ease-in-out infinite" }}>
-          <div style={{ position: "absolute", inset: 0, transformStyle: "preserve-3d", transform: `rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`, transition: "transform .35s cubic-bezier(.16,1,.3,1)" }}>
-            <img src={src} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", transform: "scale(1.2)", filter: "contrast(1.15) brightness(.85) saturate(1.3)" }} />
-            <div style={{ position: "absolute", inset: 0, boxShadow: "inset 0 0 70px rgba(0,0,0,.7)", pointerEvents: "none" }} />
-            <div style={{ position: "absolute", inset: 0, background: "repeating-linear-gradient(0deg,rgba(0,0,0,.4) 0,rgba(0,0,0,.4) 1px,transparent 1px,transparent 3px)", mixBlendMode: "overlay", pointerEvents: "none" }} />
-            <div style={{ position: "absolute", inset: 0, background: "rgba(0,255,65,.08)", mixBlendMode: "color-dodge", pointerEvents: "none" }} />
-            <div style={{ position: "absolute", inset: 0, border: "1px solid rgba(0,255,65,.4)", boxShadow: "0 0 30px rgba(0,255,65,.2), inset 0 0 30px rgba(0,255,65,.08)", pointerEvents: "none" }} />
+      <img src={src} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", filter: "contrast(1.1) brightness(.32) saturate(1.1)" }} />
+      <div style={{ position: "absolute", inset: 0, background: "repeating-linear-gradient(0deg,rgba(0,0,0,.4) 0,rgba(0,0,0,.4) 1px,transparent 1px,transparent 3px)", mixBlendMode: "overlay", pointerEvents: "none" }} />
+      <div style={{ position: "absolute", inset: 0, perspective: 420, display: "flex", flexDirection: "column", justifyContent: "center", gap: "8%", pointerEvents: "none" }}>
+        {rows.map((r, i) => (
+          <div key={i} style={{ overflow: "hidden", whiteSpace: "nowrap", transform: `rotateX(30deg) translateZ(${r.z}px)`, opacity: r.opacity }}>
+            <div style={{ display: "inline-flex", animation: `marqAnim ${r.speed}s linear infinite` }}>
+              {[0, 1].map(k => (
+                <span key={k} style={{ display: "inline-flex", gap: 36, paddingRight: 36, fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: r.size, color: "#00ff41", textShadow: "0 0 8px rgba(0,255,65,.7)" }}>
+                  {CODE_TUNNEL_LINES.map((l, li) => <span key={li}>{l}</span>)}
+                </span>
+              ))}
+            </div>
           </div>
-        </div>
+        ))}
       </div>
+      <div style={{ position: "absolute", inset: 0, border: "1px solid rgba(0,255,65,.4)", boxShadow: "0 0 30px rgba(0,255,65,.2), inset 0 0 30px rgba(0,255,65,.08)", pointerEvents: "none" }} />
       <div style={{ position: "absolute", top: 10, left: 10, display: "flex", gap: 6, zIndex: 2, pointerEvents: "none" }}>
         {["#ff5f57", "#ffbd2e", "#28c840"].map(c => <span key={c} style={{ width: 6, height: 6, borderRadius: "50%", background: c, opacity: .8 }} />)}
       </div>
@@ -374,25 +345,32 @@ function PortfolioShot({ hue }: { hue: number }) {
     </div>
   );
 }
-function Portfolio() {
+const SERVICE_ITEMS = [
+  { id: "A", name: "Сайт-визитка", desc: "Компактный сайт о вас и вашей услуге: кто вы, что делаете, сколько стоит, как связаться. Открывается быстро, читается с телефона.", hue: 205 },
+  { id: "B", name: "Лендинг", desc: "Одна страница под одну задачу — заявки. Структура строится под ваше предложение и возражения клиентов, а не по универсальному шаблону.", hue: 24, photo: portfolioLanding },
+  { id: "C", name: "Каталог и многостраничник", desc: "Товары или услуги с фильтрами, страницами разделов и админкой, в которой вы сами меняете тексты и цены без моей помощи.", hue: 275 },
+  { id: "D", name: "Редизайн и доработка", desc: "Сайт есть, но выглядит на десять лет старше вашего бизнеса. Разбираю, чиню, обновляю — без переезда на новый домен.", hue: 150 },
+];
+function Services() {
   return (
-    <section id="portfolio" style={{ padding: "clamp(80px,12vh,140px) clamp(20px,5vw,90px)", background: "#050f05", position: "relative", overflow: "hidden" }}>
+    <section id="services" style={{ padding: "clamp(80px,12vh,140px) clamp(20px,5vw,90px)", position: "relative", overflow: "hidden" }}>
       <SectionRain />
       <div style={{ position: "relative", zIndex: 1 }}>
         <Reveal>
           <div style={{ borderTop: "1px solid rgba(0,255,65,.18)", paddingTop: 20, marginBottom: 40 }}>
-            <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, color: "#008f11" }}>02 / Проекты</span>
-            <h2 style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: "clamp(22px,3.6vw,52px)", color: "#00ff41", marginTop: 18 }}>Формат разный — подход один.</h2>
+            <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, color: "#008f11" }}>01 / Что делаю</span>
+            <h2 style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: "clamp(22px,3.6vw,52px)", color: "#00ff41", marginTop: 18 }}>Один человек отвечает за весь результат.</h2>
           </div>
         </Reveal>
         <Reveal delay={80}>
-          <div className="portfolio-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, background: "rgba(0,255,65,.14)", border: "1px solid rgba(0,255,65,.14)" }}>
-            {PORTFOLIO_ITEMS.map(p => (
-              <div key={p.id} style={{ background: "#000" }}>
-                {"photo" in p && p.photo ? <Portfolio3DPhoto src={p.photo} /> : <PortfolioShot hue={p.hue} />}
-                <div style={{ padding: "clamp(16px,2.6vw,22px)" }}>
-                  <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, color: "#008f11", letterSpacing: ".14em" }}>{p.id} · {p.tag}</span>
-                  <h3 style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: "clamp(16px,2vw,22px)", color: "#00ff41", marginTop: 8 }}>{p.name}</h3>
+          <div className="services-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, background: "rgba(0,255,65,.14)", border: "1px solid rgba(0,255,65,.14)" }}>
+            {SERVICE_ITEMS.map((svc) => (
+              <div key={svc.id} className="card-service" style={{ background: "#000", transition: "background .3s" }}>
+                {svc.photo ? <Portfolio3DPhoto src={svc.photo} /> : <PortfolioShot hue={svc.hue} />}
+                <div style={{ padding: "clamp(24px,4vw,44px)" }}>
+                  <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, color: "#008f11", letterSpacing: ".14em" }}>{svc.id}</span>
+                  <h3 style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: "clamp(18px,2.2vw,26px)", color: "#00ff41", margin: "14px 0 10px" }}>{svc.name}</h3>
+                  <p style={{ color: "#008f11", fontSize: 13, lineHeight: 1.65, fontFamily: "'JetBrains Mono',monospace" }}>{svc.desc}</p>
                 </div>
               </div>
             ))}
@@ -415,7 +393,7 @@ function Stack() {
       <div style={{ position: "relative", zIndex: 1 }}>
         <Reveal>
           <div style={{ borderTop: "1px solid rgba(0,255,65,.18)", paddingTop: 20, marginBottom: 40 }}>
-            <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, color: "#008f11" }}>03 / Инструменты</span>
+            <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, color: "#008f11" }}>02 / Инструменты</span>
             <h2 style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, fontSize: "clamp(22px,3.6vw,52px)", color: "#00ff41", marginTop: 18 }}>Стек, на котором собираю сайты.</h2>
           </div>
         </Reveal>
@@ -442,14 +420,14 @@ function Stack() {
     </section>
   );
 }
-function Price(){return <section id="price" style={{padding:"clamp(80px,12vh,140px) clamp(20px,5vw,90px)",background:"#050f05",position:"relative",overflow:"hidden"}}><SectionRain/><div style={{position:"relative",zIndex:1}}><Reveal><div style={{borderTop:"1px solid rgba(0,255,65,.18)",paddingTop:20}}><span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:"#008f11"}}>04 / Стоимость</span><h2 style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:700,fontSize:"clamp(22px,3.6vw,52px)",color:"#00ff41",marginTop:18}}>Два формата. Цена фиксируется до старта.</h2></div><div className="price-grid" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:1,marginTop:50,background:"rgba(0,255,65,.12)"}}><div style={{background:"#050f05",padding:"clamp(22px,5vw,40px)",fontFamily:"'JetBrains Mono',monospace"}}><div style={{color:"#008f11",fontSize:11}}>ПАКЕТ «БАЗА»</div><strong style={{display:"block",fontSize:"clamp(30px,7vw,52px)",color:"#00ff41",margin:"clamp(14px,3vw,25px) 0",whiteSpace:"nowrap"}}>50 000 ₽</strong><p style={{color:"#008f11"}}>Сайт-визитка или лендинг.</p></div><div style={{background:"#003b00",padding:"clamp(22px,5vw,40px)",fontFamily:"'JetBrains Mono',monospace"}}><div style={{color:"#7dffaa",fontSize:11}}>ПАКЕТ «ПОЛНЫЙ»</div><strong style={{display:"block",fontSize:"clamp(30px,7vw,52px)",color:"#00ff41",margin:"clamp(14px,3vw,25px) 0",whiteSpace:"nowrap"}}>100 000 ₽</strong><p style={{color:"#c8ffe0"}}>Многостраничный сайт или каталог.</p></div></div></Reveal></div></section>;}
+function Price(){return <section id="price" style={{padding:"clamp(80px,12vh,140px) clamp(20px,5vw,90px)",background:"#050f05",position:"relative",overflow:"hidden"}}><SectionRain/><div style={{position:"relative",zIndex:1}}><Reveal><div style={{borderTop:"1px solid rgba(0,255,65,.18)",paddingTop:20}}><span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:"#008f11"}}>03 / Стоимость</span><h2 style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:700,fontSize:"clamp(22px,3.6vw,52px)",color:"#00ff41",marginTop:18}}>Два формата. Цена фиксируется до старта.</h2></div><div className="price-grid" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:1,marginTop:50,background:"rgba(0,255,65,.12)"}}><div style={{background:"#050f05",padding:"clamp(22px,5vw,40px)",fontFamily:"'JetBrains Mono',monospace"}}><div style={{color:"#008f11",fontSize:11}}>ПАКЕТ «БАЗА»</div><strong style={{display:"block",fontSize:"clamp(30px,7vw,52px)",color:"#00ff41",margin:"clamp(14px,3vw,25px) 0",whiteSpace:"nowrap"}}>50 000 ₽</strong><p style={{color:"#008f11"}}>Сайт-визитка или лендинг.</p></div><div style={{background:"#003b00",padding:"clamp(22px,5vw,40px)",fontFamily:"'JetBrains Mono',monospace"}}><div style={{color:"#7dffaa",fontSize:11}}>ПАКЕТ «ПОЛНЫЙ»</div><strong style={{display:"block",fontSize:"clamp(30px,7vw,52px)",color:"#00ff41",margin:"clamp(14px,3vw,25px) 0",whiteSpace:"nowrap"}}>100 000 ₽</strong><p style={{color:"#c8ffe0"}}>Многостраничный сайт или каталог.</p></div></div></Reveal></div></section>;}
 const PROCESS_STEPS = [
   { n: "01", name: "Бриф", desc: "Обсуждаем бизнес, задачу и кто клиент — до старта понятно, что должен делать сайт." },
   { n: "02", name: "Прототип", desc: "Собираю структуру и черновой дизайн, показываю вам раньше, чем начинаю вёрстку." },
   { n: "03", name: "Разработка", desc: "Верстаю и программирую сам, без передачи задачи фрилансерам на аутсорс." },
   { n: "04", name: "Запуск", desc: "Тестирую на устройствах, публикую сайт и показываю, как редактировать самому." },
 ];
-function Process(){return <section style={{padding:"clamp(80px,12vh,140px) clamp(20px,5vw,90px)",position:"relative",overflow:"hidden"}}><SectionRain/><div style={{position:"relative",zIndex:1}}><Reveal><div style={{borderTop:"1px solid rgba(0,255,65,.18)",paddingTop:20,marginBottom:40}}><span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:"#008f11"}}>05 / Процесс</span><h2 style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:700,fontSize:"clamp(22px,3.6vw,52px)",color:"#00ff41",marginTop:18}}>Четыре шага. Вы видите результат на каждом.</h2></div></Reveal><Reveal delay={80}><div className="process-grid" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:1,background:"rgba(0,255,65,.14)",border:"1px solid rgba(0,255,65,.14)"}}>{PROCESS_STEPS.map((s)=><div key={s.n} className="card-service" style={{background:"#000",padding:"clamp(22px,3.4vw,32px)",transition:"background .3s"}}><span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:"#008f11",letterSpacing:".14em"}}>{s.n}</span><h3 style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:700,fontSize:"clamp(16px,1.8vw,20px)",color:"#00ff41",margin:"12px 0 8px"}}>{s.name}</h3><p style={{color:"#008f11",fontSize:13,lineHeight:1.6,fontFamily:"'JetBrains Mono',monospace"}}>{s.desc}</p></div>)}</div></Reveal></div></section>;}
+function Process(){return <section style={{padding:"clamp(80px,12vh,140px) clamp(20px,5vw,90px)",position:"relative",overflow:"hidden"}}><SectionRain/><div style={{position:"relative",zIndex:1}}><Reveal><div style={{borderTop:"1px solid rgba(0,255,65,.18)",paddingTop:20,marginBottom:40}}><span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:"#008f11"}}>04 / Процесс</span><h2 style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:700,fontSize:"clamp(22px,3.6vw,52px)",color:"#00ff41",marginTop:18}}>Четыре шага. Вы видите результат на каждом.</h2></div></Reveal><Reveal delay={80}><div className="process-grid" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:1,background:"rgba(0,255,65,.14)",border:"1px solid rgba(0,255,65,.14)"}}>{PROCESS_STEPS.map((s)=><div key={s.n} className="card-service" style={{background:"#000",padding:"clamp(22px,3.4vw,32px)",transition:"background .3s"}}><span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:"#008f11",letterSpacing:".14em"}}>{s.n}</span><h3 style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:700,fontSize:"clamp(16px,1.8vw,20px)",color:"#00ff41",margin:"12px 0 8px"}}>{s.name}</h3><p style={{color:"#008f11",fontSize:13,lineHeight:1.6,fontFamily:"'JetBrains Mono',monospace"}}>{s.desc}</p></div>)}</div></Reveal></div></section>;}
 const CONTACT_FIELDS: { key: "name" | "contact" | "task"; label: string; multiline?: boolean }[] = [
   { key: "name", label: "Ваше имя" },
   { key: "contact", label: "Telegram или телефон" },
@@ -508,7 +486,7 @@ function TerminalContactForm() {
     </div>
   );
 }
-function Contact(){return <section id="contact" style={{padding:"clamp(80px,12vh,140px) clamp(20px,5vw,90px)",borderTop:"1px solid rgba(0,255,65,.18)",position:"relative",overflow:"hidden"}}><SectionRain/><div className="contact-grid" style={{position:"relative",zIndex:1,display:"grid",gridTemplateColumns:"1.1fr .9fr",gap:60}}><div><span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:"#008f11"}}>06 / Связаться</span><h2 style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:700,fontSize:"clamp(26px,5vw,70px)",color:"#00ff41",marginTop:20}}>Расскажите,<br/>что нужно<br/>сделать.</h2></div><TerminalBox title="~/contact/form.sh" accent><TerminalContactForm/></TerminalBox></div></section>;}
+function Contact(){return <section id="contact" style={{padding:"clamp(80px,12vh,140px) clamp(20px,5vw,90px)",borderTop:"1px solid rgba(0,255,65,.18)",position:"relative",overflow:"hidden"}}><SectionRain/><div className="contact-grid" style={{position:"relative",zIndex:1,display:"grid",gridTemplateColumns:"1.1fr .9fr",gap:60}}><div><span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:"#008f11"}}>05 / Связаться</span><h2 style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:700,fontSize:"clamp(26px,5vw,70px)",color:"#00ff41",marginTop:20}}>Расскажите,<br/>что нужно<br/>сделать.</h2></div><TerminalBox title="~/contact/form.sh" accent><TerminalContactForm/></TerminalBox></div></section>;}
 function Footer(){return <footer style={{background:"#050f05",borderTop:"1px solid rgba(0,255,65,.18)",padding:"22px clamp(20px,5vw,90px)",fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:"#008f11",display:"flex",justifyContent:"space-between",position:"relative",overflow:"hidden"}}><SectionRain opacity={.26} speed={100}/><span style={{position:"relative",zIndex:1}}>© 2026 Захаров Сергей</span><a href="#top" style={{position:"relative",zIndex:1,color:"#00ff41",textDecoration:"none"}}>Наверх ↑</a></footer>;}
 /* ─────────────────────────────────────────
    Walking character — a small narrative +
@@ -542,7 +520,7 @@ function Footer(){return <footer style={{background:"#050f05",borderTop:"1px sol
    pixels (not percent) so it can dock
    precisely to specific elements.
 ───────────────────────────────────────── */
-const CHAR_SECTION_IDS = ["hero", "ai", "services", "portfolio", "stack", "price", "process", "contact"];
+const CHAR_SECTION_IDS = ["hero", "ai", "services", "stack", "price", "process", "contact"];
 const CHAR_TALK_PHRASES = [
   "hi, i'm ai agent", "ai-pixel here", "01001000 01001001", "system.exe running",
   "просто прохожу мимо", "не тыкай, я работаю", "заряжен на 87%", "сижу, смотрю на тебя",
@@ -1107,5 +1085,5 @@ function ScrollProgress() {
   );
 }
 
-const KEYFRAMES=`@keyframes slideBar{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}} @keyframes marqAnim{from{transform:translateX(0)}to{transform:translateX(-50%)}} @keyframes neonPulse{0%,100%{text-shadow:0 0 10px rgba(0,255,65,.4),0 0 28px rgba(0,255,65,.18)}50%{text-shadow:0 0 20px rgba(0,255,65,.85),0 0 52px rgba(0,255,65,.4)}} @keyframes hudBlink{0%,93%,100%{opacity:1}94%,96%{opacity:0}95%,97%{opacity:1}98%,99%{opacity:.3}} @keyframes borderGlow{0%,100%{border-color:rgba(0,255,65,.2)}50%{border-color:rgba(0,255,65,.5)}} @keyframes rowGlowDone{0%,100%{background:rgba(0,255,65,.02)}50%{background:rgba(0,255,65,.07)}} @keyframes rowGlowActive{0%,100%{background:rgba(0,255,65,.04)}50%{background:rgba(0,255,65,.14)}} @keyframes rowGlowRunning{0%,100%{background:rgba(0,255,65,.03)}50%{background:rgba(0,255,65,.10)}} @keyframes rowGlowQueued{0%,100%{background:rgba(0,255,65,.015)}50%{background:rgba(0,255,65,.05)}} @keyframes charFall{0%{transform:translateY(-160px);opacity:0}55%{transform:translateY(14px);opacity:1}75%{transform:translateY(-8px)}100%{transform:translateY(0)}} @keyframes charBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}} @keyframes charShake{0%,100%{transform:rotate(0deg)}20%{transform:rotate(-7deg)}40%{transform:rotate(6deg)}60%{transform:rotate(-4deg)}80%{transform:rotate(3deg)}} @keyframes charFlail{0%,100%{transform:rotate(-9deg)}50%{transform:rotate(9deg)}} @keyframes bubblePop{0%{opacity:0;transform:scale(.7) translateY(4px)}100%{opacity:1;transform:scale(1) translateY(0)}} @keyframes bubbleFade{0%{opacity:1}100%{opacity:0}} @keyframes matrixHighlight{0%{text-shadow:0 0 2px rgba(0,255,65,.25)}30%{text-shadow:0 0 16px rgba(0,255,65,1),0 0 34px rgba(0,255,65,.65)}100%{text-shadow:0 0 6px rgba(0,255,65,.35)}} @keyframes rippleOut{0%{transform:translate(-50%,-50%) scale(.5);opacity:1}100%{transform:translate(calc(-50% + var(--tx)),calc(-50% + var(--ty))) scale(1);opacity:0}} @keyframes termCursorBlink{0%,49%{opacity:1}50%,100%{opacity:0}} @keyframes portfolioFloat{0%,100%{transform:rotateX(3deg) rotateY(-4deg) translateZ(0px)}50%{transform:rotateX(-3deg) rotateY(4deg) translateZ(14px)}} @media (hover:hover) and (pointer:fine){.link-nav:hover{color:#00ff41}.btn-next:hover{background:rgba(0,255,65,.12)}.card-service:hover{background:#0a1a0a}.pill-stack:hover{color:#00ff41;border-color:rgba(0,255,65,.6)}.row-ai:hover{padding-left:22px}.portfolio-shot:hover{filter:none}} @media (min-width:1024px){.hero-grid{grid-template-columns:3fr 2fr!important}} @media (max-width:900px){.stack-grid{grid-template-columns:1fr!important}.process-grid{grid-template-columns:1fr 1fr!important}} @media (max-width:640px){.nav-links{display:none!important}.nav-toggle{display:inline-flex!important}.contact-grid{grid-template-columns:1fr!important}.services-grid{grid-template-columns:1fr!important}.portfolio-grid{grid-template-columns:1fr!important}.process-grid{grid-template-columns:1fr!important}.price-grid{grid-template-columns:1fr!important}.stream-readout{display:none!important}.ai-table-head{display:none!important}.ai-table-row{grid-template-columns:28px 1fr!important}.ai-table-row>*:nth-child(3){grid-column:1/-1!important;margin-top:8px}.ai-table-row>*:nth-child(4){grid-column:1/-1!important;margin-top:4px}}`;
-export default function App(){return <div style={{background:"#000",color:"#00ff41",minHeight:"100vh"}}><style>{KEYFRAMES}</style><ScrollProgress/><ClickRipple/><Nav/><main id="top"><LiveConsole/><Hero/><DecodeStreamDivider/><Mission/><AIConsierge/><Services/><Portfolio/><Stack/><Price/><Process/><Contact/><Footer/></main><WalkingCharacter/></div>;}
+const KEYFRAMES=`@keyframes slideBar{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}} @keyframes marqAnim{from{transform:translateX(0)}to{transform:translateX(-50%)}} @keyframes neonPulse{0%,100%{text-shadow:0 0 10px rgba(0,255,65,.4),0 0 28px rgba(0,255,65,.18)}50%{text-shadow:0 0 20px rgba(0,255,65,.85),0 0 52px rgba(0,255,65,.4)}} @keyframes hudBlink{0%,93%,100%{opacity:1}94%,96%{opacity:0}95%,97%{opacity:1}98%,99%{opacity:.3}} @keyframes borderGlow{0%,100%{border-color:rgba(0,255,65,.2)}50%{border-color:rgba(0,255,65,.5)}} @keyframes rowGlowDone{0%,100%{background:rgba(0,255,65,.02)}50%{background:rgba(0,255,65,.07)}} @keyframes rowGlowActive{0%,100%{background:rgba(0,255,65,.04)}50%{background:rgba(0,255,65,.14)}} @keyframes rowGlowRunning{0%,100%{background:rgba(0,255,65,.03)}50%{background:rgba(0,255,65,.10)}} @keyframes rowGlowQueued{0%,100%{background:rgba(0,255,65,.015)}50%{background:rgba(0,255,65,.05)}} @keyframes charFall{0%{transform:translateY(-160px);opacity:0}55%{transform:translateY(14px);opacity:1}75%{transform:translateY(-8px)}100%{transform:translateY(0)}} @keyframes charBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}} @keyframes charShake{0%,100%{transform:rotate(0deg)}20%{transform:rotate(-7deg)}40%{transform:rotate(6deg)}60%{transform:rotate(-4deg)}80%{transform:rotate(3deg)}} @keyframes charFlail{0%,100%{transform:rotate(-9deg)}50%{transform:rotate(9deg)}} @keyframes bubblePop{0%{opacity:0;transform:scale(.7) translateY(4px)}100%{opacity:1;transform:scale(1) translateY(0)}} @keyframes bubbleFade{0%{opacity:1}100%{opacity:0}} @keyframes matrixHighlight{0%{text-shadow:0 0 2px rgba(0,255,65,.25)}30%{text-shadow:0 0 16px rgba(0,255,65,1),0 0 34px rgba(0,255,65,.65)}100%{text-shadow:0 0 6px rgba(0,255,65,.35)}} @keyframes rippleOut{0%{transform:translate(-50%,-50%) scale(.5);opacity:1}100%{transform:translate(calc(-50% + var(--tx)),calc(-50% + var(--ty))) scale(1);opacity:0}} @keyframes termCursorBlink{0%,49%{opacity:1}50%,100%{opacity:0}} @media (hover:hover) and (pointer:fine){.link-nav:hover{color:#00ff41}.btn-next:hover{background:rgba(0,255,65,.12)}.card-service:hover{background:#0a1a0a}.pill-stack:hover{color:#00ff41;border-color:rgba(0,255,65,.6)}.row-ai:hover{padding-left:22px}.portfolio-shot:hover{filter:none}} @media (min-width:1024px){.hero-grid{grid-template-columns:3fr 2fr!important}} @media (max-width:900px){.stack-grid{grid-template-columns:1fr!important}.process-grid{grid-template-columns:1fr 1fr!important}} @media (max-width:640px){.nav-links{display:none!important}.nav-toggle{display:inline-flex!important}.contact-grid{grid-template-columns:1fr!important}.services-grid{grid-template-columns:1fr!important}.process-grid{grid-template-columns:1fr!important}.price-grid{grid-template-columns:1fr!important}.stream-readout{display:none!important}.ai-table-head{display:none!important}.ai-table-row{grid-template-columns:28px 1fr!important}.ai-table-row>*:nth-child(3){grid-column:1/-1!important;margin-top:8px}.ai-table-row>*:nth-child(4){grid-column:1/-1!important;margin-top:4px}}`;
+export default function App(){return <div style={{background:"#000",color:"#00ff41",minHeight:"100vh"}}><style>{KEYFRAMES}</style><ScrollProgress/><ClickRipple/><Nav/><main id="top"><LiveConsole/><Hero/><DecodeStreamDivider/><Mission/><AIConsierge/><Services/><Stack/><Price/><Process/><Contact/><Footer/></main><WalkingCharacter/></div>;}
