@@ -1,61 +1,58 @@
-**Add your own guidelines here**
-<!--
+# Дизайн-система — сайт Захарова Сергея
 
-System Guidelines
+## Цвета
 
-Use this file to provide the AI with rules and guidelines you want it to follow.
-This template outlines a few examples of things you can add. You can add your own sections and format it to suit your needs
+### Зелёная «подпись» (signature-зоны)
+LiveConsole, Hero, DecodeStreamDivider, Mission, AIConsierge, Contact — полностью зелёные, несут основную айдентику сайта.
 
-TIP: More context isn't always better. It can confuse the LLM. Try and add the most important rules you need
+| Роль | Цвет | Контраст к чёрному |
+|---|---|---|
+| Яркий / заголовки, команды | `#00ff41` | 15.4:1 |
+| Приглушённый / подписи, вывод консоли | `#008f11` | 4.9:1 (проходит WCAG AA для обычного текста, не проходит AAA) |
+| Декоративный HUD-текст | `rgba(0,255,65,α)` | зависит от α — см. ниже |
 
-# General guidelines
+**Важно про rgba-альфу:** на чёрном фоне контраст падает нелинейно. `α=.28` даёт ~1.9:1, `α=.32` — ~2.2:1 — это ощутимо ниже WCAG AA (4.5:1) и подходит только для откровенно декоративного текста без смысловой нагрузки (мигающие координаты, фейковый счётчик пакетов в DecodeStreamDivider). Если текст несёт реальную информацию — не опускайте α ниже ~0.55 (даёт ~4.8:1+).
 
-Any general rules you want the AI to follow.
-For example:
+### Серо-белая база (секции для чтения)
+Services, Stack, Price, Process, Footer.
 
-* Only use absolute positioning when necessary. Opt for responsive and well structured layouts that use flexbox and grid by default
-* Refactor code as you go to keep code clean
-* Keep file sizes small and put helper functions and components in their own files.
+| Роль | Цвет | Контраст к чёрному |
+|---|---|---|
+| Заголовки | `#f2f2f2` | 18.8:1 |
+| Тело текста | `#9a9a9a` | 7.5:1 |
+| Футер (боилерплейт) | `#8a8a8a` | 6.1:1 |
 
---------------
+Зелёные акценты внутри этих секций (бордеры, декоративные теги, номера карточек, цены, hover-состояния, интерактивные ссылки) используют ту же зелёную палитру, что и signature-зоны — так серые секции не отрываются от общего стиля. Сам читаемый текст (заголовки h2/h3, абзацы) остаётся серо-белым для читаемости.
 
-# Design system guidelines
-Rules for how the AI should make generations look like your company's design system
+## Типографика
 
-Additionally, if you select a design system to use in the prompt box, you can reference
-your design system's components, tokens, variables and components.
-For example:
+- **JetBrains Mono** — основной «терминальный» шрифт: команды, лейблы, теги, цены, кнопки; весь текст в зелёных signature-секциях.
+- **Space Grotesk** — только для читаемого контента (h2/h3 и абзацы) в серо-белых секциях. Не смешивать с JetBrains Mono внутри одного текстового блока.
+- **Silkscreen** — зарезервирован строго за `DecodeStreamDivider` (тонкая HUD-полоса между Mission и AIConsierge). При добавлении новых HUD-виджетов переиспользуйте этот же компонент/шрифт, а не заводите третий несвязанный шрифт — иначе типографика расползётся.
 
-* Use a base font-size of 14px
-* Date formats should always be in the format “Jun 10”
-* The bottom toolbar should only ever have a maximum of 4 items
-* Never use the floating action button with the bottom toolbar
-* Chips should always come in sets of 3 or more
-* Don't use a dropdown if there are 2 or fewer options
+## Ритм секций
 
-You can also create sub sections and add more specific details
-For example:
+Фон чередуется между `#000` и `#050f05`, чтобы соседние секции не сливались:
 
+```
+LiveConsole(000) → Hero(000) → DecodeStreamDivider(000, HUD-полоса)
+→ Mission(000) → AIConsierge(050f05) → Services(000)
+→ Stack(050f05) → Price(000) → Process(000)
+→ Contact(050f05) → Footer(050f05)
+```
 
-## Button
-The Button component is a fundamental interactive element in our design system, designed to trigger actions or navigate
-users through the application. It provides visual feedback and clear affordances to enhance user experience.
+При добавлении новой секции проверяйте фон соседей и по возможности чередуйте `#000`/`#050f05`.
 
-### Usage
-Buttons should be used for important actions that users need to take, such as form submissions, confirming choices,
-or initiating processes. They communicate interactivity and should have clear, action-oriented labels.
+## TerminalBox
 
-### Variants
-* Primary Button
-  * Purpose : Used for the main action in a section or page
-  * Visual Style : Bold, filled with the primary brand color
-  * Usage : One primary button per section to guide users toward the most important action
-* Secondary Button
-  * Purpose : Used for alternative or supporting actions
-  * Visual Style : Outlined with the primary color, transparent background
-  * Usage : Can appear alongside a primary button for less important actions
-* Tertiary Button
-  * Purpose : Used for the least important actions
-  * Visual Style : Text-only with no border, using primary color
-  * Usage : For actions that should be available but not emphasized
--->
+Используется точечно, только в трёх местах: приветствие в Hero (`WhoAmICard`), интро-консоль (`LiveConsole`), форма заявки (`Contact`). Обрамление в псевдо-терминал (шапка с тремя точками + заголовок) держит вес «уникального момента» именно потому, что оно редкое. Не оборачивайте в `TerminalBox` рядовые карточки — это быстро создаёт визуальный шум.
+
+## Focus-visible / доступность
+
+- Глобальное правило `a:focus-visible, button:focus-visible` — зелёная обводка 2px с отступом 2px.
+- Поля формы заявки (класс `.input-terminal`) вместо обводки используют мягкое зелёное свечение (`box-shadow`), т.к. это безрамочные инлайн-поля внутри терминала и жёсткая обводка выглядела бы чужеродно.
+- При добавлении новых интерактивных элементов не ставьте `outline: none` без замены — либо оставляйте браузерный `:focus-visible`, либо переиспользуйте класс с видимым состоянием фокуса.
+
+## MatrixRain (canvas-дождь)
+
+Компонент сам ставит анимацию на паузу через `IntersectionObserver`, когда его canvas не виден на экране. На странице одновременно смонтировано ~11 инстансов — если добавляете новый, не нужно вручную городить видимость, это уже встроено.
