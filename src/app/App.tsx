@@ -38,7 +38,7 @@ function MatrixRain({
     const canvas = ref.current; if (!canvas) return;
     const ctx = canvas.getContext("2d")!;
     const chars = "01ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎ<>/\\{}|·+—=".split("");
-    let w = 0, h = 0, cols = 0, drops: number[] = [], raf = 0, last = 0;
+    let w = 0, h = 0, cols = 0, drops: number[] = [], raf = 0, last = 0, visible = true;
     function resize() {
       const r = canvas!.getBoundingClientRect(); const dpr = Math.min(2, devicePixelRatio || 1);
       w = Math.max(1, r.width); h = Math.max(1, r.height); canvas!.width = w * dpr; canvas!.height = h * dpr;
@@ -49,7 +49,12 @@ function MatrixRain({
       ctx.font = `${fontSize}px "JetBrains Mono", monospace`;
       for (let i = 0; i < cols; i++) { const ch = chars[(Math.random() * chars.length) | 0]; ctx.fillStyle = drops[i] * fontSize > h - fontSize * 3 ? "#ffffff" : color; ctx.fillText(ch, i * fontSize, drops[i] * fontSize); if (drops[i] * fontSize > h && Math.random() > 0.975) drops[i] = 0; drops[i] += 0.35 + Math.random() * 0.4; }
     }
-    resize(); window.addEventListener("resize", resize); raf = requestAnimationFrame(tick); return () => { cancelAnimationFrame(raf); window.removeEventListener("resize", resize); };
+    function start() { if (!raf) raf = requestAnimationFrame(tick); }
+    function stop() { cancelAnimationFrame(raf); raf = 0; }
+    const ob = new IntersectionObserver(([e]) => { visible = e.isIntersecting; if (visible) start(); else stop(); }, { threshold: 0 });
+    ob.observe(canvas);
+    resize(); window.addEventListener("resize", resize); if (visible) start();
+    return () => { stop(); ob.disconnect(); window.removeEventListener("resize", resize); };
   }, [fontSize, color, trail, speed]);
   return <canvas ref={ref} className={className} style={{ opacity, display: "block", width: "100%", height: "100%", ...styleProp }} />;
 }
@@ -353,21 +358,21 @@ const SERVICE_ITEMS = [
 function Services() {
   return (
     <section id="services" style={{ padding: "clamp(80px,12vh,140px) clamp(20px,5vw,90px)", position: "relative", overflow: "hidden" }}>
-      <SectionRain color="#9a9a9a" />
+      <SectionRain />
       <div style={{ position: "relative", zIndex: 1 }}>
         <Reveal>
-          <div style={{ borderTop: "1px solid rgba(255,255,255,.16)", paddingTop: 20, marginBottom: 40 }}>
-            <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, color: "rgba(255,255,255,.4)" }}>01 / Что делаю</span>
+          <div style={{ borderTop: "1px solid rgba(0,255,65,.18)", paddingTop: 20, marginBottom: 40 }}>
+            <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, color: "#008f11" }}>01 / Что делаю</span>
             <h2 style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: "clamp(22px,3.6vw,52px)", color: "#f2f2f2", marginTop: 18 }}>Один человек отвечает за весь результат.</h2>
           </div>
         </Reveal>
         <Reveal delay={80}>
-          <div className="services-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, background: "rgba(255,255,255,.13)", border: "1px solid rgba(255,255,255,.13)" }}>
+          <div className="services-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, background: "rgba(0,255,65,.14)", border: "1px solid rgba(0,255,65,.14)" }}>
             {SERVICE_ITEMS.map((svc) => (
               <div key={svc.id} className="card-service" style={{ background: "#000", transition: "background .3s" }}>
                 {svc.photo ? <Portfolio3DPhoto src={svc.photo} /> : <PortfolioShot hue={svc.hue} />}
                 <div style={{ padding: "clamp(24px,4vw,44px)" }}>
-                  <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, color: "rgba(255,255,255,.4)", letterSpacing: ".14em" }}>{svc.id}</span>
+                  <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, color: "#008f11", letterSpacing: ".14em" }}>{svc.id}</span>
                   <h3 style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 600, fontSize: "clamp(18px,2.2vw,26px)", color: "#f2f2f2", margin: "14px 0 10px" }}>{svc.name}</h3>
                   <p style={{ color: "#9a9a9a", fontSize: 14, lineHeight: 1.65, fontFamily: "'Space Grotesk',sans-serif" }}>{svc.desc}</p>
                 </div>
@@ -388,28 +393,28 @@ function Stack() {
   ];
   return (
     <section id="stack" style={{ padding: "clamp(80px,12vh,140px) clamp(20px,5vw,90px)", background: "#050f05", position: "relative", overflow: "hidden" }}>
-      <SectionRain color="#9a9a9a" />
+      <SectionRain />
       <div style={{ position: "relative", zIndex: 1 }}>
         <Reveal>
-          <div style={{ borderTop: "1px solid rgba(255,255,255,.16)", paddingTop: 20, marginBottom: 40 }}>
-            <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, color: "rgba(255,255,255,.4)" }}>02 / Инструменты</span>
+          <div style={{ borderTop: "1px solid rgba(0,255,65,.18)", paddingTop: 20, marginBottom: 40 }}>
+            <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, color: "#008f11" }}>02 / Инструменты</span>
             <h2 style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: "clamp(22px,3.6vw,52px)", color: "#f2f2f2", marginTop: 18 }}>Стек, на котором собираю сайты.</h2>
           </div>
         </Reveal>
         <Reveal delay={80}>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 40 }}>
             {pills.map((p) => (
-              <span key={p} className="pill-stack" style={{ border: "1px solid rgba(255,255,255,.2)", color: "#9a9a9a", fontFamily: "'JetBrains Mono',monospace", fontSize: 12, letterSpacing: ".08em", textTransform: "uppercase", padding: "9px 15px", transition: "color .2s,border-color .2s" }}>
+              <span key={p} className="pill-stack" style={{ border: "1px solid rgba(0,255,65,.25)", color: "#008f11", fontFamily: "'JetBrains Mono',monospace", fontSize: 12, letterSpacing: ".08em", textTransform: "uppercase", padding: "9px 15px", transition: "color .2s,border-color .2s" }}>
                 {p}
               </span>
             ))}
           </div>
         </Reveal>
         <Reveal delay={140}>
-          <div className="stack-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 1, background: "rgba(255,255,255,.13)", border: "1px solid rgba(255,255,255,.13)" }}>
+          <div className="stack-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 1, background: "rgba(0,255,65,.14)", border: "1px solid rgba(0,255,65,.14)" }}>
             {groups.map((g) => (
               <div key={g.label} style={{ background: "#050f05", padding: "clamp(22px,3.4vw,34px)" }}>
-                <h3 style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "#f2f2f2", marginBottom: 12 }}>{g.label}</h3>
+                <h3 style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "#00ff41", marginBottom: 12 }}>{g.label}</h3>
                 <p style={{ color: "#9a9a9a", fontSize: 14, lineHeight: 1.7, fontFamily: "'Space Grotesk',sans-serif" }}>{g.items}</p>
               </div>
             ))}
@@ -419,14 +424,15 @@ function Stack() {
     </section>
   );
 }
-function Price(){return <section id="price" style={{padding:"clamp(80px,12vh,140px) clamp(20px,5vw,90px)",background:"#050f05",position:"relative",overflow:"hidden"}}><SectionRain color="#9a9a9a"/><div style={{position:"relative",zIndex:1}}><Reveal><div style={{borderTop:"1px solid rgba(255,255,255,.16)",paddingTop:20}}><span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:"rgba(255,255,255,.4)"}}>03 / Стоимость</span><h2 style={{fontFamily:"'Space Grotesk',sans-serif",fontWeight:700,fontSize:"clamp(22px,3.6vw,52px)",color:"#f2f2f2",marginTop:18}}>Два формата. Цена фиксируется до старта.</h2></div><div className="price-grid" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:1,marginTop:50,background:"rgba(255,255,255,.12)"}}><div style={{background:"#050f05",padding:"clamp(22px,5vw,40px)",fontFamily:"'JetBrains Mono',monospace"}}><div style={{color:"rgba(255,255,255,.4)",fontSize:11}}>ПАКЕТ «БАЗА»</div><strong style={{display:"block",fontSize:"clamp(30px,7vw,52px)",color:"#f5f5f5",margin:"clamp(14px,3vw,25px) 0",whiteSpace:"nowrap"}}>50 000 ₽</strong><p style={{color:"#9a9a9a",fontFamily:"'Space Grotesk',sans-serif",fontSize:15}}>Сайт-визитка или лендинг.</p></div><div style={{background:"#1c1c1c",padding:"clamp(22px,5vw,40px)",fontFamily:"'JetBrains Mono',monospace"}}><div style={{color:"#d0d0d0",fontSize:11}}>ПАКЕТ «ПОЛНЫЙ»</div><strong style={{display:"block",fontSize:"clamp(30px,7vw,52px)",color:"#f5f5f5",margin:"clamp(14px,3vw,25px) 0",whiteSpace:"nowrap"}}>100 000 ₽</strong><p style={{color:"#c9c9c9",fontFamily:"'Space Grotesk',sans-serif",fontSize:15}}>Многостраничный сайт или каталог.</p></div></div></Reveal></div></section>;}
+const PRICE_CTA_STYLE:React.CSSProperties={display:"block",marginTop:20,padding:"10px 0",border:"1px solid rgba(0,255,65,.35)",color:"#00ff41",textAlign:"center",fontSize:12,fontFamily:"'JetBrains Mono',monospace",letterSpacing:".08em",textDecoration:"none",transition:"background .2s,border-color .2s"};
+function Price(){return <section id="price" style={{padding:"clamp(80px,12vh,140px) clamp(20px,5vw,90px)",background:"#050f05",position:"relative",overflow:"hidden"}}><SectionRain/><div style={{position:"relative",zIndex:1}}><Reveal><div style={{borderTop:"1px solid rgba(0,255,65,.18)",paddingTop:20}}><span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:"#008f11"}}>03 / Стоимость</span><h2 style={{fontFamily:"'Space Grotesk',sans-serif",fontWeight:700,fontSize:"clamp(22px,3.6vw,52px)",color:"#f2f2f2",marginTop:18}}>Два формата. Цена фиксируется до старта.</h2></div><div className="price-grid" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:1,marginTop:50,background:"rgba(0,255,65,.12)"}}><div style={{background:"#050f05",padding:"clamp(22px,5vw,40px)",fontFamily:"'JetBrains Mono',monospace"}}><div style={{color:"#008f11",fontSize:11}}>ПАКЕТ «БАЗА»</div><strong style={{display:"block",fontSize:"clamp(30px,7vw,52px)",color:"#00ff41",margin:"clamp(14px,3vw,25px) 0",whiteSpace:"nowrap"}}>50 000 ₽</strong><p style={{color:"#9a9a9a",fontFamily:"'Space Grotesk',sans-serif",fontSize:15}}>Сайт-визитка или лендинг.</p><a href="#contact" className="btn-price-cta" style={PRICE_CTA_STYLE}>Обсудить →</a></div><div style={{background:"#003b00",padding:"clamp(22px,5vw,40px)",fontFamily:"'JetBrains Mono',monospace"}}><div style={{color:"#7dffaa",fontSize:11}}>ПАКЕТ «ПОЛНЫЙ»</div><strong style={{display:"block",fontSize:"clamp(30px,7vw,52px)",color:"#00ff41",margin:"clamp(14px,3vw,25px) 0",whiteSpace:"nowrap"}}>100 000 ₽</strong><p style={{color:"#c8ffe0",fontFamily:"'Space Grotesk',sans-serif",fontSize:15}}>Многостраничный сайт или каталог.</p><a href="#contact" className="btn-price-cta" style={{...PRICE_CTA_STYLE,borderColor:"rgba(0,255,65,.55)"}}>Обсудить →</a></div></div></Reveal></div></section>;}
 const PROCESS_STEPS = [
   { n: "01", name: "Бриф", desc: "Обсуждаем бизнес, задачу и кто клиент — до старта понятно, что должен делать сайт." },
   { n: "02", name: "Прототип", desc: "Собираю структуру и черновой дизайн, показываю вам раньше, чем начинаю вёрстку." },
   { n: "03", name: "Разработка", desc: "Верстаю и программирую сам, без передачи задачи фрилансерам на аутсорс." },
   { n: "04", name: "Запуск", desc: "Тестирую на устройствах, публикую сайт и показываю, как редактировать самому." },
 ];
-function Process(){return <section style={{padding:"clamp(80px,12vh,140px) clamp(20px,5vw,90px)",position:"relative",overflow:"hidden"}}><SectionRain color="#9a9a9a"/><div style={{position:"relative",zIndex:1}}><Reveal><div style={{borderTop:"1px solid rgba(255,255,255,.16)",paddingTop:20,marginBottom:40}}><span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:"rgba(255,255,255,.4)"}}>04 / Процесс</span><h2 style={{fontFamily:"'Space Grotesk',sans-serif",fontWeight:700,fontSize:"clamp(22px,3.6vw,52px)",color:"#f2f2f2",marginTop:18}}>Четыре шага. Вы видите результат на каждом.</h2></div></Reveal><Reveal delay={80}><div className="process-grid" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:1,background:"rgba(255,255,255,.13)",border:"1px solid rgba(255,255,255,.13)"}}>{PROCESS_STEPS.map((s)=><div key={s.n} className="card-service" style={{background:"#000",padding:"clamp(22px,3.4vw,32px)",transition:"background .3s"}}><span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:"rgba(255,255,255,.4)",letterSpacing:".14em"}}>{s.n}</span><h3 style={{fontFamily:"'Space Grotesk',sans-serif",fontWeight:600,fontSize:"clamp(16px,1.8vw,20px)",color:"#f2f2f2",margin:"12px 0 8px"}}>{s.name}</h3><p style={{color:"#9a9a9a",fontSize:14,lineHeight:1.6,fontFamily:"'Space Grotesk',sans-serif"}}>{s.desc}</p></div>)}</div></Reveal></div></section>;}
+function Process(){return <section style={{padding:"clamp(80px,12vh,140px) clamp(20px,5vw,90px)",position:"relative",overflow:"hidden"}}><SectionRain/><div style={{position:"relative",zIndex:1}}><Reveal><div style={{borderTop:"1px solid rgba(0,255,65,.18)",paddingTop:20,marginBottom:40}}><span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:"#008f11"}}>04 / Процесс</span><h2 style={{fontFamily:"'Space Grotesk',sans-serif",fontWeight:700,fontSize:"clamp(22px,3.6vw,52px)",color:"#f2f2f2",marginTop:18}}>Четыре шага. Вы видите результат на каждом.</h2></div></Reveal><Reveal delay={80}><div className="process-grid" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:1,background:"rgba(0,255,65,.14)",border:"1px solid rgba(0,255,65,.14)"}}>{PROCESS_STEPS.map((s)=><div key={s.n} className="card-service" style={{background:"#000",padding:"clamp(22px,3.4vw,32px)",transition:"background .3s"}}><span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:"#008f11",letterSpacing:".14em"}}>{s.n}</span><h3 style={{fontFamily:"'Space Grotesk',sans-serif",fontWeight:600,fontSize:"clamp(16px,1.8vw,20px)",color:"#f2f2f2",margin:"12px 0 8px"}}>{s.name}</h3><p style={{color:"#9a9a9a",fontSize:14,lineHeight:1.6,fontFamily:"'Space Grotesk',sans-serif"}}>{s.desc}</p></div>)}</div></Reveal></div></section>;}
 const CONTACT_FIELDS: { key: "name" | "contact" | "task"; label: string; multiline?: boolean }[] = [
   { key: "name", label: "Ваше имя" },
   { key: "contact", label: "Telegram или телефон" },
@@ -486,7 +492,8 @@ function TerminalContactForm() {
   );
 }
 function Contact(){return <section id="contact" style={{padding:"clamp(80px,12vh,140px) clamp(20px,5vw,90px)",borderTop:"1px solid rgba(0,255,65,.18)",position:"relative",overflow:"hidden"}}><SectionRain/><div className="contact-grid" style={{position:"relative",zIndex:1,display:"grid",gridTemplateColumns:"1.1fr .9fr",gap:60}}><div><span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:"#008f11"}}>05 / Связаться</span><h2 style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:700,fontSize:"clamp(26px,5vw,70px)",color:"#00ff41",marginTop:20}}>Расскажите,<br/>что нужно<br/>сделать.</h2></div><TerminalBox title="~/contact/form.sh" accent><TerminalContactForm/></TerminalBox></div></section>;}
-function Footer(){return <footer style={{background:"#050f05",borderTop:"1px solid rgba(255,255,255,.16)",padding:"22px clamp(20px,5vw,90px)",fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:"#8a8a8a",display:"flex",justifyContent:"space-between",position:"relative",overflow:"hidden"}}><SectionRain opacity={.26} speed={100} color="#9a9a9a"/><span style={{position:"relative",zIndex:1}}>© 2026 Захаров Сергей</span><a href="#top" style={{position:"relative",zIndex:1,color:"#e5e5e5",textDecoration:"none"}}>Наверх ↑</a></footer>;}
+const FOOTER_LINKS:[string,string][]=[["https://t.me/Must_D1e","Telegram"],["https://github.com/zakhsergey7-pixel","GitHub"],["mailto:zakhsergey7@gmail.com","Email"]];
+function Footer(){return <footer style={{background:"#050f05",borderTop:"1px solid rgba(0,255,65,.18)",padding:"22px clamp(20px,5vw,90px)",fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:"#8a8a8a",display:"flex",flexWrap:"wrap",justifyContent:"space-between",alignItems:"center",gap:14,position:"relative",overflow:"hidden"}}><SectionRain opacity={.26} speed={100}/><span style={{position:"relative",zIndex:1}}>© 2026 Захаров Сергей</span><div style={{position:"relative",zIndex:1,display:"flex",flexWrap:"wrap",gap:18}}>{FOOTER_LINKS.map(([href,label])=><a key={label} href={href} target={href.startsWith("http")?"_blank":undefined} rel={href.startsWith("http")?"noopener noreferrer":undefined} className="link-footer" style={{color:"#00ff41",textDecoration:"none",transition:"opacity .2s"}}>{label}</a>)}</div><a href="#top" style={{position:"relative",zIndex:1,color:"#00ff41",textDecoration:"none"}}>Наверх ↑</a></footer>;}
 /* ─────────────────────────────────────────
    Walking character — a small narrative +
    roaming state machine, not a flat pace:
@@ -1084,5 +1091,5 @@ function ScrollProgress() {
   );
 }
 
-const KEYFRAMES=`@keyframes slideBar{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}} @keyframes marqAnim{from{transform:translateX(0)}to{transform:translateX(-50%)}} @keyframes neonPulse{0%,100%{text-shadow:0 0 10px rgba(0,255,65,.4),0 0 28px rgba(0,255,65,.18)}50%{text-shadow:0 0 20px rgba(0,255,65,.85),0 0 52px rgba(0,255,65,.4)}} @keyframes hudBlink{0%,93%,100%{opacity:1}94%,96%{opacity:0}95%,97%{opacity:1}98%,99%{opacity:.3}} @keyframes borderGlow{0%,100%{border-color:rgba(0,255,65,.2)}50%{border-color:rgba(0,255,65,.5)}} @keyframes rowGlowDone{0%,100%{background:rgba(0,255,65,.02)}50%{background:rgba(0,255,65,.07)}} @keyframes rowGlowActive{0%,100%{background:rgba(0,255,65,.04)}50%{background:rgba(0,255,65,.14)}} @keyframes rowGlowRunning{0%,100%{background:rgba(0,255,65,.03)}50%{background:rgba(0,255,65,.10)}} @keyframes rowGlowQueued{0%,100%{background:rgba(0,255,65,.015)}50%{background:rgba(0,255,65,.05)}} @keyframes charFall{0%{transform:translateY(-160px);opacity:0}55%{transform:translateY(14px);opacity:1}75%{transform:translateY(-8px)}100%{transform:translateY(0)}} @keyframes charBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}} @keyframes charShake{0%,100%{transform:rotate(0deg)}20%{transform:rotate(-7deg)}40%{transform:rotate(6deg)}60%{transform:rotate(-4deg)}80%{transform:rotate(3deg)}} @keyframes charFlail{0%,100%{transform:rotate(-9deg)}50%{transform:rotate(9deg)}} @keyframes bubblePop{0%{opacity:0;transform:scale(.7) translateY(4px)}100%{opacity:1;transform:scale(1) translateY(0)}} @keyframes bubbleFade{0%{opacity:1}100%{opacity:0}} @keyframes matrixHighlight{0%{text-shadow:0 0 2px rgba(0,255,65,.25)}30%{text-shadow:0 0 16px rgba(0,255,65,1),0 0 34px rgba(0,255,65,.65)}100%{text-shadow:0 0 6px rgba(0,255,65,.35)}} @keyframes rippleOut{0%{transform:translate(-50%,-50%) scale(.5);opacity:1}100%{transform:translate(calc(-50% + var(--tx)),calc(-50% + var(--ty))) scale(1);opacity:0}} @keyframes termCursorBlink{0%,49%{opacity:1}50%,100%{opacity:0}} @media (hover:hover) and (pointer:fine){.link-nav:hover{color:#00ff41}.btn-next:hover{background:rgba(0,255,65,.12)}.card-service:hover{background:#161616}.pill-stack:hover{color:#f2f2f2;border-color:rgba(255,255,255,.5)}.row-ai:hover{padding-left:22px}.portfolio-shot:hover{filter:none}} @media (min-width:1024px){.hero-grid{grid-template-columns:3fr 2fr!important}} @media (max-width:900px){.stack-grid{grid-template-columns:1fr!important}.process-grid{grid-template-columns:1fr 1fr!important}} @media (max-width:640px){.nav-links{display:none!important}.nav-toggle{display:inline-flex!important}.contact-grid{grid-template-columns:1fr!important}.services-grid{grid-template-columns:1fr!important}.process-grid{grid-template-columns:1fr!important}.price-grid{grid-template-columns:1fr!important}.stream-readout{display:none!important}.ai-table-head{display:none!important}.ai-table-row{grid-template-columns:28px 1fr!important}.ai-table-row>*:nth-child(3){grid-column:1/-1!important;margin-top:8px}.ai-table-row>*:nth-child(4){grid-column:1/-1!important;margin-top:4px}}`;
+const KEYFRAMES=`@keyframes slideBar{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}} @keyframes marqAnim{from{transform:translateX(0)}to{transform:translateX(-50%)}} @keyframes neonPulse{0%,100%{text-shadow:0 0 10px rgba(0,255,65,.4),0 0 28px rgba(0,255,65,.18)}50%{text-shadow:0 0 20px rgba(0,255,65,.85),0 0 52px rgba(0,255,65,.4)}} @keyframes hudBlink{0%,93%,100%{opacity:1}94%,96%{opacity:0}95%,97%{opacity:1}98%,99%{opacity:.3}} @keyframes borderGlow{0%,100%{border-color:rgba(0,255,65,.2)}50%{border-color:rgba(0,255,65,.5)}} @keyframes rowGlowDone{0%,100%{background:rgba(0,255,65,.02)}50%{background:rgba(0,255,65,.07)}} @keyframes rowGlowActive{0%,100%{background:rgba(0,255,65,.04)}50%{background:rgba(0,255,65,.14)}} @keyframes rowGlowRunning{0%,100%{background:rgba(0,255,65,.03)}50%{background:rgba(0,255,65,.10)}} @keyframes rowGlowQueued{0%,100%{background:rgba(0,255,65,.015)}50%{background:rgba(0,255,65,.05)}} @keyframes charFall{0%{transform:translateY(-160px);opacity:0}55%{transform:translateY(14px);opacity:1}75%{transform:translateY(-8px)}100%{transform:translateY(0)}} @keyframes charBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}} @keyframes charShake{0%,100%{transform:rotate(0deg)}20%{transform:rotate(-7deg)}40%{transform:rotate(6deg)}60%{transform:rotate(-4deg)}80%{transform:rotate(3deg)}} @keyframes charFlail{0%,100%{transform:rotate(-9deg)}50%{transform:rotate(9deg)}} @keyframes bubblePop{0%{opacity:0;transform:scale(.7) translateY(4px)}100%{opacity:1;transform:scale(1) translateY(0)}} @keyframes bubbleFade{0%{opacity:1}100%{opacity:0}} @keyframes matrixHighlight{0%{text-shadow:0 0 2px rgba(0,255,65,.25)}30%{text-shadow:0 0 16px rgba(0,255,65,1),0 0 34px rgba(0,255,65,.65)}100%{text-shadow:0 0 6px rgba(0,255,65,.35)}} @keyframes rippleOut{0%{transform:translate(-50%,-50%) scale(.5);opacity:1}100%{transform:translate(calc(-50% + var(--tx)),calc(-50% + var(--ty))) scale(1);opacity:0}} @keyframes termCursorBlink{0%,49%{opacity:1}50%,100%{opacity:0}} @media (hover:hover) and (pointer:fine){.link-nav:hover{color:#00ff41}.btn-next:hover{background:rgba(0,255,65,.12)}.card-service:hover{background:#0a1a0a}.pill-stack:hover{color:#00ff41;border-color:rgba(0,255,65,.5)}.row-ai:hover{padding-left:22px}.portfolio-shot:hover{filter:none}.btn-price-cta:hover{background:rgba(0,255,65,.12)}.link-footer:hover{opacity:.7}} @media (min-width:1024px){.hero-grid{grid-template-columns:3fr 2fr!important}} @media (max-width:900px){.stack-grid{grid-template-columns:1fr!important}.process-grid{grid-template-columns:1fr 1fr!important}} @media (max-width:640px){.nav-links{display:none!important}.nav-toggle{display:inline-flex!important}.contact-grid{grid-template-columns:1fr!important}.services-grid{grid-template-columns:1fr!important}.process-grid{grid-template-columns:1fr!important}.price-grid{grid-template-columns:1fr!important}.stream-readout{display:none!important}.ai-table-head{display:none!important}.ai-table-row{grid-template-columns:28px 1fr!important}.ai-table-row>*:nth-child(3){grid-column:1/-1!important;margin-top:8px}.ai-table-row>*:nth-child(4){grid-column:1/-1!important;margin-top:4px}}`;
 export default function App(){return <div style={{background:"#000",color:"#00ff41",minHeight:"100vh"}}><style>{KEYFRAMES}</style><ScrollProgress/><ClickRipple/><Nav/><main id="top"><LiveConsole/><Hero/><DecodeStreamDivider/><Mission/><AIConsierge/><Services/><Stack/><Price/><Process/><Contact/><Footer/></main><WalkingCharacter/></div>;}
