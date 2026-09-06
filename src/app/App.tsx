@@ -3,25 +3,7 @@ import { motion, useScroll, useTransform } from "motion/react";
 import iconNode from "../assets/icon-node.png";
 import iconSpark from "../assets/icon-spark.png";
 import iconWhale from "../assets/icon-whale.png";
-import poseShout from "../assets/pose-shout.png";
-import poseSitFront from "../assets/pose-sit-front.png";
-import poseFront from "../assets/pose-front.png";
-import poseFrontSide from "../assets/pose-frontside.png";
-import poseSide from "../assets/pose-side.png";
-import poseBackSide from "../assets/pose-backside.png";
-import poseBack from "../assets/pose-back.png";
-import poseTumble1 from "../assets/pose-tumble-1.png";
-import poseTumble2 from "../assets/pose-tumble-2.png";
-import poseTumble3 from "../assets/pose-tumble-3.png";
-import poseDazed from "../assets/pose-dazed.png";
-import poseClimb from "../assets/pose-climb.png";
 import portfolioLanding from "../assets/portfolio-landing.jpg";
-import poseIdleThink from "../assets/pose-idle-think.png";
-import poseIdleCheer from "../assets/pose-idle-cheer.png";
-import poseCrouch from "../assets/pose-crouch.png";
-import poseClimbReach from "../assets/pose-climb-reach.png";
-import poseClimbCrest from "../assets/pose-climb-crest.png";
-import posePeek from "../assets/pose-peek.png";
 
 /* ─────────────────────────────────────────
    Matrix Rain Canvas
@@ -64,7 +46,7 @@ function useDecrypt(text: string, active: boolean, speed = 36) { const glyphs = 
 function Glitch({ children }: { children: string }) { const [glitching, setGlitching] = useState(false); const g = "01ｱｲｳｴｵ<>[]{}|\\"; useEffect(() => { const id = setInterval(() => { setGlitching(true); setTimeout(() => setGlitching(false), 110); }, 3400 + Math.random() * 5000); return () => clearInterval(id); }, []); if (!glitching) return <span>{children}</span>; return <span style={{ color: "#ff0040", textShadow: "-2px 0 #ff0040, 2px 0 #00ffff" }}>{children.split("").map(c => Math.random() > 0.55 ? g[(Math.random() * g.length) | 0] : c).join("")}</span>; }
 function Reveal({ children, className, delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) { const ref = useRef<HTMLDivElement>(null); const [v, setV] = useState(false); useEffect(() => { const el = ref.current; if (!el) return; const ob = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setV(true); ob.disconnect(); } }, { threshold: 0.08 }); ob.observe(el); return () => ob.disconnect(); }, []); return <div ref={ref} className={className} style={{ opacity: v ? 1 : 0, transform: v ? "none" : "translateY(28px)", filter: v ? "blur(0px)" : "blur(7px)", transition: `opacity 1.15s cubic-bezier(.16,1,.3,1) ${delay}ms, transform 1.15s cubic-bezier(.16,1,.3,1) ${delay}ms, filter 1.15s cubic-bezier(.16,1,.3,1) ${delay}ms` }}>{children}</div>; }
 function SignalBars() { const [level, setLevel] = useState(4); useEffect(() => { const id = setInterval(() => setLevel(Math.random() > 0.15 ? 4 : 3), 2800 + Math.random() * 2000); return () => clearInterval(id); }, []); return <span style={{ display: "inline-flex", alignItems: "flex-end", gap: 2, marginLeft: 10 }}>{[1,2,3,4].map(b => <span key={b} style={{ width: 3, height: b * 3 + 1, background: b <= level ? "#00ff41" : "#003b00", display: "block", transition: "background .5s", boxShadow: b <= level ? "0 0 4px #00ff41" : "none" }} />)}</span>; }
-const NAV_LINKS: [string,string][] = [["#services","Услуги"],["#ai","Консьерж"],["#stack","Инструменты"],["#price","Стоимость"],["#contact","Связаться"]];
+const NAV_LINKS: [string,string][] = [["#services","Услуги"],["#ai","Консьерж"],["#tools","Инструменты"],["#price","Стоимость"],["#contact","Связаться"]];
 function Nav() { const [scrolled,setScrolled]=useState(false); const [open,setOpen]=useState(false); useEffect(()=>{const h=()=>setScrolled(window.scrollY>60);window.addEventListener("scroll",h,{passive:true});return()=>window.removeEventListener("scroll",h)},[]); const mono:React.CSSProperties={fontFamily:"'JetBrains Mono',monospace",fontSize:11,letterSpacing:".14em",textTransform:"uppercase"}; return <header style={{position:"fixed",top:0,left:0,right:0,zIndex:80,borderBottom:scrolled||open?"1px solid rgba(0,255,65,.14)":"1px solid transparent",background:scrolled||open?"rgba(0,0,0,.93)":"transparent",backdropFilter:scrolled||open?"blur(12px)":"none",transition:"background .4s,border-color .4s"}}><div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"15px clamp(20px,5vw,90px)"}}><SignalBars/><nav className="nav-links" style={{display:"flex",gap:"clamp(14px,2.8vw,28px)",...mono}}>{NAV_LINKS.map(([href,label])=><a key={href} href={href} className="link-nav" style={{color:"#008f11",textDecoration:"none",transition:"color .2s"}}>{label}</a>)}</nav><button className="nav-toggle" onClick={()=>setOpen(o=>!o)} style={{...mono,display:"none",background:"transparent",border:"1px solid rgba(0,255,65,.35)",color:"#00ff41",padding:"6px 10px",cursor:"pointer"}}>[ {open?"×":"MENU"} ]</button></div>{open&&<nav className="nav-mobile-panel" style={{display:"flex",flexDirection:"column",padding:"4px clamp(20px,5vw,90px) 18px"}}>{NAV_LINKS.map(([href,label])=><a key={href} href={href} onClick={()=>setOpen(false)} style={{...mono,color:"#00ff41",textDecoration:"none",padding:"13px 0",borderTop:"1px solid rgba(0,255,65,.1)"}}>{label}</a>)}</nav>}</header>; }
 const DEAD_PIXELS=[{top:"28%",left:"9%"},{top:"71%",left:"82%"},{top:"44%",left:"58%"},{top:"17%",left:"73%"},{top:"88%",left:"22%"}];
 const STATUS_PHRASES=["Сайты, которые работают.","Без шаблонов.","Без посредников.","На связи в любое время."];
@@ -403,42 +385,94 @@ function Services() {
     </section>
   );
 }
-function Stack() {
-  const pills = ["HTML", "SCSS", "JavaScript", "TypeScript", "React", "Vue.js", "PHP", "WordPress", "WooCommerce", "Git", "Figma"];
-  const groups = [
-    { label: "Frontend", items: "React, Vue.js, TypeScript" },
-    { label: "Backend & CMS", items: "PHP, WordPress, WooCommerce" },
-    { label: "Вёрстка & Инструменты", items: "HTML, SCSS, Git, Figma" },
-  ];
+const TOOLS = [
+  { id: "console", label: "~/console", dots: true, bg: "#000", border: "rgba(0,255,65,.25)", headerBg: "#0a1a0a", headerBorder: "rgba(0,255,65,.18)", labelColor: "#008f11", glow: "rgba(0,255,65,.4)",
+    lines: [{ t: "$ git push origin main", c: "#00ff41" }, { t: "→ 3 files changed", c: "#008f11" }] },
+  { id: "powershell", label: "Windows PowerShell", bg: "#012456", border: "rgba(255,255,255,.28)", headerBg: "rgba(255,255,255,.07)", headerBorder: "rgba(255,255,255,.16)", labelColor: "#eaf1ff", glow: "rgba(62,166,255,.4)",
+    lines: [{ t: "PS C:\\projects> ./deploy.ps1", c: "#eaf1ff" }, { t: "Deploying to production...", c: "#7ec8e3" }] },
+  { id: "opencode", label: "opencode", bg: "#12181a", border: "rgba(45,212,191,.3)", headerBg: "rgba(45,212,191,.06)", headerBorder: "rgba(45,212,191,.2)", labelColor: "#2dd4bf", glow: "rgba(45,212,191,.35)",
+    lines: [{ t: "opencode> refactor auth module", c: "#2dd4bf" }, { t: "12 files updated · 0 errors", c: "#6b8b87" }] },
+  { id: "claude", label: "claude code", bg: "#faf3ea", border: "rgba(61,57,41,.14)", headerBg: "rgba(61,57,41,.04)", headerBorder: "rgba(61,57,41,.1)", labelColor: "#3d3929", glow: "rgba(217,119,87,.35)",
+    lines: [{ t: "добавь форму записи на сайт", c: "#3d3929", icon: true }, { t: "правки внесены, деплой готов", c: "#8a8272" }] },
+];
+function ToolCard({ tool, active }: { tool: typeof TOOLS[number]; active: boolean }) {
   return (
-    <section id="stack" style={{ padding: "clamp(80px,12vh,140px) clamp(20px,5vw,90px)", background: "#050f05", position: "relative", overflow: "hidden" }}>
-      <SectionRain />
-      <div style={{ position: "relative", zIndex: 1 }}>
+    <div className="tool-card" style={{ flexShrink: 0, width: 300, scrollSnapAlign: "center", transform: `scale(${active ? 1.12 : 0.9})`, opacity: active ? 1 : 0.55, transition: "transform .35s cubic-bezier(.16,1,.3,1), opacity .35s" }}>
+      <div style={{ background: tool.bg, border: `1px solid ${tool.border}`, height: 220, boxSizing: "border-box", boxShadow: active ? `0 0 46px ${tool.glow}, 0 24px 40px rgba(0,0,0,.5)` : "none", transition: "box-shadow .35s" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "10px 14px", background: tool.headerBg, borderBottom: `1px solid ${tool.headerBorder}` }}>
+          {tool.dots && ["#ff5f57", "#ffbd2e", "#28c840"].map(c => <span key={c} style={{ width: 9, height: 9, borderRadius: "50%", background: c }} />)}
+          <span style={{ marginLeft: tool.dots ? 6 : 0, fontSize: 11, color: tool.labelColor, fontFamily: "'JetBrains Mono',monospace" }}>{tool.label}</span>
+        </div>
+        <div style={{ padding: 18, fontSize: 13, lineHeight: 1.9, fontFamily: "'JetBrains Mono',monospace" }}>
+          {tool.lines.map((l, i) => (
+            <div key={i} style={{ color: l.c, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "flex", alignItems: "center", gap: 7 }}>
+              {l.icon && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}><path d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z" fill="#d97757" /></svg>}
+              {l.t}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+function Tools() {
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const [active, setActive] = useState(0);
+  useEffect(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    let raf = 0;
+    function updateActive() {
+      const cards = Array.from(el!.querySelectorAll<HTMLElement>(".tool-card"));
+      const center = el!.getBoundingClientRect().left + el!.clientWidth / 2;
+      let best = 0, bestDist = Infinity;
+      cards.forEach((c, i) => {
+        const r = c.getBoundingClientRect();
+        const dist = Math.abs(r.left + r.width / 2 - center);
+        if (dist < bestDist) { bestDist = dist; best = i; }
+      });
+      setActive(best);
+    }
+    function onScroll() { cancelAnimationFrame(raf); raf = requestAnimationFrame(updateActive); }
+    updateActive();
+    el.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    function onWheel(e: WheelEvent) {
+      if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+      const atStart = el!.scrollLeft <= 0;
+      const atEnd = el!.scrollLeft >= el!.scrollWidth - el!.clientWidth - 1;
+      if ((e.deltaY < 0 && atStart) || (e.deltaY > 0 && atEnd)) return;
+      e.preventDefault();
+      el!.scrollLeft += e.deltaY;
+    }
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => { el.removeEventListener("scroll", onScroll); window.removeEventListener("resize", onScroll); el.removeEventListener("wheel", onWheel); cancelAnimationFrame(raf); };
+  }, []);
+  return (
+    <section id="tools" style={{ padding: "clamp(80px,12vh,140px) 0", background: "#050f05", position: "relative", overflow: "hidden" }}>
+      <SectionRain opacity={.18} />
+      <div style={{ position: "relative", zIndex: 1, padding: "0 clamp(20px,5vw,90px)" }}>
         <Reveal>
-          <div style={{ borderTop: "1px solid rgba(0,255,65,.18)", paddingTop: 20, marginBottom: 40 }}>
-            <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, color: "#008f11" }}>02 / Инструменты</span>
-            <h2 style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: "clamp(22px,3.6vw,52px)", color: "#f2f2f2", marginTop: 18 }}>Стек, на котором собираю сайты.</h2>
+          <div style={{ borderTop: "1px solid rgba(0,255,65,.18)", paddingTop: 20, display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 12 }}>
+            <div>
+              <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, color: "#008f11" }}>02 / Инструменты</span>
+              <h2 style={{ fontFamily: "'Exo 2',sans-serif", fontWeight: 700, fontSize: "clamp(22px,3.6vw,44px)", color: "#f2f2f2", marginTop: 18, maxWidth: 560 }}>Открыто на экране, пока я работаю.</h2>
+            </div>
+            <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, letterSpacing: ".14em", textTransform: "uppercase", color: "rgba(0,255,65,.4)", whiteSpace: "nowrap" }}>&larr; прокрутите &rarr;</span>
           </div>
         </Reveal>
-        <Reveal delay={80}>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 40 }}>
-            {pills.map((p) => (
-              <span key={p} className="pill-stack" style={{ border: "1px solid rgba(0,255,65,.25)", color: "#008f11", fontFamily: "'JetBrains Mono',monospace", fontSize: 12, letterSpacing: ".08em", textTransform: "uppercase", padding: "9px 15px", transition: "color .2s,border-color .2s" }}>
-                {p}
-              </span>
-            ))}
+      </div>
+      <Reveal delay={80}>
+        <div style={{ position: "relative", marginTop: 60 }}>
+          <div ref={scrollerRef} className="tools-scroller" style={{ display: "flex", gap: 34, overflowX: "auto", overflowY: "hidden", scrollSnapType: "x proximity", padding: "30px calc(50vw - 150px) 10px" }}>
+            {TOOLS.map((t, i) => <ToolCard key={t.id} tool={t} active={i === active} />)}
           </div>
-        </Reveal>
-        <Reveal delay={140}>
-          <div className="stack-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 1, background: "rgba(0,255,65,.14)", border: "1px solid rgba(0,255,65,.14)" }}>
-            {groups.map((g) => (
-              <div key={g.label} style={{ background: "#050f05", padding: "clamp(22px,3.4vw,34px)" }}>
-                <h3 style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "#00ff41", marginBottom: 12 }}>{g.label}</h3>
-                <p style={{ color: "#9a9a9a", fontSize: 14, lineHeight: 1.7, fontFamily: "'Space Grotesk',sans-serif" }}>{g.items}</p>
-              </div>
-            ))}
-          </div>
-        </Reveal>
+          <div style={{ position: "absolute", top: 0, bottom: 0, left: 0, width: 60, background: "linear-gradient(90deg,#050f05,transparent)", pointerEvents: "none" }} />
+          <div style={{ position: "absolute", top: 0, bottom: 0, right: 0, width: 60, background: "linear-gradient(270deg,#050f05,transparent)", pointerEvents: "none" }} />
+        </div>
+      </Reveal>
+      <div style={{ display: "flex", gap: 8, justifyContent: "center", marginTop: 26 }}>
+        {TOOLS.map((t, i) => <span key={t.id} style={{ width: 6, height: 6, borderRadius: "50%", background: i === active ? "#00ff41" : "rgba(0,255,65,.25)", boxShadow: i === active ? "0 0 6px #00ff41" : "none", transition: "background .3s" }} />)}
       </div>
     </section>
   );
@@ -518,543 +552,6 @@ function TerminalContactForm() {
 function Contact(){return <section id="contact" style={{padding:"clamp(80px,12vh,140px) clamp(20px,5vw,90px)",background:"#050f05",borderTop:"1px solid rgba(0,255,65,.18)",position:"relative",overflow:"hidden"}}><SectionRain/><div className="contact-grid" style={{position:"relative",zIndex:1,display:"grid",gridTemplateColumns:"1.1fr .9fr",gap:60}}><div><span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:"#008f11"}}>05 / Связаться</span><h2 style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:700,fontSize:"clamp(26px,5vw,70px)",color:"#00ff41",marginTop:20}}>Расскажите,<br/>что нужно<br/>сделать.</h2></div><TerminalBox title="~/contact/form.sh" accent><TerminalContactForm/></TerminalBox></div></section>;}
 const FOOTER_LINKS:[string,string][]=[["https://t.me/Must_D1e","Telegram"],["https://github.com/zakhsergey7-pixel","GitHub"],["mailto:zakhsergey7@gmail.com","Email"]];
 function Footer(){return <footer style={{background:"#050f05",borderTop:"1px solid rgba(0,255,65,.18)",padding:"22px clamp(20px,5vw,90px)",fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:"#8a8a8a",display:"flex",flexWrap:"wrap",justifyContent:"space-between",alignItems:"center",gap:14,position:"relative",overflow:"hidden"}}><SectionRain opacity={.26} speed={100}/><span style={{position:"relative",zIndex:1}}>© 2026 Захаров Сергей</span><div style={{position:"relative",zIndex:1,display:"flex",flexWrap:"wrap",gap:18}}>{FOOTER_LINKS.map(([href,label])=><a key={label} href={href} target={href.startsWith("http")?"_blank":undefined} rel={href.startsWith("http")?"noopener noreferrer":undefined} className="link-footer" style={{color:"#00ff41",textDecoration:"none",transition:"opacity .2s"}}>{label}</a>)}</div><a href="#top" style={{position:"relative",zIndex:1,color:"#00ff41",textDecoration:"none"}}>Наверх ↑</a></footer>;}
-/* ─────────────────────────────────────────
-   Walking character — a small narrative +
-   roaming state machine, not a flat pace:
-
-   1. "introSit"  → sits on the ~/console box
-      (right side of its header) from the
-      moment the page loads, legs hanging
-      over the front, while the boot gate is
-      up.
-   2. On "Дальше" → "fallShout": screams and
-      falls from the console over to the
-      zakharov.dev terminal card (or, if that
-      card is hidden on narrow screens, to
-      the bottom of the viewport).
-   3. "landBounce" → a quick recovery shake
-      ("dusts off" — no dedicated frame, so
-      approximated with a wobble).
-   4. "landSit" → sits on that block for a
-      few seconds.
-   5. "roam" → the ongoing loop: walks to
-      random spots (turning through the
-      5-pose turnaround like a mini 3D
-      turntable instead of flipping), stops
-      to look at the viewer, or climbs onto a
-      nearby block/heading and actually sits
-      on it (front/side sit poses) for a
-      while before hopping down.
-
-   Positions are tracked in raw viewport
-   pixels (not percent) so it can dock
-   precisely to specific elements.
-───────────────────────────────────────── */
-const CHAR_SECTION_IDS = ["hero", "ai", "services", "stack", "price", "process", "contact"];
-const CHAR_TALK_PHRASES = [
-  "hi, i'm ai agent", "ai-pixel here", "01001000 01001001", "system.exe running",
-  "просто прохожу мимо", "не тыкай, я работаю", "заряжен на 87%", "сижу, смотрю на тебя",
-  "compiling thoughts...", "я не баг, я фича", "matrix has you", "нажми ещё раз",
-  "loading personality...", "печатаю твой сайт",
-];
-const CHAR_STAND = [poseFront, poseFrontSide, poseSide, poseBackSide, poseBack];
-const CHAR_STAND_RATIO = [211 / 500, 201 / 500, 119 / 500, 201 / 500, 215 / 500];
-const CHAR_SIT_RATIO = 206 / 343;
-const CHAR_SIT_HIP_FRACTION = 0.58;
-const CHAR_SHOUT_RATIO = 288 / 237;
-const CHAR_TUMBLE = [poseTumble1, poseTumble2, poseTumble3];
-const CHAR_TUMBLE_RATIO = [106 / 136, 98 / 103, 117 / 104];
-const CHAR_DAZED_RATIO = 138 / 175;
-const CHAR_CLIMB_RATIO = 103 / 143;
-const CHAR_IDLE_LOOK = [
-  { src: poseFront, ratio: CHAR_STAND_RATIO[0] },
-  { src: poseIdleThink, ratio: 76 / 148 },
-  { src: poseIdleCheer, ratio: 89 / 160 },
-];
-const CHAR_CROUCH_RATIO = 126 / 178;
-const CHAR_PEEK_RATIO = 74 / 88;
-// A real multi-stage climb instead of one held frame: each entry takes over
-// once the eased vertical rise passes `at`, so the character visibly coils at
-// the base, jumps for the ledge, hauls himself up and finally swings a knee
-// over the top edge before settling into the sit.
-const CHAR_CLIMB_FRAMES = [
-  { at: 0, src: poseCrouch, ratio: CHAR_CROUCH_RATIO },
-  { at: 0.12, src: poseClimbReach, ratio: 130 / 158 },
-  { at: 0.42, src: poseClimb, ratio: CHAR_CLIMB_RATIO },
-  { at: 0.76, src: poseClimbCrest, ratio: 79 / 118 },
-];
-const CHAR_CLIMB_MS = 1180;
-const CHAR_CLIMB_SWAY_PX = 9;
-// boxes wide/tall enough to actually disappear behind
-const CHAR_HIDE_SELECTOR = ".card-service, .card-price-base, .card-price-full, .pill-stack";
-const CHAR_HIDE_CLIP_PCT = 52;
-const CHAR_PERCH_SELECTOR = ".pill-stack, .card-service, .card-price-base, .card-price-full";
-const CHAR_HEIGHT_PX = 84;
-function charBoxHeightPx() { return Math.min(84, Math.max(64, window.innerWidth * 0.135)); }
-function sitSeatOffsetPx() { return charBoxHeightPx() * CHAR_SIT_HIP_FRACTION; }
-
-type CharPhase = "introSit" | "fallShout" | "landBounce" | "landSit" | "roam";
-type CharActivity =
-  | "walk" | "walkToExamine" | "examine" | "look"
-  | "perchMove" | "perchLook" | "perchClimb" | "perchHold"
-  | "hideMove" | "hideDuck" | "hiding";
-
-function WalkingCharacter() {
-  const [left, setLeft] = useState(0);
-  const [top, setTop] = useState<number | null>(null);
-  const [onFloor, setOnFloor] = useState(false);
-  const [mirror, setMirror] = useState(false);
-  const [sprite, setSprite] = useState<{ src: string; ratio: number }>({ src: poseSitFront, ratio: CHAR_SIT_RATIO });
-  const [shake, setShake] = useState(0);
-  const [fallToken, setFallToken] = useState(0);
-  const [tumbling, setTumbling] = useState(false);
-  const [ready, setReady] = useState(false);
-  const [bubble, setBubble] = useState<{ text: string; key: number } | null>(null);
-  const [clipPct, setClipPct] = useState(0);
-
-  useEffect(() => {
-    if (!bubble) return;
-    const id = window.setTimeout(() => setBubble(b => (b && b.key === bubble.key ? null : b)), 2600);
-    return () => clearTimeout(id);
-  }, [bubble]);
-
-  function handleTalk() {
-    const text = CHAR_TALK_PHRASES[(Math.random() * CHAR_TALK_PHRASES.length) | 0];
-    setBubble({ text, key: Date.now() });
-    window.dispatchEvent(new CustomEvent("char:talk"));
-  }
-
-  useEffect(() => {
-    const consoleBox = document.getElementById("console-box");
-    if (!consoleBox) { setReady(true); return; }
-    const r = consoleBox.getBoundingClientRect();
-    setLeft(r.left + r.width * 0.8);
-    setTop(r.top - sitSeatOffsetPx());
-    setOnFloor(false);
-    setSprite({ src: poseSitFront, ratio: CHAR_SIT_RATIO });
-    setMirror(false);
-    setReady(true);
-  }, []);
-
-  useEffect(() => {
-    if (!ready) return;
-    const phaseRef: { v: CharPhase } = { v: "introSit" };
-    const activityRef: { v: CharActivity } = { v: "walk" };
-    const leftRef = { v: left };
-    const topRef = { v: top ?? 0 };
-    const poseRef = { v: 2 };
-    const mirrorRef = { v: false };
-    const targetXRef = { v: left };
-    const untilRef = { v: 0 };
-    const perchElRef: { v: HTMLElement | null } = { v: null };
-    const lookVariantRef = { v: false };
-    const climbStartRef = { v: 0 };
-    const climbFromRef = { v: 0 };
-    const climbFrameRef = { v: -1 };
-    const hideSideRef: { v: 1 | -1 } = { v: 1 };
-    let lastPoseStep = 0;
-    let raf = 0;
-    let transitionTimer = 0;
-    let tumbleTimer = 0;
-
-    function floorLeftBounds() { return [24, window.innerWidth - 24]; }
-    function floorTopPx() { return window.innerHeight - 24 - CHAR_HEIGHT_PX; }
-
-    function pickPerchTarget(): HTMLElement | null {
-      const els = Array.from(document.querySelectorAll(CHAR_PERCH_SELECTOR)) as HTMLElement[];
-      const vis = els.filter(el => {
-        const r = el.getBoundingClientRect();
-        const isHeading = el.tagName === "H1" || el.tagName === "H2";
-        const maxW = isHeading ? window.innerWidth - 48 : 520;
-        return r.top > 90 && r.bottom < window.innerHeight - 60 && r.width > 26 && r.width < maxW && r.height < 260;
-      });
-      return vis.length ? vis[(Math.random() * vis.length) | 0] : null;
-    }
-
-    // for wide headings, land somewhere along the phrase rather than dead
-    // center — reads as climbing onto "some word" rather than the middle
-    function perchLandingX(el: HTMLElement, r: DOMRect): number {
-      const isHeading = el.tagName === "H1" || el.tagName === "H2";
-      if (!isHeading) return r.left + r.width / 2;
-      const margin = Math.min(r.width * 0.15, 60);
-      return r.left + margin + Math.random() * Math.max(1, r.width - margin * 2);
-    }
-
-    function pickExamineTarget(): HTMLElement | null {
-      const el = document.getElementById("whoami-box");
-      if (!el) return null;
-      const r = el.getBoundingClientRect();
-      if (r.width < 20 || r.top < 90 || r.bottom > window.innerHeight - 60) return null;
-      return el;
-    }
-
-    // something wide/tall enough that ducking behind its edge reads as hiding
-    function pickHideTarget(): HTMLElement | null {
-      const els = Array.from(document.querySelectorAll(CHAR_HIDE_SELECTOR)) as HTMLElement[];
-      const vis = els.filter(el => {
-        const r = el.getBoundingClientRect();
-        return r.top > 90 && r.bottom < window.innerHeight - 40 && r.width > 110 && r.height > 54;
-      });
-      return vis.length ? vis[(Math.random() * vis.length) | 0] : null;
-    }
-
-    function startWalkAnywhere(t: number) {
-      const [lo, hi] = floorLeftBounds();
-      targetXRef.v = lo + Math.random() * (hi - lo);
-      activityRef.v = "walk";
-      untilRef.v = t + 2200 + Math.random() * 2400;
-    }
-
-    function decideNext(t: number) {
-      setClipPct(0);
-      const roll = Math.random();
-      if (roll < 0.36) {
-        activityRef.v = "look";
-        lookVariantRef.v = false;
-        untilRef.v = t + 2200 + Math.random() * 2400;
-      } else if (roll < 0.46) {
-        const el = pickExamineTarget();
-        if (el) {
-          const r = el.getBoundingClientRect();
-          const side = leftRef.v < r.left + r.width / 2 ? -1 : 1;
-          perchElRef.v = el;
-          targetXRef.v = Math.min(window.innerWidth - 24, Math.max(24, r.left + (side === 1 ? r.width + 30 : -30)));
-          activityRef.v = "walkToExamine";
-          untilRef.v = t + 6000;
-        } else { startWalkAnywhere(t); }
-      } else if (roll < 0.58) {
-        const el = pickHideTarget();
-        if (el) {
-          const r = el.getBoundingClientRect();
-          // duck behind the near edge, so he doesn't cross the whole box first
-          hideSideRef.v = leftRef.v < r.left + r.width / 2 ? -1 : 1;
-          perchElRef.v = el;
-          targetXRef.v = Math.min(window.innerWidth - 24, Math.max(24, hideSideRef.v === 1 ? r.right : r.left));
-          activityRef.v = "hideMove";
-          untilRef.v = t + 6000;
-        } else { startWalkAnywhere(t); }
-      } else if (roll < 0.84) {
-        const el = pickPerchTarget();
-        if (el) {
-          perchElRef.v = el;
-          const r = el.getBoundingClientRect();
-          targetXRef.v = Math.min(window.innerWidth - 24, Math.max(24, perchLandingX(el, r)));
-          activityRef.v = "perchMove";
-          untilRef.v = t + 6000;
-        } else { startWalkAnywhere(t); }
-      } else {
-        startWalkAnywhere(t);
-      }
-    }
-
-    function stepPoseToward(desiredIdx: number, desiredMirror: boolean, t: number): boolean {
-      if (poseRef.v === desiredIdx && mirrorRef.v === desiredMirror) return true;
-      if (t - lastPoseStep < 95) return false;
-      lastPoseStep = t;
-      if (mirrorRef.v !== desiredMirror) {
-        if (poseRef.v > 0) { poseRef.v -= 1; if (poseRef.v === 0) mirrorRef.v = desiredMirror; }
-        else { mirrorRef.v = desiredMirror; }
-      } else if (poseRef.v < desiredIdx) poseRef.v += 1;
-      else if (poseRef.v > desiredIdx) poseRef.v -= 1;
-      setSprite({ src: CHAR_STAND[poseRef.v], ratio: CHAR_STAND_RATIO[poseRef.v] });
-      setMirror(mirrorRef.v);
-      return poseRef.v === desiredIdx && mirrorRef.v === desiredMirror;
-    }
-
-    let fallStart = 0;
-    let fallSettled = false;
-
-    function fallTarget(): { tx: number; ty: number; onFloorNext: boolean } {
-      const whoami = document.getElementById("whoami-box");
-      const wr = whoami ? whoami.getBoundingClientRect() : null;
-      if (wr && wr.width > 20 && wr.top > -200 && wr.top < window.innerHeight + 400) {
-        return { tx: wr.left + wr.width / 2, ty: wr.top - sitSeatOffsetPx(), onFloorNext: false };
-      }
-      return { tx: window.innerWidth / 2, ty: floorTopPx(), onFloorNext: true };
-    }
-
-    function startFall() {
-      phaseRef.v = "fallShout";
-      fallStart = performance.now();
-      fallSettled = false;
-      setMirror(fallTarget().tx < leftRef.v);
-      setSprite({ src: poseShout, ratio: CHAR_SHOUT_RATIO });
-      setOnFloor(false);
-      transitionTimer = window.setTimeout(() => {
-        let tIdx = 0;
-        setSprite({ src: CHAR_TUMBLE[0], ratio: CHAR_TUMBLE_RATIO[0] });
-        setTumbling(true);
-        tumbleTimer = window.setInterval(() => {
-          tIdx = (tIdx + 1) % CHAR_TUMBLE.length;
-          setSprite({ src: CHAR_TUMBLE[tIdx], ratio: CHAR_TUMBLE_RATIO[tIdx] });
-        }, 150);
-      }, 260);
-    }
-
-    function proceedToLand(onFloorNext: boolean) {
-      clearInterval(tumbleTimer);
-      phaseRef.v = "landBounce";
-      setTumbling(false);
-      setSprite({ src: poseDazed, ratio: CHAR_DAZED_RATIO });
-      setShake(s => s + 1);
-      setOnFloor(onFloorNext);
-      clearTimeout(transitionTimer);
-      transitionTimer = window.setTimeout(() => {
-        phaseRef.v = "landSit";
-        setSprite({ src: poseSitFront, ratio: CHAR_SIT_RATIO });
-        transitionTimer = window.setTimeout(() => {
-          phaseRef.v = "roam";
-          poseRef.v = 2; mirrorRef.v = false;
-          setSprite({ src: CHAR_STAND[2], ratio: CHAR_STAND_RATIO[2] });
-          setTop(null); setOnFloor(true);
-          const [lo, hi] = floorLeftBounds();
-          leftRef.v = Math.min(hi, Math.max(lo, leftRef.v));
-          targetXRef.v = lo + Math.random() * (hi - lo);
-          activityRef.v = "walk";
-          untilRef.v = performance.now() + 3000 + Math.random() * 3000;
-        }, 2800 + Math.random() * 1400);
-      }, 420);
-    }
-
-    function onNext() { if (phaseRef.v === "introSit") startFall(); }
-    window.addEventListener("char:next", onNext);
-
-    function onTalk() {
-      if (phaseRef.v !== "roam") return;
-      const until = performance.now() + 2500;
-      if (activityRef.v !== "walk" && activityRef.v !== "look" && activityRef.v !== "examine") return;
-      if (activityRef.v !== "look") lookVariantRef.v = false;
-      activityRef.v = "look";
-      untilRef.v = Math.max(untilRef.v, until);
-    }
-    window.addEventListener("char:talk", onTalk);
-
-    function tick(t: number) {
-      raf = requestAnimationFrame(tick);
-
-      if (phaseRef.v === "introSit") {
-        const consoleBox = document.getElementById("console-box");
-        if (consoleBox) {
-          const r = consoleBox.getBoundingClientRect();
-          leftRef.v = r.left + r.width * 0.8;
-          topRef.v = r.top - sitSeatOffsetPx();
-          setLeft(leftRef.v); setTop(topRef.v);
-        }
-        return;
-      }
-      if (phaseRef.v === "fallShout") {
-        if (fallSettled) return;
-        const { tx, ty, onFloorNext } = fallTarget();
-        const elapsed = t - fallStart;
-        leftRef.v += (tx - leftRef.v) * 0.16;
-        topRef.v += (ty - topRef.v) * 0.16;
-        setLeft(leftRef.v); setTop(topRef.v);
-        const close = Math.abs(tx - leftRef.v) < 3 && Math.abs(ty - topRef.v) < 3;
-        if ((close && elapsed > 500) || elapsed > 1500) {
-          fallSettled = true;
-          leftRef.v = tx; topRef.v = ty;
-          setLeft(tx); setTop(ty);
-          proceedToLand(onFloorNext);
-        }
-        return;
-      }
-      if (phaseRef.v !== "roam") return;
-      const activity = activityRef.v;
-
-      if (activity === "walk" || activity === "perchMove" || activity === "walkToExamine" || activity === "hideMove") {
-        const dx = targetXRef.v - leftRef.v;
-        if (Math.abs(dx) < 2) {
-          if (activity === "perchMove") {
-            const el = perchElRef.v;
-            if (el) {
-              // stand at the foot of the block and size it up before climbing
-              topRef.v = floorTopPx();
-              setTop(topRef.v); setOnFloor(false);
-              const r = el.getBoundingClientRect();
-              mirrorRef.v = leftRef.v < r.left + r.width / 2;
-              setMirror(mirrorRef.v);
-              setSprite({ src: posePeek, ratio: CHAR_PEEK_RATIO });
-              activityRef.v = "perchLook";
-              untilRef.v = t + 560 + Math.random() * 360;
-            } else { decideNext(t); }
-          } else if (activity === "hideMove") {
-            const el = perchElRef.v;
-            if (el) {
-              topRef.v = floorTopPx();
-              setTop(topRef.v); setOnFloor(false);
-              mirrorRef.v = hideSideRef.v === 1;
-              setMirror(mirrorRef.v);
-              setSprite({ src: poseCrouch, ratio: CHAR_CROUCH_RATIO });
-              climbStartRef.v = t;
-              climbFromRef.v = topRef.v;
-              activityRef.v = "hideDuck";
-            } else { decideNext(t); }
-          } else if (activity === "walkToExamine") {
-            const el = perchElRef.v;
-            if (el) {
-              const r = el.getBoundingClientRect();
-              const faceRight = leftRef.v < r.left + r.width / 2;
-              stepPoseToward(2, faceRight, t);
-              activityRef.v = "examine";
-              untilRef.v = t + 2600 + Math.random() * 2200;
-            } else { decideNext(t); }
-          } else { decideNext(t); }
-        } else {
-          const dir = dx > 0 ? 1 : -1;
-          const ready2 = stepPoseToward(2, dir === 1, t);
-          if (ready2) {
-            leftRef.v = Math.max(24, Math.min(window.innerWidth - 24, leftRef.v + dir * 110 * (1 / 60)));
-            setLeft(leftRef.v);
-          }
-          // every directed walk has a deadline too, so an unreachable target
-          // (element clipped to the screen edge) can never wedge him in place
-          if (t > untilRef.v) { perchElRef.v = null; decideNext(t); }
-        }
-      } else if (activity === "perchLook") {
-        const el = perchElRef.v;
-        if (!el) { setOnFloor(true); decideNext(t); }
-        else if (t > untilRef.v) {
-          climbStartRef.v = t;
-          climbFromRef.v = topRef.v;
-          climbFrameRef.v = -1;
-          activityRef.v = "perchClimb";
-        }
-      } else if (activity === "perchClimb") {
-        const el = perchElRef.v;
-        if (el) {
-          const r = el.getBoundingClientRect();
-          const targetTop = r.top - sitSeatOffsetPx();
-          const p = Math.min(1, (t - climbStartRef.v) / CHAR_CLIMB_MS);
-          // smoothstep: slow coil at the base, fast haul, soft crest
-          const eased = p * p * (3 - 2 * p);
-          topRef.v = climbFromRef.v + (targetTop - climbFromRef.v) * eased;
-          setTop(topRef.v);
-          // lean into the block while hauling, then settle back over the edge
-          const sway = Math.sin(p * Math.PI) * CHAR_CLIMB_SWAY_PX * (mirrorRef.v ? 1 : -1);
-          setLeft(leftRef.v + sway);
-          let idx = 0;
-          while (idx + 1 < CHAR_CLIMB_FRAMES.length && p >= CHAR_CLIMB_FRAMES[idx + 1].at) idx++;
-          if (idx !== climbFrameRef.v) {
-            climbFrameRef.v = idx;
-            const f = CHAR_CLIMB_FRAMES[idx];
-            setSprite({ src: f.src, ratio: f.ratio });
-          }
-          if (p >= 1) {
-            topRef.v = targetTop; setTop(targetTop); setLeft(leftRef.v); setOnFloor(false);
-            setSprite({ src: poseSitFront, ratio: CHAR_SIT_RATIO });
-            // deliberately no charFall replay here: he climbed up under his own
-            // power, so he must settle into the sit from the crest frame rather
-            // than pop 160px into the air and drop back onto the block
-            activityRef.v = "perchHold";
-            untilRef.v = t + 3000 + Math.random() * 2600;
-          }
-        } else { setOnFloor(true); decideNext(t); }
-      } else if (activity === "hideDuck" || activity === "hiding") {
-        const el = perchElRef.v;
-        const r = el ? el.getBoundingClientRect() : null;
-        if (!el || !r || r.width < 10 || r.top < 40 || r.bottom > window.innerHeight - 10) {
-          setClipPct(0); setTop(null); setOnFloor(true); perchElRef.v = null; setFallToken(v => v + 1); decideNext(t);
-        } else {
-          // hug the box's near edge: only the head/shoulder side stays visible
-          leftRef.v = hideSideRef.v === 1 ? r.right : r.left;
-          setLeft(leftRef.v);
-          const targetTop = r.bottom - charBoxHeightPx();
-          if (activity === "hideDuck") {
-            const p = Math.min(1, (t - climbStartRef.v) / 420);
-            topRef.v = climbFromRef.v + (targetTop - climbFromRef.v) * (p * p * (3 - 2 * p));
-            setTop(topRef.v);
-            if (p >= 1) {
-              setSprite({ src: posePeek, ratio: CHAR_PEEK_RATIO });
-              setClipPct(CHAR_HIDE_CLIP_PCT);
-              activityRef.v = "hiding";
-              untilRef.v = t + 2400 + Math.random() * 2200;
-            }
-          } else {
-            topRef.v = targetTop;
-            setTop(topRef.v);
-            if (t > untilRef.v) {
-              setClipPct(0); setTop(null); setOnFloor(true); perchElRef.v = null; setFallToken(v => v + 1); decideNext(t);
-            }
-          }
-        }
-      } else if (activity === "examine") {
-        const el = perchElRef.v;
-        if (el) {
-          const r = el.getBoundingClientRect();
-          const faceRight = leftRef.v < r.left + r.width / 2;
-          stepPoseToward(2, faceRight, t);
-        }
-        if (t > untilRef.v) decideNext(t);
-      } else if (activity === "look") {
-        const turned = stepPoseToward(0, mirrorRef.v, t);
-        if (turned && !lookVariantRef.v) {
-          lookVariantRef.v = true;
-          const variant = CHAR_IDLE_LOOK[(Math.random() * CHAR_IDLE_LOOK.length) | 0];
-          setSprite(variant);
-        }
-        if (t > untilRef.v) decideNext(t);
-      } else if (activity === "perchHold") {
-        const el = perchElRef.v;
-        if (el) {
-          const r = el.getBoundingClientRect();
-          if (r.top < 60 || r.top > window.innerHeight - 40 || r.width < 10) {
-            setTop(null); setOnFloor(true); perchElRef.v = null; setFallToken(v => v + 1); decideNext(t);
-          } else {
-            topRef.v = r.top - sitSeatOffsetPx();
-            setTop(topRef.v);
-            if (t > untilRef.v) { setTop(null); setOnFloor(true); perchElRef.v = null; setFallToken(v => v + 1); decideNext(t); }
-          }
-        } else { decideNext(t); }
-      }
-    }
-    raf = requestAnimationFrame(tick);
-    return () => { cancelAnimationFrame(raf); clearTimeout(transitionTimer); clearInterval(tumbleTimer); window.removeEventListener("char:next", onNext); window.removeEventListener("char:talk", onTalk); };
-  }, [ready]);
-
-  useEffect(() => {
-    if (!ready) return;
-    const els = CHAR_SECTION_IDS.map(id => document.getElementById(id)).filter(Boolean) as HTMLElement[];
-    let current = "";
-    const ob = new IntersectionObserver((entries) => {
-      let best: IntersectionObserverEntry | null = null;
-      for (const en of entries) if (en.isIntersecting && (!best || en.intersectionRatio > best.intersectionRatio)) best = en;
-      if (best && best.target.id !== current) { if (current) setFallToken(v => v + 1); current = best.target.id; }
-    }, { threshold: [0.3, 0.5, 0.7] });
-    els.forEach(el => ob.observe(el));
-    return () => ob.disconnect();
-  }, [ready]);
-
-  if (!ready) return null;
-  const posStyle: React.CSSProperties = onFloor ? { bottom: 24 } : { top: top ?? 0 };
-  return (
-    <div style={{ position: "fixed", left, ...posStyle, transform: `translateX(-50%) scaleX(${mirror ? -1 : 1})`, zIndex: 60, pointerEvents: "none" }}>
-      <div key={shake} style={{ animation: "charShake .42s ease-in-out" }}>
-        <div key={fallToken} style={{ animation: "charFall .75s cubic-bezier(.34,1.4,.4,1) both" }}>
-          <div style={{ animation: tumbling ? "none" : "charBob .6s ease-in-out infinite" }}>
-            <div style={{ animation: tumbling ? "charFlail .3s ease-in-out infinite" : "none" }}>
-              <div style={{ position: "relative", width: "clamp(80px,17vw,105px)", height: "clamp(64px,13.5vw,84px)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
-                {bubble && (
-                  <div key={bubble.key} style={{ position: "absolute", bottom: "100%", left: "50%", marginBottom: 8, transform: `translateX(-50%) scaleX(${mirror ? -1 : 1})`, zIndex: 61 }}>
-                    <div style={{ position: "relative", background: "#050f05", border: "1px solid rgba(0,255,65,.55)", boxShadow: "0 0 14px rgba(0,255,65,.22)", color: "#00ff41", fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: ".02em", padding: "7px 11px", whiteSpace: "nowrap", animation: "bubblePop .22s cubic-bezier(.34,1.4,.4,1) both, bubbleFade .3s ease-in 2.2s forwards" }}>
-                      {bubble.text}
-                      <span style={{ position: "absolute", bottom: -5, left: "50%", width: 9, height: 9, background: "#050f05", borderRight: "1px solid rgba(0,255,65,.55)", borderBottom: "1px solid rgba(0,255,65,.55)", transform: "translateX(-50%) rotate(45deg)" }} />
-                    </div>
-                  </div>
-                )}
-                <img
-                  src={sprite.src}
-                  onClick={handleTalk}
-                  style={{ display: "block", maxWidth: "100%", maxHeight: "100%", width: "auto", height: "auto", filter: "drop-shadow(0 6px 6px rgba(0,0,0,.5))", pointerEvents: "auto", cursor: "pointer", clipPath: clipPct ? `inset(0 ${clipPct}% 0 0)` : "none", transition: "clip-path .25s ease" }}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 const RIPPLE_CHARS = "01ｱｲｳｴｵｶﾀﾁﾂ<>[]{}|/\\+—";
 function RippleBurst({ x, y }: { x: number; y: number }) {
   const n = 10;
@@ -1115,5 +612,5 @@ function ScrollProgress() {
   );
 }
 
-const KEYFRAMES=`a:focus-visible,button:focus-visible{outline:2px solid rgba(0,255,65,.6);outline-offset:2px}.input-terminal:focus-visible{outline:none;box-shadow:0 0 0 1px rgba(0,255,65,.55);background:rgba(0,255,65,.06)}@keyframes slideBar{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}} @keyframes marqAnim{from{transform:translateX(0)}to{transform:translateX(-50%)}} @keyframes neonPulse{0%,100%{text-shadow:0 0 10px rgba(0,255,65,.4),0 0 28px rgba(0,255,65,.18)}50%{text-shadow:0 0 20px rgba(0,255,65,.85),0 0 52px rgba(0,255,65,.4)}} @keyframes hudBlink{0%,93%,100%{opacity:1}94%,96%{opacity:0}95%,97%{opacity:1}98%,99%{opacity:.3}} @keyframes borderGlow{0%,100%{border-color:rgba(0,255,65,.2)}50%{border-color:rgba(0,255,65,.5)}} @keyframes rowGlowDone{0%,100%{background:rgba(0,255,65,.02)}50%{background:rgba(0,255,65,.07)}} @keyframes rowGlowActive{0%,100%{background:rgba(0,255,65,.04)}50%{background:rgba(0,255,65,.14)}} @keyframes rowGlowRunning{0%,100%{background:rgba(0,255,65,.03)}50%{background:rgba(0,255,65,.10)}} @keyframes rowGlowQueued{0%,100%{background:rgba(0,255,65,.015)}50%{background:rgba(0,255,65,.05)}} @keyframes charFall{0%{transform:translateY(-160px);opacity:0}55%{transform:translateY(14px);opacity:1}75%{transform:translateY(-8px)}100%{transform:translateY(0)}} @keyframes charBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}} @keyframes charShake{0%,100%{transform:rotate(0deg)}20%{transform:rotate(-7deg)}40%{transform:rotate(6deg)}60%{transform:rotate(-4deg)}80%{transform:rotate(3deg)}} @keyframes charFlail{0%,100%{transform:rotate(-9deg)}50%{transform:rotate(9deg)}} @keyframes bubblePop{0%{opacity:0;transform:scale(.7) translateY(4px)}100%{opacity:1;transform:scale(1) translateY(0)}} @keyframes bubbleFade{0%{opacity:1}100%{opacity:0}} @keyframes matrixHighlight{0%{text-shadow:0 0 2px rgba(0,255,65,.25)}30%{text-shadow:0 0 16px rgba(0,255,65,1),0 0 34px rgba(0,255,65,.65)}100%{text-shadow:0 0 6px rgba(0,255,65,.35)}} @keyframes rippleOut{0%{transform:translate(-50%,-50%) scale(.5);opacity:1}100%{transform:translate(calc(-50% + var(--tx)),calc(-50% + var(--ty))) scale(1);opacity:0}} @keyframes termCursorBlink{0%,49%{opacity:1}50%,100%{opacity:0}} @media (hover:hover) and (pointer:fine){.link-nav:hover{color:#00ff41}.btn-next:hover{background:rgba(0,255,65,.12)}.card-service:hover{background:#0a1a0a}.pill-stack:hover{color:#00ff41;border-color:rgba(0,255,65,.5)}.row-ai:hover{padding-left:22px}.portfolio-shot:hover{background:#111}.btn-price-cta:hover{background:rgba(0,255,65,.12)}.link-footer:hover{opacity:.7}} @media (min-width:1024px){.hero-grid{grid-template-columns:3fr 2fr!important}} @media (max-width:900px){.stack-grid{grid-template-columns:1fr!important}.process-grid{grid-template-columns:1fr 1fr!important}} @media (max-width:640px){.nav-links{display:none!important}.nav-toggle{display:inline-flex!important}.contact-grid{grid-template-columns:1fr!important}.services-grid{grid-template-columns:1fr!important}.process-grid{grid-template-columns:1fr!important}.price-grid{grid-template-columns:1fr!important}.stream-readout{display:none!important}.ai-table-head{display:none!important}.ai-table-row{grid-template-columns:28px 1fr!important}.ai-table-row>*:nth-child(3){grid-column:1/-1!important;margin-top:8px}.ai-table-row>*:nth-child(4){grid-column:1/-1!important;margin-top:4px}}`;
-export default function App(){return <div style={{background:"#000",color:"#00ff41",minHeight:"100vh"}}><style>{KEYFRAMES}</style><ScrollProgress/><ClickRipple/><Nav/><main id="top"><LiveConsole/><Hero/><DecodeStreamDivider/><Mission/><AIConsierge/><Services/><Stack/><Price/><Process/><Contact/><Footer/></main><WalkingCharacter/></div>;}
+const KEYFRAMES=`a:focus-visible,button:focus-visible{outline:2px solid rgba(0,255,65,.6);outline-offset:2px}.input-terminal:focus-visible{outline:none;box-shadow:0 0 0 1px rgba(0,255,65,.55);background:rgba(0,255,65,.06)}@keyframes slideBar{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}} @keyframes marqAnim{from{transform:translateX(0)}to{transform:translateX(-50%)}} @keyframes neonPulse{0%,100%{text-shadow:0 0 10px rgba(0,255,65,.4),0 0 28px rgba(0,255,65,.18)}50%{text-shadow:0 0 20px rgba(0,255,65,.85),0 0 52px rgba(0,255,65,.4)}} @keyframes hudBlink{0%,93%,100%{opacity:1}94%,96%{opacity:0}95%,97%{opacity:1}98%,99%{opacity:.3}} @keyframes borderGlow{0%,100%{border-color:rgba(0,255,65,.2)}50%{border-color:rgba(0,255,65,.5)}} @keyframes rowGlowDone{0%,100%{background:rgba(0,255,65,.02)}50%{background:rgba(0,255,65,.07)}} @keyframes rowGlowActive{0%,100%{background:rgba(0,255,65,.04)}50%{background:rgba(0,255,65,.14)}} @keyframes rowGlowRunning{0%,100%{background:rgba(0,255,65,.03)}50%{background:rgba(0,255,65,.10)}} @keyframes rowGlowQueued{0%,100%{background:rgba(0,255,65,.015)}50%{background:rgba(0,255,65,.05)}} @keyframes matrixHighlight{0%{text-shadow:0 0 2px rgba(0,255,65,.25)}30%{text-shadow:0 0 16px rgba(0,255,65,1),0 0 34px rgba(0,255,65,.65)}100%{text-shadow:0 0 6px rgba(0,255,65,.35)}} @keyframes rippleOut{0%{transform:translate(-50%,-50%) scale(.5);opacity:1}100%{transform:translate(calc(-50% + var(--tx)),calc(-50% + var(--ty))) scale(1);opacity:0}} @keyframes termCursorBlink{0%,49%{opacity:1}50%,100%{opacity:0}} .tools-scroller{scrollbar-width:none}.tools-scroller::-webkit-scrollbar{display:none}@media (hover:hover) and (pointer:fine){.link-nav:hover{color:#00ff41}.btn-next:hover{background:rgba(0,255,65,.12)}.card-service:hover{background:#0a1a0a}.row-ai:hover{padding-left:22px}.portfolio-shot:hover{background:#111}.btn-price-cta:hover{background:rgba(0,255,65,.12)}.link-footer:hover{opacity:.7}} @media (min-width:1024px){.hero-grid{grid-template-columns:3fr 2fr!important}} @media (max-width:900px){.process-grid{grid-template-columns:1fr 1fr!important}} @media (max-width:640px){.nav-links{display:none!important}.nav-toggle{display:inline-flex!important}.contact-grid{grid-template-columns:1fr!important}.services-grid{grid-template-columns:1fr!important}.process-grid{grid-template-columns:1fr!important}.price-grid{grid-template-columns:1fr!important}.stream-readout{display:none!important}.ai-table-head{display:none!important}.ai-table-row{grid-template-columns:28px 1fr!important}.ai-table-row>*:nth-child(3){grid-column:1/-1!important;margin-top:8px}.ai-table-row>*:nth-child(4){grid-column:1/-1!important;margin-top:4px}}`;
+export default function App(){return <div style={{background:"#000",color:"#00ff41",minHeight:"100vh"}}><style>{KEYFRAMES}</style><ScrollProgress/><ClickRipple/><Nav/><main id="top"><LiveConsole/><Hero/><DecodeStreamDivider/><Mission/><AIConsierge/><Services/><Tools/><Price/><Process/><Contact/><Footer/></main></div>;}
