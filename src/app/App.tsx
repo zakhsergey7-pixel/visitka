@@ -46,7 +46,7 @@ function useDecrypt(text: string, active: boolean, speed = 36) { const glyphs = 
 function Glitch({ children }: { children: string }) { const [glitching, setGlitching] = useState(false); const g = "01ｱｲｳｴｵ<>[]{}|\\"; useEffect(() => { const id = setInterval(() => { setGlitching(true); setTimeout(() => setGlitching(false), 110); }, 3400 + Math.random() * 5000); return () => clearInterval(id); }, []); if (!glitching) return <span>{children}</span>; return <span style={{ color: "#ff0040", textShadow: "-2px 0 #ff0040, 2px 0 #00ffff" }}>{children.split("").map(c => Math.random() > 0.55 ? g[(Math.random() * g.length) | 0] : c).join("")}</span>; }
 function Reveal({ children, className, delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) { const ref = useRef<HTMLDivElement>(null); const [v, setV] = useState(false); useEffect(() => { const el = ref.current; if (!el) return; const ob = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setV(true); ob.disconnect(); } }, { threshold: 0.08 }); ob.observe(el); return () => ob.disconnect(); }, []); return <div ref={ref} className={className} style={{ opacity: v ? 1 : 0, transform: v ? "none" : "translateY(28px)", filter: v ? "blur(0px)" : "blur(7px)", transition: `opacity 1.15s cubic-bezier(.16,1,.3,1) ${delay}ms, transform 1.15s cubic-bezier(.16,1,.3,1) ${delay}ms, filter 1.15s cubic-bezier(.16,1,.3,1) ${delay}ms` }}>{children}</div>; }
 function SignalBars() { const [level, setLevel] = useState(4); useEffect(() => { const id = setInterval(() => setLevel(Math.random() > 0.15 ? 4 : 3), 2800 + Math.random() * 2000); return () => clearInterval(id); }, []); return <span style={{ display: "inline-flex", alignItems: "flex-end", gap: 2, marginLeft: 10 }}>{[1,2,3,4].map(b => <span key={b} style={{ width: 3, height: b * 3 + 1, background: b <= level ? "#00ff41" : "#003b00", display: "block", transition: "background .5s", boxShadow: b <= level ? "0 0 4px #00ff41" : "none" }} />)}</span>; }
-const NAV_LINKS: [string,string][] = [["#services","Услуги"],["#ai","Консьерж"],["#tools","Инструменты"],["#price","Стоимость"],["#contact","Связаться"]];
+const NAV_LINKS: [string,string][] = [["#services","Услуги"],["#ai","Консьерж"],["#price","Стоимость"],["#contact","Связаться"]];
 function goToSection(id: string) {
   const main = document.getElementById("top");
   if (main && main.style.overflowX === "hidden") return; // boot-gate still up — scrollIntoView ignores overflow:hidden, so check explicitly
@@ -226,7 +226,8 @@ const MISSION_LINES = [
 function Mission(){const ref=useRef<HTMLDivElement>(null);const[active,setActive]=useState(false);useEffect(()=>{const el=ref.current;if(!el)return;const ob=new IntersectionObserver(([e])=>{setActive(e.isIntersecting)},{threshold:.15});ob.observe(el);return()=>ob.disconnect()},[]);
   let wordSeq = 0;
   const nextDelay = () => { wordSeq += 1; return wordSeq * 140 + Math.random() * 260; };
-  return <section style={{flexShrink:0,scrollSnapAlign:"start",width:"100vw",height:"100vh",display:"flex",flexDirection:"column",justifyContent:"center",padding:"84px clamp(20px,5vw,90px) 20px",background:"#000",position:"relative",overflow:"hidden"}}><div style={{position:"absolute",inset:0}}><MatrixRain opacity={.26} fontSize={14} color="#00ff41" trail="rgba(0,0,0,.04)" speed={90}/></div><div style={{position:"absolute",left:"clamp(4px,1.4vw,16px)",top:"50%",width:0,height:0,pointerEvents:"none"}}><div style={{position:"absolute",top:0,left:0,width:340,height:20,overflow:"hidden",transform:"rotate(-90deg)",transformOrigin:"top left"}}><div style={{display:"inline-flex",gap:28,animation:"marqAnim 22s linear infinite",fontFamily:"'JetBrains Mono',monospace",fontWeight:700,fontSize:13,letterSpacing:".28em",textTransform:"uppercase",color:"rgba(0,255,65,.55)",textShadow:"0 0 12px rgba(0,255,65,.35)",whiteSpace:"nowrap"}}><span>МИССИЯ · MISSION · МИССИЯ · </span><span>МИССИЯ · MISSION · МИССИЯ · </span></div></div></div><div ref={ref} style={{position:"relative",zIndex:1,paddingLeft:"clamp(46px,7vw,96px)"}}>
+  return <section style={{flexShrink:0,scrollSnapAlign:"start",width:"100vw",height:"100vh",display:"flex",flexDirection:"column",justifyContent:"center",padding:"84px clamp(20px,5vw,90px) 20px",background:"#000",position:"relative",overflow:"hidden"}}><div style={{position:"absolute",inset:0}}><MatrixRain opacity={.26} fontSize={14} color="#00ff41" trail="rgba(0,0,0,.04)" speed={90}/></div><div style={{position:"absolute",left:"clamp(4px,1.4vw,16px)",top:"50%",width:0,height:0,pointerEvents:"none"}}><div style={{position:"absolute",top:0,left:0,width:340,height:20,overflow:"hidden",transform:"rotate(-90deg)",transformOrigin:"top left"}}><div style={{display:"inline-flex",gap:28,animation:"marqAnim 22s linear infinite",fontFamily:"'JetBrains Mono',monospace",fontWeight:700,fontSize:13,letterSpacing:".28em",textTransform:"uppercase",color:"rgba(0,255,65,.55)",textShadow:"0 0 12px rgba(0,255,65,.35)",whiteSpace:"nowrap"}}><span>МИССИЯ · MISSION · МИССИЯ · </span><span>МИССИЯ · MISSION · МИССИЯ · </span></div></div></div><div style={{position:"relative",zIndex:1,paddingLeft:"clamp(46px,7vw,96px)"}}>
+    <AppWindow skin={APP_SKINS.powershell} innerRef={ref}>
     <div style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:700,fontSize:"clamp(26px,6vh,64px)",lineHeight:1,letterSpacing:"-.03em",color:"#00ff41",animation:active?"neonPulse 5s ease-in-out infinite":"none",marginBottom:"clamp(18px,3vh,32px)"}}>
       {MISSION_HEADLINE.map((ln, li) => <div key={li}>{ln.map((w, wi) => <span key={wi}><MatrixWord text={w} active={active} delay={nextDelay()} />{wi < ln.length - 1 ? " " : ""}</span>)}</div>)}
     </div>
@@ -241,6 +242,7 @@ function Mission(){const ref=useRef<HTMLDivElement>(null);const[active,setActive
         })}
       </span></div>; })}
     </div>
+    </AppWindow>
   </div></section>;}
 function SectionRain({ opacity = 0.3, speed = 85, color = "#00ff41" }: { opacity?: number; speed?: number; color?: string }) {
   return <div style={{ position: "absolute", inset: 0, zIndex: 0, pointerEvents: "none" }}><MatrixRain opacity={opacity} fontSize={13} color={color} trail="rgba(0,0,0,.05)" speed={speed} /></div>;
@@ -301,11 +303,13 @@ function AIConsierge() {
       </div>
       <div ref={ref} style={{ position: "relative", zIndex: 1 }}>
         <Reveal>
-          <div style={{ borderTop: "1px solid rgba(0,255,65,.18)", paddingTop: 20, marginBottom: 24 }}>
-            <span style={{ ...mono, fontSize: 11, color: "#008f11" }}>00 / Уникальность</span>
-            <h2 style={{ ...mono, fontWeight: 700, fontSize: "clamp(18px,4vh,36px)", color: "#00ff41", lineHeight: 1.05, marginTop: 14 }}>
-              AI-консьерж сервис — уровень крупного агентства для одного клиента.
-            </h2>
+          <div style={{ marginBottom: 24 }}>
+            <AppWindow skin={APP_SKINS.claude}>
+              <span style={{ ...mono, fontSize: 11, color: "#008f11" }}>00 / Уникальность</span>
+              <h2 style={{ ...mono, fontWeight: 700, fontSize: "clamp(18px,4vh,36px)", color: "#00ff41", lineHeight: 1.05, marginTop: 14 }}>
+                AI-консьерж сервис — уровень крупного агентства для одного клиента.
+              </h2>
+            </AppWindow>
           </div>
         </Reveal>
         <Reveal delay={100}>
@@ -425,9 +429,11 @@ function Services() {
       <SectionRain />
       <div style={{ position: "relative", zIndex: 1 }}>
         <Reveal>
-          <div style={{ borderTop: "1px solid rgba(0,255,65,.18)", paddingTop: 20, marginBottom: 24 }}>
-            <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, color: "#008f11" }}>01 / Что делаю</span>
-            <h2 style={{ fontFamily: "'Montserrat',sans-serif", fontWeight: 700, fontSize: "clamp(20px,4.4vh,40px)", color: "#f2f2f2", marginTop: 14 }}>Один человек отвечает за весь результат.</h2>
+          <div style={{ marginBottom: 24 }}>
+            <AppWindow skin={APP_SKINS.console}>
+              <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, color: "#008f11" }}>01 / Что делаю</span>
+              <h2 style={{ fontFamily: "'Montserrat',sans-serif", fontWeight: 700, fontSize: "clamp(20px,4.4vh,40px)", color: "#f2f2f2", marginTop: 14 }}>Один человек отвечает за весь результат.</h2>
+            </AppWindow>
           </div>
         </Reveal>
         <Reveal delay={80}>
@@ -448,82 +454,28 @@ function Services() {
     </section>
   );
 }
-const TOOLS = [
-  { id: "console", label: "~/console", dots: true, bg: "#000", border: "rgba(0,255,65,.25)", headerBg: "#0a1a0a", headerBorder: "rgba(0,255,65,.18)", labelColor: "#008f11", glow: "rgba(0,255,65,.4)",
-    lines: [{ t: "$ git push origin main", c: "#00ff41" }, { t: "→ 3 files changed", c: "#008f11" }] },
-  { id: "powershell", label: "Windows PowerShell", bg: "#012456", border: "rgba(255,255,255,.28)", headerBg: "rgba(255,255,255,.07)", headerBorder: "rgba(255,255,255,.16)", labelColor: "#eaf1ff", glow: "rgba(62,166,255,.4)",
-    lines: [{ t: "PS C:\\projects> ./deploy.ps1", c: "#eaf1ff" }, { t: "Deploying to production...", c: "#7ec8e3" }] },
-  { id: "opencode", label: "opencode", bg: "#12181a", border: "rgba(45,212,191,.3)", headerBg: "rgba(45,212,191,.06)", headerBorder: "rgba(45,212,191,.2)", labelColor: "#2dd4bf", glow: "rgba(45,212,191,.35)",
-    lines: [{ t: "opencode> refactor auth module", c: "#2dd4bf" }, { t: "12 files updated · 0 errors", c: "#6b8b87" }] },
-  { id: "claude", label: "claude code", bg: "#faf3ea", border: "rgba(61,57,41,.14)", headerBg: "rgba(61,57,41,.04)", headerBorder: "rgba(61,57,41,.1)", labelColor: "#3d3929", glow: "rgba(217,119,87,.35)",
-    lines: [{ t: "добавь форму записи на сайт", c: "#3d3929", icon: true }, { t: "правки внесены, деплой готов", c: "#8a8272" }] },
-];
-function ToolCard({ tool, active }: { tool: typeof TOOLS[number]; active: boolean }) {
+// Каждый смысловой блок теперь сам "открыт как окно" одного из инструментов
+// с прошлого экрана Tools (той секции больше нет как отдельной витрины) —
+// AppWindow даёт хромированный заголовок конкретного приложения вокруг
+// заголовочного блока секции, а содержимое ниже остаётся в родной палитре
+// секции (сигнатурный зелёный не переопределяется цветом приложения).
+type AppSkin = { label: string; dots?: boolean; icon?: boolean; border: string; headerBg: string; headerBorder: string; labelColor: string };
+const APP_SKINS: Record<"console" | "powershell" | "opencode" | "claude", AppSkin> = {
+  console: { label: "~/console", dots: true, border: "rgba(0,255,65,.25)", headerBg: "#0a1a0a", headerBorder: "rgba(0,255,65,.18)", labelColor: "#008f11" },
+  powershell: { label: "Windows PowerShell", border: "rgba(255,255,255,.28)", headerBg: "#012456", headerBorder: "rgba(255,255,255,.16)", labelColor: "#eaf1ff" },
+  opencode: { label: "opencode", border: "rgba(45,212,191,.3)", headerBg: "rgba(45,212,191,.06)", headerBorder: "rgba(45,212,191,.2)", labelColor: "#2dd4bf" },
+  claude: { label: "claude code", icon: true, border: "rgba(61,57,41,.16)", headerBg: "rgba(61,57,41,.05)", headerBorder: "rgba(61,57,41,.12)", labelColor: "#d97757" },
+};
+function AppWindow({ skin, innerRef, children }: { skin: AppSkin; innerRef?: React.Ref<HTMLDivElement>; children: React.ReactNode }) {
   return (
-    <div className="tool-card" style={{ transform: `scale(${active ? 1.08 : 0.92})`, opacity: active ? 1 : 0.55, transition: "transform .35s cubic-bezier(.16,1,.3,1), opacity .35s" }}>
-      <div style={{ background: tool.bg, border: `1px solid ${tool.border}`, height: "clamp(150px,24vh,220px)", boxSizing: "border-box", boxShadow: active ? `0 0 46px ${tool.glow}, 0 24px 40px rgba(0,0,0,.5)` : "none", transition: "box-shadow .35s" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "10px 14px", background: tool.headerBg, borderBottom: `1px solid ${tool.headerBorder}` }}>
-          {tool.dots && ["#ff5f57", "#ffbd2e", "#28c840"].map(c => <span key={c} style={{ width: 9, height: 9, borderRadius: "50%", background: c }} />)}
-          <span style={{ marginLeft: tool.dots ? 6 : 0, fontSize: 11, color: tool.labelColor, fontFamily: "'JetBrains Mono',monospace" }}>{tool.label}</span>
-        </div>
-        <div style={{ padding: 18, fontSize: 13, lineHeight: 1.9, fontFamily: "'JetBrains Mono',monospace" }}>
-          {tool.lines.map((l, i) => (
-            <div key={i} style={{ color: l.c, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "flex", alignItems: "center", gap: 7 }}>
-              {l.icon && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}><path d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z" fill="#d97757" /></svg>}
-              {l.t}
-            </div>
-          ))}
-        </div>
+    <div ref={innerRef} style={{ width: "fit-content", maxWidth: "100%", border: `1px solid ${skin.border}`, boxSizing: "border-box" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", background: skin.headerBg, borderBottom: `1px solid ${skin.headerBorder}` }}>
+        {skin.dots && ["#ff5f57", "#ffbd2e", "#28c840"].map(c => <span key={c} style={{ width: 9, height: 9, borderRadius: "50%", background: c }} />)}
+        {skin.icon && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}><path d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z" fill="#d97757" /></svg>}
+        <span style={{ marginLeft: (skin.dots || skin.icon) ? 6 : 0, fontSize: 11, color: skin.labelColor, fontFamily: "'JetBrains Mono',monospace" }}>{skin.label}</span>
       </div>
+      <div style={{ padding: "clamp(14px,2.2vh,22px) clamp(18px,3vw,30px)" }}>{children}</div>
     </div>
-  );
-}
-// The horizontal-scroll strip used to be internal to this section (its own
-// overflow-x + wheel-redirect) — now the whole page scrolls on X, so the
-// cards just sit in a row and "active" tracks whichever one is nearest the
-// viewport's horizontal center as the page (not this section) scrolls past.
-function Tools() {
-  const wrapRef = useRef<HTMLDivElement>(null);
-  const [active, setActive] = useState(0);
-  useEffect(() => {
-    const main = document.getElementById("top");
-    const wrap = wrapRef.current;
-    if (!main || !wrap) return;
-    let raf = 0;
-    function updateActive() {
-      const cards = Array.from(wrap!.querySelectorAll<HTMLElement>(".tool-card"));
-      const center = window.innerWidth / 2;
-      let best = 0, bestDist = Infinity;
-      cards.forEach((c, i) => {
-        const r = c.getBoundingClientRect();
-        const dist = Math.abs(r.left + r.width / 2 - center);
-        if (dist < bestDist) { bestDist = dist; best = i; }
-      });
-      setActive(best);
-    }
-    function onScroll() { cancelAnimationFrame(raf); raf = requestAnimationFrame(updateActive); }
-    updateActive();
-    main.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    return () => { main.removeEventListener("scroll", onScroll); window.removeEventListener("resize", onScroll); cancelAnimationFrame(raf); };
-  }, []);
-  return (
-    <section id="tools" style={{ flexShrink: 0, scrollSnapAlign: "start", width: "1500px", height: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", padding: "84px clamp(20px,4vw,60px) 20px", background: "#050f05", position: "relative", overflow: "hidden" }}>
-      <SectionRain opacity={.18} />
-      <div style={{ position: "relative", zIndex: 1 }}>
-        <Reveal>
-          <div style={{ borderTop: "1px solid rgba(0,255,65,.18)", paddingTop: 20, marginBottom: 24 }}>
-            <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, color: "#008f11" }}>02 / Инструменты</span>
-            <h2 style={{ fontFamily: "'Montserrat',sans-serif", fontWeight: 700, fontSize: "clamp(20px,4.4vh,40px)", color: "#f2f2f2", marginTop: 14, maxWidth: 560 }}>Открыто на экране, пока я работаю.</h2>
-          </div>
-        </Reveal>
-        <Reveal delay={80}>
-          <div ref={wrapRef} style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 24 }}>
-            {TOOLS.map((t, i) => <ToolCard key={t.id} tool={t} active={i === active} />)}
-          </div>
-        </Reveal>
-      </div>
-    </section>
   );
 }
 const PRICE_CTA_STYLE:React.CSSProperties={display:"block",marginTop:20,padding:"10px 0",border:"1px solid rgba(0,255,65,.35)",color:"#00ff41",textAlign:"center",fontSize:12,fontFamily:"'JetBrains Mono',monospace",letterSpacing:".08em",textDecoration:"none",transition:"background .2s,border-color .2s"};
@@ -532,7 +484,7 @@ const PRICE_FEATURES:{base:string[];full:string[]}={
   full:["Каталог с фильтрами и страницами разделов","Админка — сами меняете тексты, цены и товары","До 10 страниц сайта","Расширенное SEO + подключение аналитики","2 круга правок после сдачи"],
 };
 function PriceFeatureList({items,color}:{items:string[];color:string}){return <ul style={{margin:"10px 0 0",padding:0,listStyle:"none",display:"flex",flexDirection:"column",gap:5,fontFamily:"'Montserrat',sans-serif"}}>{items.map((f)=><li key={f} style={{display:"flex",gap:8,fontSize:12.5,lineHeight:1.4,color}}><span style={{color:"#00ff41",flexShrink:0}}>›</span>{f}</li>)}</ul>;}
-function Price(){return <section id="price" style={{flexShrink:0,scrollSnapAlign:"start",width:"1000px",height:"100vh",display:"flex",flexDirection:"column",justifyContent:"center",padding:"84px clamp(20px,4vw,60px) 20px",background:"#000",position:"relative",overflow:"hidden"}}><SectionRain/><div style={{position:"relative",zIndex:1}}><Reveal><div style={{borderTop:"1px solid rgba(0,255,65,.18)",paddingTop:20}}><span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:"#008f11"}}>03 / Стоимость</span><h2 style={{fontFamily:"'Montserrat',sans-serif",fontWeight:700,fontSize:"clamp(20px,4.4vh,40px)",color:"#f2f2f2",marginTop:14}}>Два формата. Цена фиксируется до старта.</h2></div><div className="price-grid" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:1,marginTop:24,background:"rgba(0,255,65,.12)"}}><div style={{background:"#050f05",padding:"clamp(16px,3vh,28px)",fontFamily:"'JetBrains Mono',monospace"}}><div style={{color:"#008f11",fontSize:11}}>ПАКЕТ «БАЗА»</div><strong style={{display:"block",fontFamily:"'Share Tech Mono',monospace",fontSize:"clamp(24px,5.5vh,38px)",color:"#00ff41",margin:"clamp(8px,1.6vh,14px) 0",whiteSpace:"nowrap"}}>50 000 ₽</strong><p style={{color:"#9a9a9a",fontFamily:"'Montserrat',sans-serif",fontSize:13.5}}>Сайт-визитка или лендинг.</p><PriceFeatureList items={PRICE_FEATURES.base} color="#9a9a9a"/><a href="#contact" className="btn-price-cta" style={PRICE_CTA_STYLE}>Обсудить →</a></div><div style={{background:"#003b00",padding:"clamp(16px,3vh,28px)",fontFamily:"'JetBrains Mono',monospace",position:"relative"}}><span style={{position:"absolute",top:0,right:0,background:"#ff0040",color:"#fff",fontSize:9.5,fontWeight:700,letterSpacing:".08em",padding:"5px 10px",textTransform:"uppercase"}}>Популярный выбор</span><div style={{color:"#7dffaa",fontSize:11}}>ПАКЕТ «ПОЛНЫЙ»</div><strong style={{display:"block",fontFamily:"'Share Tech Mono',monospace",fontSize:"clamp(24px,5.5vh,38px)",color:"#00ff41",margin:"clamp(8px,1.6vh,14px) 0",whiteSpace:"nowrap"}}>100 000 ₽</strong><p style={{color:"#c8ffe0",fontFamily:"'Montserrat',sans-serif",fontSize:13.5}}>Многостраничный сайт или каталог.</p><PriceFeatureList items={PRICE_FEATURES.full} color="#c8ffe0"/><p style={{color:"rgba(200,255,224,.55)",fontFamily:"'Montserrat',sans-serif",fontSize:11.5,fontStyle:"italic",margin:"10px 0 0"}}>Один привлечённый клиент окупает сайт.</p><a href="#contact" className="btn-price-cta" style={{...PRICE_CTA_STYLE,borderColor:"rgba(0,255,65,.55)"}}>Обсудить →</a></div></div></Reveal></div></section>;}
+function Price(){return <section id="price" style={{flexShrink:0,scrollSnapAlign:"start",width:"1000px",height:"100vh",display:"flex",flexDirection:"column",justifyContent:"center",padding:"84px clamp(20px,4vw,60px) 20px",background:"#000",position:"relative",overflow:"hidden"}}><SectionRain/><div style={{position:"relative",zIndex:1}}><Reveal><AppWindow skin={APP_SKINS.opencode}><span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:"#008f11"}}>03 / Стоимость</span><h2 style={{fontFamily:"'Montserrat',sans-serif",fontWeight:700,fontSize:"clamp(20px,4.4vh,40px)",color:"#f2f2f2",marginTop:14}}>Два формата. Цена фиксируется до старта.</h2></AppWindow><div className="price-grid" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:1,marginTop:24,background:"rgba(0,255,65,.12)"}}><div style={{background:"#050f05",padding:"clamp(16px,3vh,28px)",fontFamily:"'JetBrains Mono',monospace"}}><div style={{color:"#008f11",fontSize:11}}>ПАКЕТ «БАЗА»</div><strong style={{display:"block",fontFamily:"'Share Tech Mono',monospace",fontSize:"clamp(24px,5.5vh,38px)",color:"#00ff41",margin:"clamp(8px,1.6vh,14px) 0",whiteSpace:"nowrap"}}>50 000 ₽</strong><p style={{color:"#9a9a9a",fontFamily:"'Montserrat',sans-serif",fontSize:13.5}}>Сайт-визитка или лендинг.</p><PriceFeatureList items={PRICE_FEATURES.base} color="#9a9a9a"/><a href="#contact" className="btn-price-cta" style={PRICE_CTA_STYLE}>Обсудить →</a></div><div style={{background:"#003b00",padding:"clamp(16px,3vh,28px)",fontFamily:"'JetBrains Mono',monospace",position:"relative"}}><span style={{position:"absolute",top:0,right:0,background:"#ff0040",color:"#fff",fontSize:9.5,fontWeight:700,letterSpacing:".08em",padding:"5px 10px",textTransform:"uppercase"}}>Популярный выбор</span><div style={{color:"#7dffaa",fontSize:11}}>ПАКЕТ «ПОЛНЫЙ»</div><strong style={{display:"block",fontFamily:"'Share Tech Mono',monospace",fontSize:"clamp(24px,5.5vh,38px)",color:"#00ff41",margin:"clamp(8px,1.6vh,14px) 0",whiteSpace:"nowrap"}}>100 000 ₽</strong><p style={{color:"#c8ffe0",fontFamily:"'Montserrat',sans-serif",fontSize:13.5}}>Многостраничный сайт или каталог.</p><PriceFeatureList items={PRICE_FEATURES.full} color="#c8ffe0"/><p style={{color:"rgba(200,255,224,.55)",fontFamily:"'Montserrat',sans-serif",fontSize:11.5,fontStyle:"italic",margin:"10px 0 0"}}>Один привлечённый клиент окупает сайт.</p><a href="#contact" className="btn-price-cta" style={{...PRICE_CTA_STYLE,borderColor:"rgba(0,255,65,.55)"}}>Обсудить →</a></div></div></Reveal></div></section>;}
 // Rendered as a sequential terminal log rather than a card grid, echoing
 // the htop aesthetic already established in AIConsierge (same ProcessBar,
 // same status vocabulary/row-glow keyframes) for visual consistency across
@@ -774,5 +726,5 @@ export default function App(){
   useMainWheelRedirect();
   useTabTitleCycle();
   const mainRef = useRef<HTMLElement>(null);
-  return <div style={{background:"#000",color:"#00ff41",height:"100vh",overflow:"hidden"}}><style>{KEYFRAMES}</style><ScrollProgress/><ClickRipple/><Nav/><main id="top" ref={mainRef} style={{display:"flex",flexDirection:"row",height:"100%",overflowX:"auto",overflowY:"hidden"}}><LiveConsole/><Hero mainRef={mainRef}/><StatsBand/><DecodeStreamDivider/><Mission/><AIConsierge/><Services/><Tools/><Price/><Process/><Contact/><Footer/></main></div>;
+  return <div style={{background:"#000",color:"#00ff41",height:"100vh",overflow:"hidden"}}><style>{KEYFRAMES}</style><ScrollProgress/><ClickRipple/><Nav/><main id="top" ref={mainRef} style={{display:"flex",flexDirection:"row",height:"100%",overflowX:"auto",overflowY:"hidden"}}><LiveConsole/><Hero mainRef={mainRef}/><StatsBand/><DecodeStreamDivider/><Mission/><AIConsierge/><Services/><Price/><Process/><Contact/><Footer/></main></div>;
 }
