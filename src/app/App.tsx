@@ -236,7 +236,7 @@ function Mission(){const ref=useRef<HTMLDivElement>(null);const[active,setActive
           if (i === 0 && w === "AI") return <span key={wi}><Glitch>AI</Glitch>{wi < l.words.length - 1 ? " " : ""}</span>;
           const wordStyle: React.CSSProperties = bold
             ? { color: "#00ff41" }
-            : { color: "transparent", WebkitTextStroke: "1px rgba(0,255,65,.6)" };
+            : { color: "transparent", WebkitTextStroke: "1px rgba(255,0,64,.75)" };
           return <span key={wi}><MatrixWord text={w} active={active} delay={nextDelay()} style={wordStyle} />{wi < l.words.length - 1 ? " " : ""}</span>;
         })}
       </span></div>; })}
@@ -533,13 +533,66 @@ const PRICE_FEATURES:{base:string[];full:string[]}={
 };
 function PriceFeatureList({items,color}:{items:string[];color:string}){return <ul style={{margin:"10px 0 0",padding:0,listStyle:"none",display:"flex",flexDirection:"column",gap:5,fontFamily:"'Montserrat',sans-serif"}}>{items.map((f)=><li key={f} style={{display:"flex",gap:8,fontSize:12.5,lineHeight:1.4,color}}><span style={{color:"#00ff41",flexShrink:0}}>›</span>{f}</li>)}</ul>;}
 function Price(){return <section id="price" style={{flexShrink:0,scrollSnapAlign:"start",width:"1000px",height:"100vh",display:"flex",flexDirection:"column",justifyContent:"center",padding:"84px clamp(20px,4vw,60px) 20px",background:"#000",position:"relative",overflow:"hidden"}}><SectionRain/><div style={{position:"relative",zIndex:1}}><Reveal><div style={{borderTop:"1px solid rgba(0,255,65,.18)",paddingTop:20}}><span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:"#008f11"}}>03 / Стоимость</span><h2 style={{fontFamily:"'Montserrat',sans-serif",fontWeight:700,fontSize:"clamp(20px,4.4vh,40px)",color:"#f2f2f2",marginTop:14}}>Два формата. Цена фиксируется до старта.</h2></div><div className="price-grid" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:1,marginTop:24,background:"rgba(0,255,65,.12)"}}><div style={{background:"#050f05",padding:"clamp(16px,3vh,28px)",fontFamily:"'JetBrains Mono',monospace"}}><div style={{color:"#008f11",fontSize:11}}>ПАКЕТ «БАЗА»</div><strong style={{display:"block",fontFamily:"'Share Tech Mono',monospace",fontSize:"clamp(24px,5.5vh,38px)",color:"#00ff41",margin:"clamp(8px,1.6vh,14px) 0",whiteSpace:"nowrap"}}>50 000 ₽</strong><p style={{color:"#9a9a9a",fontFamily:"'Montserrat',sans-serif",fontSize:13.5}}>Сайт-визитка или лендинг.</p><PriceFeatureList items={PRICE_FEATURES.base} color="#9a9a9a"/><a href="#contact" className="btn-price-cta" style={PRICE_CTA_STYLE}>Обсудить →</a></div><div style={{background:"#003b00",padding:"clamp(16px,3vh,28px)",fontFamily:"'JetBrains Mono',monospace",position:"relative"}}><span style={{position:"absolute",top:0,right:0,background:"#ff0040",color:"#fff",fontSize:9.5,fontWeight:700,letterSpacing:".08em",padding:"5px 10px",textTransform:"uppercase"}}>Популярный выбор</span><div style={{color:"#7dffaa",fontSize:11}}>ПАКЕТ «ПОЛНЫЙ»</div><strong style={{display:"block",fontFamily:"'Share Tech Mono',monospace",fontSize:"clamp(24px,5.5vh,38px)",color:"#00ff41",margin:"clamp(8px,1.6vh,14px) 0",whiteSpace:"nowrap"}}>100 000 ₽</strong><p style={{color:"#c8ffe0",fontFamily:"'Montserrat',sans-serif",fontSize:13.5}}>Многостраничный сайт или каталог.</p><PriceFeatureList items={PRICE_FEATURES.full} color="#c8ffe0"/><p style={{color:"rgba(200,255,224,.55)",fontFamily:"'Montserrat',sans-serif",fontSize:11.5,fontStyle:"italic",margin:"10px 0 0"}}>Один привлечённый клиент окупает сайт.</p><a href="#contact" className="btn-price-cta" style={{...PRICE_CTA_STYLE,borderColor:"rgba(0,255,65,.55)"}}>Обсудить →</a></div></div></Reveal></div></section>;}
+// Rendered as a sequential terminal log rather than a card grid, echoing
+// the htop aesthetic already established in AIConsierge (same ProcessBar,
+// same status vocabulary/row-glow keyframes) for visual consistency across
+// the site. Statuses are illustrative of "how the process unfolds", not a
+// live tracker of any specific client's project.
 const PROCESS_STEPS = [
-  { n: "01", name: "Бриф", desc: "Обсуждаем бизнес, задачу и кто клиент — до старта понятно, что должен делать сайт." },
-  { n: "02", name: "Прототип", desc: "Собираю структуру и черновой дизайн, показываю вам раньше, чем начинаю вёрстку." },
-  { n: "03", name: "Разработка", desc: "Верстаю и программирую сам, без передачи задачи фрилансерам на аутсорс." },
-  { n: "04", name: "Запуск", desc: "Тестирую на устройствах, публикую сайт и показываю, как редактировать самому." },
+  { n: "01", name: "Бриф", desc: "Обсуждаем бизнес, задачу и кто клиент — до старта понятно, что должен делать сайт.", status: "DONE", fill: 100, delay: 0 },
+  { n: "02", name: "Прототип", desc: "Собираю структуру и черновой дизайн, показываю вам раньше, чем начинаю вёрстку.", status: "ACTIVE", fill: 68, delay: 280 },
+  { n: "03", name: "Разработка", desc: "Верстаю и программирую сам, без передачи задачи фрилансерам на аутсорс.", status: "PENDING", fill: 30, delay: 560 },
+  { n: "04", name: "Запуск", desc: "Тестирую на устройствах, публикую сайт и показываю, как редактировать самому.", status: "QUEUED", fill: 8, delay: 840 },
 ];
-function Process(){return <section id="process" style={{flexShrink:0,scrollSnapAlign:"start",width:"1400px",height:"100vh",display:"flex",flexDirection:"column",justifyContent:"center",padding:"84px clamp(20px,4vw,60px) 20px",position:"relative",overflow:"hidden"}}><SectionRain/><div style={{position:"relative",zIndex:1}}><Reveal><div style={{borderTop:"1px solid rgba(0,255,65,.18)",paddingTop:20,marginBottom:24}}><span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:"#008f11"}}>04 / Процесс</span><h2 style={{fontFamily:"'Montserrat',sans-serif",fontWeight:700,fontSize:"clamp(20px,4.4vh,40px)",color:"#f2f2f2",marginTop:14}}>Четыре шага. Вы видите результат на каждом.</h2></div></Reveal><Reveal delay={80}><div className="process-grid" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:1,background:"rgba(0,255,65,.14)",border:"1px solid rgba(0,255,65,.14)"}}>{PROCESS_STEPS.map((s)=><div key={s.n} className="card-service" style={{background:"#000",padding:"clamp(16px,2.6vh,26px)",transition:"background .3s"}}><span style={{fontFamily:"'VT323',monospace",fontSize:"clamp(26px,4.4vh,40px)",color:"#008f11",lineHeight:1}}>{s.n}</span><h3 style={{fontFamily:"'Montserrat',sans-serif",fontWeight:600,fontSize:"clamp(15px,2vh,19px)",color:"#f2f2f2",margin:"8px 0 6px"}}>{s.name}</h3><p style={{color:"#9a9a9a",fontSize:12.5,lineHeight:1.5,fontFamily:"'Montserrat',sans-serif"}}>{s.desc}</p></div>)}</div></Reveal></div></section>;}
+function Process(){
+  const ref = useRef<HTMLDivElement>(null);
+  const [animate, setAnimate] = useState(false);
+  useEffect(() => {
+    const el = ref.current; if (!el) return;
+    const ob = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setAnimate(true); ob.disconnect(); } }, { threshold: .2 });
+    ob.observe(el); return () => ob.disconnect();
+  }, []);
+  const mono: React.CSSProperties = { fontFamily: "'JetBrains Mono',monospace" };
+  const statusColor = (s: string) => s === "DONE" ? "#00ff41" : s === "ACTIVE" ? "#7dffaa" : s === "PENDING" ? "#3dde6e" : "rgba(0,255,65,.5)";
+  const rowGlow = (s: string) => s === "DONE" ? { anim: "rowGlowDone", dur: 11 } : s === "ACTIVE" ? { anim: "rowGlowActive", dur: 4.5 } : s === "PENDING" ? { anim: "rowGlowRunning", dur: 6.5 } : { anim: "rowGlowQueued", dur: 8.5 };
+  const scanSpeed = (s: string) => s === "ACTIVE" ? 90 : s === "PENDING" ? 140 : s === "DONE" ? 340 : 260;
+  return (
+    <section id="process" style={{ flexShrink: 0, scrollSnapAlign: "start", width: 1100, height: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", padding: "84px clamp(20px,4vw,60px) 20px", position: "relative", overflow: "hidden" }}>
+      <SectionRain />
+      <div style={{ position: "relative", zIndex: 1 }}>
+        <Reveal>
+          <div style={{ borderTop: "1px solid rgba(0,255,65,.18)", paddingTop: 20, marginBottom: 24 }}>
+            <span style={{ ...mono, fontSize: 11, color: "#008f11" }}>04 / Процесс</span>
+            <h2 style={{ fontFamily: "'Montserrat',sans-serif", fontWeight: 700, fontSize: "clamp(20px,4.4vh,40px)", color: "#f2f2f2", marginTop: 14 }}>Четыре шага. Вы видите результат на каждом.</h2>
+          </div>
+        </Reveal>
+        <Reveal delay={80}>
+          <div ref={ref} style={{ border: "1px solid rgba(0,255,65,.2)", animation: "borderGlow 4s ease-in-out infinite" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 7, padding: "8px 16px", borderBottom: "1px solid rgba(0,255,65,.15)", background: "#0a1a0a" }}>
+              {["#ff5f57", "#ffbd2e", "#28c840"].map(c => <span key={c} style={{ width: 9, height: 9, background: c, display: "block" }} />)}
+              <span style={{ ...mono, fontSize: 10, color: "#008f11", letterSpacing: ".14em", marginLeft: 8 }}>~/process/pipeline.log</span>
+            </div>
+            {PROCESS_STEPS.map((s, i) => {
+              const glow = rowGlow(s.status);
+              return (
+                <div key={s.n} style={{ padding: "clamp(10px,1.8vh,16px) 16px", borderBottom: i < PROCESS_STEPS.length - 1 ? "1px solid rgba(0,255,65,.07)" : "none", animation: `${glow.anim} ${glow.dur}s ease-in-out infinite`, animationDelay: `${i * 0.3}s` }}>
+                  <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
+                    <span style={{ fontFamily: "'VT323',monospace", fontSize: 16, color: "rgba(0,255,65,.4)", flexShrink: 0 }}>[00:0{i}.{String(i * 23).padStart(3, "0")}]</span>
+                    <span style={{ ...mono, fontSize: 13, color: "#00ff41", flexShrink: 0 }}>$ {s.name.toLowerCase()}.sh</span>
+                    <span style={{ flex: 1, minWidth: 24, height: 0, borderBottom: "1px dotted rgba(0,255,65,.15)", alignSelf: "center" }} />
+                    <ProcessBar target={s.fill} delay={s.delay} animate={animate} scanSpeed={scanSpeed(s.status)} />
+                    <span style={{ ...mono, fontSize: 10, color: statusColor(s.status), letterSpacing: ".04em", flexShrink: 0 }}>{s.status}</span>
+                  </div>
+                  <div style={{ color: "#9a9a9a", fontSize: 12, lineHeight: 1.5, fontFamily: "'Montserrat',sans-serif", marginTop: 6, paddingLeft: 2 }}>{s.desc}</div>
+                </div>
+              );
+            })}
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
 const CONTACT_FIELDS: { key: "name" | "contact" | "task"; label: string; multiline?: boolean }[] = [
   { key: "name", label: "Ваше имя" },
   { key: "contact", label: "Telegram или телефон" },
