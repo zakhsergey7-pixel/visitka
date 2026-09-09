@@ -78,7 +78,7 @@ function goToSectionIndex(index: number) {
 }
 function Nav() { const [scrolled,setScrolled]=useState(false); const [open,setOpen]=useState(false); useEffect(()=>{const main=document.getElementById("top");if(!main)return;const h=()=>setScrolled(main.scrollLeft>60);main.addEventListener("scroll",h,{passive:true});return()=>main.removeEventListener("scroll",h)},[]); const mono:React.CSSProperties={fontFamily:"'JetBrains Mono',monospace",fontSize:11,letterSpacing:".14em",textTransform:"uppercase"}; const nav=(href:string)=>(e:React.MouseEvent)=>{e.preventDefault();setOpen(false);goToSection(href.slice(1))}; return <header style={{position:"fixed",top:0,left:0,right:0,zIndex:80,borderBottom:scrolled||open?"1px solid rgba(0,255,65,.14)":"1px solid transparent",background:scrolled||open?"rgba(0,0,0,.93)":"transparent",backdropFilter:scrolled||open?"blur(12px)":"none",transition:"background .4s,border-color .4s"}}><div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"15px clamp(20px,5vw,90px)"}}><SignalBars/><nav className="nav-links" style={{display:"flex",gap:"clamp(14px,2.8vw,28px)",...mono}}>{NAV_LINKS.map(([href,label])=><a key={href} href={href} onClick={nav(href)} className="link-nav" style={{color:"#008f11",textDecoration:"none",transition:"color .2s"}}>{label}</a>)}</nav><button className="nav-toggle" onClick={()=>setOpen(o=>!o)} style={{...mono,display:"none",background:"transparent",border:"1px solid rgba(0,255,65,.35)",color:"#00ff41",padding:"6px 10px",cursor:"pointer"}}>[ {open?"×":"MENU"} ]</button></div>{open&&<nav className="nav-mobile-panel" style={{display:"flex",flexDirection:"column",padding:"4px clamp(20px,5vw,90px) 18px"}}>{NAV_LINKS.map(([href,label])=><a key={href} href={href} onClick={nav(href)} style={{...mono,color:"#00ff41",textDecoration:"none",padding:"13px 0",borderTop:"1px solid rgba(0,255,65,.1)"}}>{label}</a>)}</nav>}</header>; }
 const DEAD_PIXELS=[{top:"28%",left:"9%"},{top:"71%",left:"82%"},{top:"44%",left:"58%"},{top:"17%",left:"73%"},{top:"88%",left:"22%"}];
-const STATUS_PHRASES=["Сайты, которые работают.","Без шаблонов.","Без посредников.","На связи в любое время."];
+const STATUS_PHRASES=["Пишу код сам.","Без шаблонов.","Без посредников.","На связи в любое время."];
 function HeroStatusLine(){const[idx,setIdx]=useState(0);const[dissolving,setDissolving]=useState(false);const text=useDecrypt(STATUS_PHRASES[idx],true,28);useEffect(()=>{const typeTime=STATUS_PHRASES[idx].length*28+1800;const t1=setTimeout(()=>setDissolving(true),typeTime);const t2=setTimeout(()=>{setIdx(i=>(i+1)%STATUS_PHRASES.length);setDissolving(false)},typeTime+450);return()=>{clearTimeout(t1);clearTimeout(t2)}},[idx]);return <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:13,color:"#008f11",display:"inline-block",opacity:dissolving?0:1,filter:dissolving?"blur(6px)":"blur(0px)",letterSpacing:dissolving?".3em":"0em",transition:"opacity .45s ease, filter .45s ease, letter-spacing .45s ease"}}>{text}</span>;}
 function WhoAmICard() {
   const [cur, setCur] = useState(true);
@@ -105,7 +105,7 @@ function WhoAmICard() {
     </TerminalBox>
   );
 }
-function Hero({mainRef}:{mainRef:React.RefObject<HTMLElement | null>}){const[active,setActive]=useState(false);const headline=useDecrypt("Сайт — это инструмент,\nа не просто картинка.",active);const[cur,setCur]=useState(true);const secRef=useRef<HTMLElement>(null);useEffect(()=>{const id=setInterval(()=>setCur(p=>!p),550);return()=>clearInterval(id)},[]);useEffect(()=>{const el=secRef.current;if(!el)return;const ob=new IntersectionObserver(([e])=>{if(e.isIntersecting){setActive(true);ob.disconnect()}},{threshold:.3});ob.observe(el);return()=>ob.disconnect()},[]);const{scrollXProgress}=useScroll({target:secRef,container:mainRef,axis:"x",offset:["start start","end start"]});const xHeadline=useTransform(scrollXProgress,[0,1],[0,-60]);const xMatrix=useTransform(scrollXProgress,[0,1],[0,-90]);const xHud=useTransform(scrollXProgress,[0,1],[0,-120]);return <section id="hero" ref={secRef} style={{flexShrink:0,scrollSnapAlign:"start",position:"relative",width:"100vw",height:"100vh",display:"flex",flexDirection:"column",justifyContent:"space-between",padding:"84px clamp(20px,5vw,90px) 20px",overflow:"hidden"}}><motion.div style={{position:"absolute",inset:0,zIndex:0,x:xMatrix}}><MatrixRain opacity={.32} fontSize={14} color="#00ff41" trail="rgba(0,0,0,.055)" speed={58}/></motion.div><NoiseOverlay/>{DEAD_PIXELS.map((p,i)=><div key={i} style={{position:"absolute",width:2,height:2,background:"#00ff41",boxShadow:"0 0 3px #00ff41",zIndex:1,pointerEvents:"none",animation:`hudBlink ${3.5+i*1.4}s steps(1) infinite ${i*.8}s`,...p}}/>)}<div style={{position:"absolute",inset:0,zIndex:1,pointerEvents:"none",background:"repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.07) 2px,rgba(0,0,0,.07) 4px)"}}/><motion.div className="hero-hud" style={{position:"absolute",top:64,left:"clamp(20px,5vw,90px)",right:"clamp(20px,5vw,90px)",display:"flex",justifyContent:"space-between",fontFamily:"'JetBrains Mono',monospace",fontSize:10,letterSpacing:".14em",textTransform:"uppercase",color:"rgba(0,255,65,.28)",zIndex:2,pointerEvents:"none",x:xHud}}><span>SYS.<span style={{color:"#00ff41",animation:"hudBlink 8s steps(1) infinite"}}>ONLINE</span> · UPTIME 05Y</span><span style={{textAlign:"right"}}>55.7522° N · 37.6156° E<br/>BUILD 2026.08</span></motion.div><div className="hero-grid" style={{position:"relative",zIndex:2,display:"grid",gridTemplateColumns:"1fr",gap:"clamp(20px,3vh,36px)",alignItems:"center",overflow:"hidden"}}><div><motion.h1 style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:700,fontSize:"clamp(24px,4.4vh,64px)",lineHeight:1.06,letterSpacing:"-.02em",color:"#00ff41",animation:"neonPulse 4.5s ease-in-out infinite",maxWidth:"22ch",whiteSpace:"pre-line",x:xHeadline}}>{headline}<span style={{opacity:cur?1:0}}>_</span></motion.h1><div style={{display:"flex",flexWrap:"wrap",gap:14,marginTop:"clamp(18px,3vh,30px)"}}><a href="#contact" onClick={(e)=>{e.preventDefault();goToSection("contact")}} className="btn-hero-primary" style={{background:"#00ff41",color:"#000",fontFamily:"'JetBrains Mono',monospace",fontWeight:700,fontSize:13,padding:"12px 22px",textDecoration:"none",letterSpacing:".02em",transition:"background .2s,box-shadow .2s"}}>./start_project.sh →</a><a href="#services" onClick={(e)=>{e.preventDefault();goToSection("services")}} className="btn-hero-secondary" style={{background:"transparent",border:"1px solid rgba(0,255,65,.4)",color:"#00ff41",fontFamily:"'JetBrains Mono',monospace",fontSize:13,padding:"11px 20px",textDecoration:"none",transition:"border-color .2s,background .2s"}}>смотреть услуги</a></div></div><div className="hero-whoami" id="whoami-box"><WhoAmICard/></div></div><div style={{position:"relative",zIndex:2,display:"flex",justifyContent:"space-between",alignItems:"center",gap:20,borderTop:"1px solid rgba(0,255,65,.16)",padding:"14px 0"}}><HeroStatusLine/><span style={{width:48,height:1,background:"#003b00",position:"relative",overflow:"hidden",display:"block",flexShrink:0}}><span style={{position:"absolute",inset:0,background:"#00ff41",animation:"slideBar 2s linear infinite"}}/></span></div></section>;}
+function Hero({mainRef}:{mainRef:React.RefObject<HTMLElement | null>}){const[active,setActive]=useState(false);const headline=useDecrypt("Сайт, который\nприводит клиентов.",active);const[cur,setCur]=useState(true);const secRef=useRef<HTMLElement>(null);useEffect(()=>{const id=setInterval(()=>setCur(p=>!p),550);return()=>clearInterval(id)},[]);useEffect(()=>{const el=secRef.current;if(!el)return;const ob=new IntersectionObserver(([e])=>{if(e.isIntersecting){setActive(true);ob.disconnect()}},{threshold:.3});ob.observe(el);return()=>ob.disconnect()},[]);const{scrollXProgress}=useScroll({target:secRef,container:mainRef,axis:"x",offset:["start start","end start"]});const xHeadline=useTransform(scrollXProgress,[0,1],[0,-60]);const xMatrix=useTransform(scrollXProgress,[0,1],[0,-90]);const xHud=useTransform(scrollXProgress,[0,1],[0,-120]);return <section id="hero" ref={secRef} style={{flexShrink:0,scrollSnapAlign:"start",position:"relative",width:"100vw",height:"100vh",display:"flex",flexDirection:"column",justifyContent:"space-between",padding:"84px clamp(20px,5vw,90px) 20px",overflow:"hidden"}}><motion.div style={{position:"absolute",inset:0,zIndex:0,x:xMatrix}}><MatrixRain opacity={.32} fontSize={14} color="#00ff41" trail="rgba(0,0,0,.055)" speed={58}/></motion.div><NoiseOverlay/>{DEAD_PIXELS.map((p,i)=><div key={i} style={{position:"absolute",width:2,height:2,background:"#00ff41",boxShadow:"0 0 3px #00ff41",zIndex:1,pointerEvents:"none",animation:`hudBlink ${3.5+i*1.4}s steps(1) infinite ${i*.8}s`,...p}}/>)}<div style={{position:"absolute",inset:0,zIndex:1,pointerEvents:"none",background:"repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.07) 2px,rgba(0,0,0,.07) 4px)"}}/><motion.div className="hero-hud" style={{position:"absolute",top:64,left:"clamp(20px,5vw,90px)",right:"clamp(20px,5vw,90px)",display:"flex",justifyContent:"space-between",fontFamily:"'JetBrains Mono',monospace",fontSize:10,letterSpacing:".14em",textTransform:"uppercase",color:"rgba(0,255,65,.28)",zIndex:2,pointerEvents:"none",x:xHud}}><span>SYS.<span style={{color:"#00ff41",animation:"hudBlink 8s steps(1) infinite"}}>ONLINE</span> · UPTIME 05Y</span><span style={{textAlign:"right"}}>55.7522° N · 37.6156° E<br/>BUILD 2026.08</span></motion.div><div className="hero-grid" style={{position:"relative",zIndex:2,display:"grid",gridTemplateColumns:"1fr",gap:"clamp(20px,3vh,36px)",alignItems:"center",overflow:"hidden"}}><div><motion.h1 style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:700,fontSize:"clamp(24px,4.4vh,64px)",lineHeight:1.06,letterSpacing:"-.02em",color:"#00ff41",animation:"neonPulse 4.5s ease-in-out infinite",maxWidth:"22ch",whiteSpace:"pre-line",x:xHeadline}}>{headline}<span style={{opacity:cur?1:0}}>_</span></motion.h1><div style={{display:"flex",flexWrap:"wrap",gap:14,marginTop:"clamp(18px,3vh,30px)"}}><a href="#contact" onClick={(e)=>{e.preventDefault();goToSection("contact")}} className="btn-hero-primary" style={{background:"#00ff41",color:"#000",fontFamily:"'JetBrains Mono',monospace",fontWeight:700,fontSize:13,padding:"12px 22px",textDecoration:"none",letterSpacing:".02em",transition:"background .2s,box-shadow .2s"}}>./start_project.sh →</a><a href="#services" onClick={(e)=>{e.preventDefault();goToSection("services")}} className="btn-hero-secondary" style={{background:"transparent",border:"1px solid rgba(0,255,65,.4)",color:"#00ff41",fontFamily:"'JetBrains Mono',monospace",fontSize:13,padding:"11px 20px",textDecoration:"none",transition:"border-color .2s,background .2s"}}>смотреть услуги</a></div></div><div className="hero-whoami" id="whoami-box"><WhoAmICard/></div></div><div style={{position:"relative",zIndex:2,display:"flex",justifyContent:"space-between",alignItems:"center",gap:20,borderTop:"1px solid rgba(0,255,65,.16)",padding:"14px 0"}}><HeroStatusLine/><span style={{width:48,height:1,background:"#003b00",position:"relative",overflow:"hidden",display:"block",flexShrink:0}}><span style={{position:"absolute",inset:0,background:"#00ff41",animation:"slideBar 2s linear infinite"}}/></span></div></section>;}
 
 /* ─────────────────────────────────────────
    AI logo stream — three neon marks, cropped
@@ -191,18 +191,19 @@ function MatrixWord({ text, active, delay, style }: { text: string; active: bool
   const { display, flashKey } = useWordFlicker(text, active, delay);
   return <span key={flashKey} style={{ display: "inline-block", animation: "matrixHighlight .6s ease-out", ...style }}>{display}</span>;
 }
-const MISSION_HEADLINE = [["Я", "превращаю", "бизнес"], ["в", "цифровой", "актив."]];
+const MISSION_HEADLINE = [["Я", "делаю", "сайты"], ["от", "А", "до", "Я."]];
 const MISSION_LINES = [
-  { words: ["AI", "—", "инструмент,"], pad: "0" },
-  { words: ["который", "оптимизирует", "бизнес."], pad: "clamp(28px,5vw,80px)" },
-  { words: ["Код", "пишу", "и", "проверяю"], pad: "clamp(14px,2.5vw,40px)" },
-  { words: ["я", "сам."], pad: "clamp(42px,7vw,110px)" },
+  { words: ["AI", "—", "ускоряет,"], pad: "0" },
+  { words: ["но", "не", "думает", "вместо", "меня."], pad: "clamp(28px,5vw,80px)" },
+  { words: ["Каждую", "строчку", "кода"], pad: "clamp(14px,2.5vw,40px)" },
+  { words: ["проверяю", "сам."], pad: "clamp(42px,7vw,110px)" },
 ];
 function Mission(){const ref=useRef<HTMLDivElement>(null);const[active,setActive]=useState(false);useEffect(()=>{const el=ref.current;if(!el)return;const ob=new IntersectionObserver(([e])=>{setActive(e.isIntersecting)},{threshold:.15});ob.observe(el);return()=>ob.disconnect()},[]);
   let wordSeq = 0;
   const nextDelay = () => { wordSeq += 1; return wordSeq * 140 + Math.random() * 260; };
   return <section style={{flexShrink:0,scrollSnapAlign:"start",width:"100vw",height:"100vh",display:"flex",flexDirection:"column",justifyContent:"center",padding:"84px clamp(20px,5vw,90px) 20px",background:"#000",position:"relative",overflow:"hidden"}}><div style={{position:"absolute",inset:0}}><MatrixRain opacity={.26} fontSize={14} color="#00ff41" trail="rgba(0,0,0,.04)" speed={90}/></div><div style={{position:"absolute",left:"clamp(4px,1.4vw,16px)",top:"50%",width:0,height:0,pointerEvents:"none"}}><div style={{position:"absolute",top:0,left:0,width:340,height:20,overflow:"hidden",transform:"rotate(-90deg)",transformOrigin:"top left"}}><div style={{display:"inline-flex",gap:28,animation:"marqAnim 22s linear infinite",fontFamily:"'JetBrains Mono',monospace",fontWeight:700,fontSize:13,letterSpacing:".28em",textTransform:"uppercase",color:"rgba(0,255,65,.55)",textShadow:"0 0 12px rgba(0,255,65,.35)",whiteSpace:"nowrap"}}><span>МИССИЯ · MISSION · МИССИЯ · </span><span>МИССИЯ · MISSION · МИССИЯ · </span></div></div></div><div style={{position:"relative",zIndex:1,paddingLeft:"clamp(46px,7vw,96px)"}}>
-    <AppWindow skin={APP_SKINS.powershell} innerRef={ref}>
+    <div style={{width:"clamp(300px,64vw,920px)"}}>
+    <AppWindow skin={APP_SKINS.powershell} innerRef={ref} fill>
     <div style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:700,fontSize:"clamp(26px,6vh,64px)",lineHeight:1,letterSpacing:"-.03em",color:"#00ff41",animation:active?"neonPulse 5s ease-in-out infinite":"none",marginBottom:"clamp(18px,3vh,32px)"}}>
       {MISSION_HEADLINE.map((ln, li) => <div key={li}>{ln.map((w, wi) => <span key={wi}><MatrixWord text={w} active={active} delay={nextDelay()} />{wi < ln.length - 1 ? " " : ""}</span>)}</div>)}
     </div>
@@ -217,7 +218,11 @@ function Mission(){const ref=useRef<HTMLDivElement>(null);const[active,setActive
         })}
       </span></div>; })}
     </div>
+    <div style={{marginTop:"clamp(20px,3vh,34px)",paddingTop:"clamp(14px,2vh,20px)",borderTop:"1px solid rgba(255,255,255,.12)",fontFamily:"'JetBrains Mono',monospace",fontSize:13,color:"rgba(234,241,255,.55)"}}>
+      <span style={{color:"#3ea6ff"}}>PS</span> C:\zakharov&gt; <span style={{animation:"termCursorBlink 1s steps(1) infinite"}}>_</span>
+    </div>
     </AppWindow>
+    </div>
   </div></section>;}
 function SectionRain({ opacity = 0.3, speed = 85, color = "#00ff41" }: { opacity?: number; speed?: number; color?: string }) {
   return <div style={{ position: "absolute", inset: 0, zIndex: 0, pointerEvents: "none" }}><MatrixRain opacity={opacity} fontSize={13} color={color} trail="rgba(0,0,0,.05)" speed={speed} /></div>;
@@ -261,11 +266,11 @@ function AIConsierge() {
     ob.observe(el); return () => ob.disconnect();
   }, []);
   const procs = [
-    { pid: "001", name: "захват_брифа", fill: 100, delay: 0, status: "DONE ✓", desc: "AI разбирает ваш бизнес на части, до начала работы" },
-    { pid: "002", name: "анализ_конкурентов", fill: 100, delay: 280, status: "DONE ✓", desc: "Понимаем контекст рынка, а не работаем в вакууме" },
-    { pid: "003", name: "персональный_дизайн", fill: 76, delay: 560, status: "ACTIVE", desc: "Решение под вас — без шаблонов из общего доступа" },
-    { pid: "004", name: "итерации_без_лимита", fill: 51, delay: 840, status: "RUNNING", desc: "Правки до результата, без доплат за каждый круг" },
-    { pid: "005", name: "поддержка_после_запуска", fill: 22, delay: 1120, status: "QUEUED", desc: "Остаюсь на связи — сайт живёт, а не стоит" },
+    { pid: "001", name: "захват_брифа", fill: 100, delay: 0, status: "DONE ✓", desc: "Прежде чем начать, с помощью AI разбираюсь, как устроен ваш бизнес" },
+    { pid: "002", name: "анализ_конкурентов", fill: 100, delay: 280, status: "DONE ✓", desc: "Смотрю, что уже делают конкуренты — это экономит вам время на брифе" },
+    { pid: "003", name: "персональный_дизайн", fill: 76, delay: 560, status: "ACTIVE", desc: "Дизайн собираю с нуля, под ваш бизнес и вашу аудиторию" },
+    { pid: "004", name: "итерации_без_лимита", fill: 51, delay: 840, status: "RUNNING", desc: "Правлю, пока не будете довольны — доплат за круги правок нет" },
+    { pid: "005", name: "поддержка_после_запуска", fill: 22, delay: 1120, status: "QUEUED", desc: "Остаюсь на связи и после запуска, если нужно что-то поправить" },
   ];
   const mono: React.CSSProperties = { fontFamily: "'JetBrains Mono',monospace" };
   const statusColor = (s: string) => s.startsWith("DONE") ? "#00ff41" : s === "ACTIVE" ? "#7dffaa" : s === "RUNNING" ? "#3dde6e" : "rgba(0,255,65,.5)";
@@ -282,7 +287,7 @@ function AIConsierge() {
             <AppWindow skin={APP_SKINS.claude}>
               <span style={{ ...mono, fontSize: 11, color: "#008f11" }}>00 / Уникальность</span>
               <h2 style={{ ...mono, fontWeight: 700, fontSize: "clamp(18px,4vh,36px)", color: "#00ff41", lineHeight: 1.05, marginTop: 14 }}>
-                AI-консьерж сервис — уровень крупного агентства для одного клиента.
+                Один человек. Подход, как в агентстве — без агентской цены.
               </h2>
             </AppWindow>
           </div>
@@ -383,7 +388,7 @@ const SERVICE_ITEMS = [
     "  phone: \"+7 900 123-45-67\",",
     "};",
   ] },
-  { id: "B", name: "Лендинг", desc: "Одна страница под одну задачу — заявки. Структура строится под ваше предложение и возражения клиентов, а не по универсальному шаблону.", photo: portfolioLanding },
+  { id: "B", name: "Лендинг", desc: "Одна страница под одну задачу — собрать заявки. Структуру продумываю под ваше предложение и вопросы, которые обычно возникают у клиентов.", photo: portfolioLanding },
   { id: "C", name: "Каталог и многостраничник", desc: "Товары или услуги с фильтрами, страницами разделов и админкой, в которой вы сами меняете тексты и цены без моей помощи.", code: [
     "const products = await db",
     "  .collection(\"catalog\")",
@@ -441,9 +446,9 @@ const APP_SKINS: Record<"console" | "powershell" | "opencode" | "claude", AppSki
   opencode: { label: "opencode", border: "rgba(45,212,191,.3)", headerBg: "rgba(45,212,191,.06)", headerBorder: "rgba(45,212,191,.2)", labelColor: "#2dd4bf" },
   claude: { label: "claude code", icon: true, border: "rgba(61,57,41,.16)", headerBg: "rgba(61,57,41,.05)", headerBorder: "rgba(61,57,41,.12)", labelColor: "#d97757" },
 };
-function AppWindow({ skin, innerRef, children }: { skin: AppSkin; innerRef?: React.Ref<HTMLDivElement>; children: React.ReactNode }) {
+function AppWindow({ skin, innerRef, fill, children }: { skin: AppSkin; innerRef?: React.Ref<HTMLDivElement>; fill?: boolean; children: React.ReactNode }) {
   return (
-    <div ref={innerRef} style={{ width: "fit-content", maxWidth: "100%", border: `1px solid ${skin.border}`, boxSizing: "border-box" }}>
+    <div ref={innerRef} style={{ width: fill ? "100%" : "fit-content", maxWidth: "100%", border: `1px solid ${skin.border}`, boxSizing: "border-box" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", background: skin.headerBg, borderBottom: `1px solid ${skin.headerBorder}` }}>
         {skin.dots && ["#ff5f57", "#ffbd2e", "#28c840"].map(c => <span key={c} style={{ width: 9, height: 9, borderRadius: "50%", background: c }} />)}
         {skin.icon && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}><path d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z" fill="#d97757" /></svg>}
