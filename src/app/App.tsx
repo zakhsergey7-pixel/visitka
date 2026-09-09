@@ -52,6 +52,29 @@ function goToSection(id: string) {
   if (main && main.style.overflowX === "hidden") return; // boot-gate still up — scrollIntoView ignores overflow:hidden, so check explicitly
   document.getElementById(id)?.scrollIntoView({ behavior: "smooth", inline: "start", block: "nearest" });
 }
+// Discrete section-by-section navigation (wheel/keyboard/dots) — every
+// top-level child of #top is one stop, in DOM order. Index is derived from
+// scrollLeft on demand rather than tracked continuously, so nav-link jumps
+// (which can skip several stops at once) never desync it.
+function getMainSections(): HTMLElement[] {
+  const main = document.getElementById("top");
+  return main ? (Array.from(main.children) as HTMLElement[]) : [];
+}
+function getCurrentSectionIndex(sections: HTMLElement[]): number {
+  const main = document.getElementById("top");
+  if (!main) return 0;
+  const sl = main.scrollLeft;
+  let idx = 0;
+  for (let i = 0; i < sections.length; i++) { if (sections[i].offsetLeft <= sl + 2) idx = i; else break; }
+  return idx;
+}
+function goToSectionIndex(index: number) {
+  const main = document.getElementById("top");
+  if (!main || main.style.overflowX === "hidden") return;
+  const sections = getMainSections();
+  const clamped = Math.max(0, Math.min(sections.length - 1, index));
+  sections[clamped]?.scrollIntoView({ behavior: "smooth", inline: "start", block: "nearest" });
+}
 function Nav() { const [scrolled,setScrolled]=useState(false); const [open,setOpen]=useState(false); useEffect(()=>{const main=document.getElementById("top");if(!main)return;const h=()=>setScrolled(main.scrollLeft>60);main.addEventListener("scroll",h,{passive:true});return()=>main.removeEventListener("scroll",h)},[]); const mono:React.CSSProperties={fontFamily:"'JetBrains Mono',monospace",fontSize:11,letterSpacing:".14em",textTransform:"uppercase"}; const nav=(href:string)=>(e:React.MouseEvent)=>{e.preventDefault();setOpen(false);goToSection(href.slice(1))}; return <header style={{position:"fixed",top:0,left:0,right:0,zIndex:80,borderBottom:scrolled||open?"1px solid rgba(0,255,65,.14)":"1px solid transparent",background:scrolled||open?"rgba(0,0,0,.93)":"transparent",backdropFilter:scrolled||open?"blur(12px)":"none",transition:"background .4s,border-color .4s"}}><div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"15px clamp(20px,5vw,90px)"}}><SignalBars/><nav className="nav-links" style={{display:"flex",gap:"clamp(14px,2.8vw,28px)",...mono}}>{NAV_LINKS.map(([href,label])=><a key={href} href={href} onClick={nav(href)} className="link-nav" style={{color:"#008f11",textDecoration:"none",transition:"color .2s"}}>{label}</a>)}</nav><button className="nav-toggle" onClick={()=>setOpen(o=>!o)} style={{...mono,display:"none",background:"transparent",border:"1px solid rgba(0,255,65,.35)",color:"#00ff41",padding:"6px 10px",cursor:"pointer"}}>[ {open?"×":"MENU"} ]</button></div>{open&&<nav className="nav-mobile-panel" style={{display:"flex",flexDirection:"column",padding:"4px clamp(20px,5vw,90px) 18px"}}>{NAV_LINKS.map(([href,label])=><a key={href} href={href} onClick={nav(href)} style={{...mono,color:"#00ff41",textDecoration:"none",padding:"13px 0",borderTop:"1px solid rgba(0,255,65,.1)"}}>{label}</a>)}</nav>}</header>; }
 const DEAD_PIXELS=[{top:"28%",left:"9%"},{top:"71%",left:"82%"},{top:"44%",left:"58%"},{top:"17%",left:"73%"},{top:"88%",left:"22%"}];
 const STATUS_PHRASES=["Сайты, которые работают.","Без шаблонов.","Без посредников.","На связи в любое время."];
@@ -652,6 +675,36 @@ function ClickRipple() {
   return <>{ripples.map(r => <RippleBurst key={r.id} x={r.x} y={r.y} />)}</>;
 }
 
+// Skips index 0 (the LiveConsole boot screen) — once you're past the
+// boot-gate there's nothing useful to jump back into there, and it isn't a
+// content section like the rest.
+function SectionDots() {
+  const [active, setActive] = useState(1);
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    const main = document.getElementById("top");
+    if (!main) return;
+    function update() {
+      const sections = getMainSections();
+      setCount(sections.length);
+      setActive(getCurrentSectionIndex(sections));
+    }
+    update();
+    main.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    return () => { main.removeEventListener("scroll", update); window.removeEventListener("resize", update); };
+  }, []);
+  if (count < 2) return null;
+  const dots = Array.from({ length: count - 1 }, (_, i) => i + 1);
+  return (
+    <div className="section-dots" style={{ position: "fixed", right: 16, top: "50%", transform: "translateY(-50%)", zIndex: 70, display: "flex", flexDirection: "column", gap: 10 }}>
+      {dots.map(i => (
+        <button key={i} onClick={() => goToSectionIndex(i)} aria-label={`Секция ${i} из ${count - 1}`} aria-current={i === active} style={{ width: i === active ? 7 : 5, height: i === active ? 7 : 5, borderRadius: "50%", background: i === active ? "#00ff41" : "rgba(0,255,65,.3)", boxShadow: i === active ? "0 0 6px #00ff41" : "none", border: "none", padding: 0, cursor: "pointer", transition: "width .25s,height .25s,background .25s" }} />
+      ))}
+    </div>
+  );
+}
+
 function ScrollProgress() {
   const [pct, setPct] = useState(0);
   useEffect(() => {
@@ -674,7 +727,7 @@ function ScrollProgress() {
   );
 }
 
-const KEYFRAMES=`a:focus-visible,button:focus-visible{outline:2px solid rgba(0,255,65,.6);outline-offset:2px}.input-terminal:focus-visible{outline:none;box-shadow:0 0 0 1px rgba(0,255,65,.55);background:rgba(0,255,65,.06)}@keyframes slideBar{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}} @keyframes marqAnim{from{transform:translateX(0)}to{transform:translateX(-50%)}} @keyframes neonPulse{0%,100%{text-shadow:0 0 10px rgba(0,255,65,.4),0 0 28px rgba(0,255,65,.18)}50%{text-shadow:0 0 20px rgba(0,255,65,.85),0 0 52px rgba(0,255,65,.4)}} @keyframes hudBlink{0%,93%,100%{opacity:1}94%,96%{opacity:0}95%,97%{opacity:1}98%,99%{opacity:.3}} @keyframes borderGlow{0%,100%{border-color:rgba(0,255,65,.2)}50%{border-color:rgba(0,255,65,.5)}} @keyframes rowGlowDone{0%,100%{background:rgba(0,255,65,.02)}50%{background:rgba(0,255,65,.07)}} @keyframes rowGlowActive{0%,100%{background:rgba(0,255,65,.04)}50%{background:rgba(0,255,65,.14)}} @keyframes rowGlowRunning{0%,100%{background:rgba(0,255,65,.03)}50%{background:rgba(0,255,65,.10)}} @keyframes rowGlowQueued{0%,100%{background:rgba(0,255,65,.015)}50%{background:rgba(0,255,65,.05)}} @keyframes matrixHighlight{0%{text-shadow:0 0 2px rgba(0,255,65,.25)}30%{text-shadow:0 0 16px rgba(0,255,65,1),0 0 34px rgba(0,255,65,.65)}100%{text-shadow:0 0 6px rgba(0,255,65,.35)}} @keyframes rippleOut{0%{transform:translate(-50%,-50%) scale(.5);opacity:1}100%{transform:translate(calc(-50% + var(--tx)),calc(-50% + var(--ty))) scale(1);opacity:0}} @keyframes termCursorBlink{0%,49%{opacity:1}50%,100%{opacity:0}} @keyframes fieldError{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}} @media (hover:hover) and (pointer:fine){.link-nav:hover{color:#00ff41}.btn-next:hover{background:rgba(0,255,65,.12)}.card-service:hover{background:#0a1a0a}.row-ai:hover{padding-left:22px}.portfolio-shot:hover{background:#111}.btn-price-cta:hover{background:rgba(0,255,65,.12)}.link-footer:hover{opacity:.7}.btn-hero-primary:hover{background:#7dffaa;box-shadow:0 0 24px rgba(0,255,65,.5)}.btn-hero-secondary:hover{border-color:rgba(0,255,65,.8);background:rgba(0,255,65,.08)}} @media (min-width:1024px){.hero-grid{grid-template-columns:3fr 2fr!important}} @media (max-width:640px){.nav-links{display:none!important}.nav-toggle{display:inline-flex!important}.hero-hud{display:none!important}.ai-table-head{display:none!important}.ai-table-row{grid-template-columns:28px 1fr!important}.ai-table-row>*:nth-child(3){grid-column:1/-1!important;margin-top:8px}.ai-table-row>*:nth-child(4){grid-column:1/-1!important;margin-top:4px}}`;
+const KEYFRAMES=`a:focus-visible,button:focus-visible{outline:2px solid rgba(0,255,65,.6);outline-offset:2px}.input-terminal:focus-visible{outline:none;box-shadow:0 0 0 1px rgba(0,255,65,.55);background:rgba(0,255,65,.06)}@keyframes slideBar{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}} @keyframes marqAnim{from{transform:translateX(0)}to{transform:translateX(-50%)}} @keyframes neonPulse{0%,100%{text-shadow:0 0 10px rgba(0,255,65,.4),0 0 28px rgba(0,255,65,.18)}50%{text-shadow:0 0 20px rgba(0,255,65,.85),0 0 52px rgba(0,255,65,.4)}} @keyframes hudBlink{0%,93%,100%{opacity:1}94%,96%{opacity:0}95%,97%{opacity:1}98%,99%{opacity:.3}} @keyframes borderGlow{0%,100%{border-color:rgba(0,255,65,.2)}50%{border-color:rgba(0,255,65,.5)}} @keyframes rowGlowDone{0%,100%{background:rgba(0,255,65,.02)}50%{background:rgba(0,255,65,.07)}} @keyframes rowGlowActive{0%,100%{background:rgba(0,255,65,.04)}50%{background:rgba(0,255,65,.14)}} @keyframes rowGlowRunning{0%,100%{background:rgba(0,255,65,.03)}50%{background:rgba(0,255,65,.10)}} @keyframes rowGlowQueued{0%,100%{background:rgba(0,255,65,.015)}50%{background:rgba(0,255,65,.05)}} @keyframes matrixHighlight{0%{text-shadow:0 0 2px rgba(0,255,65,.25)}30%{text-shadow:0 0 16px rgba(0,255,65,1),0 0 34px rgba(0,255,65,.65)}100%{text-shadow:0 0 6px rgba(0,255,65,.35)}} @keyframes rippleOut{0%{transform:translate(-50%,-50%) scale(.5);opacity:1}100%{transform:translate(calc(-50% + var(--tx)),calc(-50% + var(--ty))) scale(1);opacity:0}} @keyframes termCursorBlink{0%,49%{opacity:1}50%,100%{opacity:0}} @keyframes fieldError{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}} @media (hover:hover) and (pointer:fine){.link-nav:hover{color:#00ff41}.btn-next:hover{background:rgba(0,255,65,.12)}.card-service:hover{background:#0a1a0a}.row-ai:hover{padding-left:22px}.portfolio-shot:hover{background:#111}.btn-price-cta:hover{background:rgba(0,255,65,.12)}.link-footer:hover{opacity:.7}.btn-hero-primary:hover{background:#7dffaa;box-shadow:0 0 24px rgba(0,255,65,.5)}.btn-hero-secondary:hover{border-color:rgba(0,255,65,.8);background:rgba(0,255,65,.08)}} @media (min-width:1024px){.hero-grid{grid-template-columns:3fr 2fr!important}} @media (max-width:640px){.nav-links{display:none!important}.nav-toggle{display:inline-flex!important}.hero-hud{display:none!important}.ai-table-head{display:none!important}.ai-table-row{grid-template-columns:28px 1fr!important}.ai-table-row>*:nth-child(3){grid-column:1/-1!important;margin-top:8px}.ai-table-row>*:nth-child(4){grid-column:1/-1!important;margin-top:4px}.section-dots{display:none!important}}`;
 // The whole site scrolls on the X axis: <main> is the single scrolling
 // element (flex row, overflow-x:auto, height:100vh), every top-level
 // section is a fixed-height flex child with its own width. A native
@@ -702,29 +755,59 @@ function useTabTitleCycle() {
     return () => { document.removeEventListener("visibilitychange", onVisibility); clearInterval(interval); document.title = original; };
   }, []);
 }
+// One wheel tick = exactly one section, not a free-running deltaY→scrollLeft
+// redirect. The old continuous version let a fast/heavy trackpad flick skip
+// straight past 2-3 sections in one motion (nothing stopped it — there's no
+// CSS scroll-snap-type on #top, see Guidelines.md on why). isScrolling is a
+// throttle guard so a single physical wheel gesture (which fires many wheel
+// events) triggers one section transition, not several queued ones.
+const SECTION_NAV_MS = 650;
 function useMainWheelRedirect() {
   useEffect(() => {
     const main = document.getElementById("top");
     if (!main) return;
+    let isScrolling = false;
     function onWheel(e: WheelEvent) {
       // overflow:hidden (set during the LiveConsole boot-gate) blocks native
       // scroll input, but not a script-driven scrollLeft write like this one
       // — check the lock explicitly so the redirect can't bypass the gate.
       if (main!.style.overflowX === "hidden") return;
       if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
-      const atStart = main!.scrollLeft <= 0;
-      const atEnd = main!.scrollLeft >= main!.scrollWidth - main!.clientWidth - 1;
-      if ((e.deltaY < 0 && atStart) || (e.deltaY > 0 && atEnd)) return;
       e.preventDefault();
-      main!.scrollLeft += e.deltaY;
+      if (isScrolling) return;
+      const sections = getMainSections();
+      const idx = getCurrentSectionIndex(sections);
+      const target = idx + (e.deltaY > 0 ? 1 : -1);
+      if (target < 0 || target > sections.length - 1) return;
+      isScrolling = true;
+      sections[target].scrollIntoView({ behavior: "smooth", inline: "start", block: "nearest" });
+      window.setTimeout(() => { isScrolling = false; }, SECTION_NAV_MS);
     }
     main.addEventListener("wheel", onWheel, { passive: false });
     return () => main.removeEventListener("wheel", onWheel);
   }, []);
 }
+function useKeyboardSectionNav() {
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) return;
+      const main = document.getElementById("top");
+      if (!main || main.style.overflowX === "hidden") return;
+      e.preventDefault();
+      const sections = getMainSections();
+      const idx = getCurrentSectionIndex(sections);
+      goToSectionIndex(idx + (e.key === "ArrowRight" ? 1 : -1));
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+}
 export default function App(){
   useMainWheelRedirect();
+  useKeyboardSectionNav();
   useTabTitleCycle();
   const mainRef = useRef<HTMLElement>(null);
-  return <div style={{background:"#000",color:"#00ff41",height:"100vh",overflow:"hidden"}}><style>{KEYFRAMES}</style><ScrollProgress/><ClickRipple/><Nav/><main id="top" ref={mainRef} style={{display:"flex",flexDirection:"row",height:"100%",overflowX:"auto",overflowY:"hidden"}}><LiveConsole/><Hero mainRef={mainRef}/><StatsBand/><DecodeStreamDivider/><Mission/><AIConsierge/><Services/><Price/><Process/><Contact/><Footer/></main></div>;
+  return <div style={{background:"#000",color:"#00ff41",height:"100vh",overflow:"hidden"}}><style>{KEYFRAMES}</style><ScrollProgress/><SectionDots/><ClickRipple/><Nav/><main id="top" ref={mainRef} style={{display:"flex",flexDirection:"row",height:"100%",overflowX:"auto",overflowY:"hidden"}}><LiveConsole/><Hero mainRef={mainRef}/><StatsBand/><DecodeStreamDivider/><Mission/><AIConsierge/><Services/><Price/><Process/><Contact/><Footer/></main></div>;
 }
