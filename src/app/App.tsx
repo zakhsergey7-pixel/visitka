@@ -157,55 +157,6 @@ function DecodeStreamDivider(){return <div style={{flexShrink:0,scrollSnapAlign:
 // made elsewhere on the site (WhoAmICard/LiveConsole: 5 years; Services:
 // one person end-to-end; HeroStatusLine: "на связи в любое время") rather
 // than inventing project counts or turnaround times nobody's verified.
-const STATS = [
-  { value: 5, suffix: "", label: "лет опыта" },
-  { value: 1, suffix: "", label: "человек на всех этапах" },
-  { value: 24, suffix: "/7", label: "на связи" },
-];
-function useCountUp(target: number, active: boolean, duration = 1200) {
-  const [n, setN] = useState(0);
-  useEffect(() => {
-    if (!active) return;
-    let raf = 0;
-    const start = performance.now();
-    function tick(t: number) {
-      const p = Math.min(1, (t - start) / duration);
-      setN(Math.round(target * (1 - Math.pow(1 - p, 3))));
-      if (p < 1) raf = requestAnimationFrame(tick);
-    }
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [active, target, duration]);
-  return n;
-}
-function StatItem({ stat, active, delay }: { stat: typeof STATS[number]; active: boolean; delay: number }) {
-  const [start, setStart] = useState(false);
-  useEffect(() => { if (!active) return; const t = setTimeout(() => setStart(true), delay); return () => clearTimeout(t); }, [active, delay]);
-  const n = useCountUp(stat.value, start);
-  return (
-    <div style={{ textAlign: "center" }}>
-      <div style={{ fontFamily: "'VT323',monospace", fontSize: "clamp(44px,8vh,86px)", color: "#00ff41", lineHeight: 1, textShadow: "0 0 16px rgba(0,255,65,.5)" }}>{n}{stat.suffix}</div>
-      <div style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, color: "#008f11", marginTop: 10, textTransform: "uppercase", letterSpacing: ".08em" }}>{stat.label}</div>
-    </div>
-  );
-}
-function StatsBand() {
-  const ref = useRef<HTMLDivElement>(null);
-  const [active, setActive] = useState(false);
-  useEffect(() => {
-    const el = ref.current; if (!el) return;
-    const ob = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setActive(true); ob.disconnect(); } }, { threshold: .4 });
-    ob.observe(el); return () => ob.disconnect();
-  }, []);
-  return (
-    <section style={{ flexShrink: 0, scrollSnapAlign: "start", width: 820, height: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", padding: "0 clamp(20px,4vw,60px)", background: "#000", position: "relative", overflow: "hidden" }}>
-      <SectionRain opacity={.2} />
-      <div ref={ref} style={{ position: "relative", zIndex: 1, display: "flex", justifyContent: "space-between", gap: "clamp(16px,3vw,32px)", border: "1px solid rgba(0,255,65,.2)", padding: "clamp(24px,4vh,48px) clamp(16px,3vw,32px)", animation: "borderGlow 4s ease-in-out infinite" }}>
-        {STATS.map((s, i) => <StatItem key={s.label} stat={s} active={active} delay={i * 200} />)}
-      </div>
-    </section>
-  );
-}
 
 const MATRIX_WORD_GLYPHS = "01ｱｲｳｴｵｶﾀﾁﾂ<>[]{}|\\!@#$%";
 function scrambleWord(text: string) { return text.split("").map(c => c === " " ? " " : MATRIX_WORD_GLYPHS[(Math.random() * MATRIX_WORD_GLYPHS.length) | 0]).join(""); }
@@ -809,5 +760,5 @@ export default function App(){
   useKeyboardSectionNav();
   useTabTitleCycle();
   const mainRef = useRef<HTMLElement>(null);
-  return <div style={{background:"#000",color:"#00ff41",height:"100vh",overflow:"hidden"}}><style>{KEYFRAMES}</style><ScrollProgress/><SectionDots/><ClickRipple/><Nav/><main id="top" ref={mainRef} style={{display:"flex",flexDirection:"row",height:"100%",overflowX:"auto",overflowY:"hidden"}}><LiveConsole/><Hero mainRef={mainRef}/><StatsBand/><DecodeStreamDivider/><Mission/><AIConsierge/><Services/><Price/><Process/><Contact/><Footer/></main></div>;
+  return <div style={{background:"#000",color:"#00ff41",height:"100vh",overflow:"hidden"}}><style>{KEYFRAMES}</style><ScrollProgress/><SectionDots/><ClickRipple/><Nav/><main id="top" ref={mainRef} style={{display:"flex",flexDirection:"row",height:"100%",overflowX:"auto",overflowY:"hidden"}}><LiveConsole/><Hero mainRef={mainRef}/><DecodeStreamDivider/><Mission/><AIConsierge/><Services/><Price/><Process/><Contact/><Footer/></main></div>;
 }
