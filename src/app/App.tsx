@@ -795,9 +795,43 @@ function useKeyboardSectionNav() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 }
+// Sections with mobile internal overflow-y (see KEYFRAMES) keep whatever
+// scrollTop they had from a previous visit — scrollIntoView only moves #top
+// horizontally, it never touches a section's own scroll. Without this, a
+// section you'd previously scrolled down in (or a fast swipe that lands mid-
+// transition) can be entered already scrolled past its header. Reset each
+// section's scrollTop to 0 the moment it becomes the active one, so arriving
+// at any section always starts from its header — matches every nav path
+// (touch swipe, wheel redirect, keyboard, nav links) since all of them move
+// #top.scrollLeft, which is the only thing this listens to.
+function useResetSectionScrollOnChange() {
+  useEffect(() => {
+    const main = document.getElementById("top");
+    if (!main) return;
+    let lastIdx = -1;
+    let raf = 0;
+    function apply() {
+      const sections = getMainSections();
+      const idx = getCurrentSectionIndex(sections);
+      if (idx !== lastIdx) {
+        lastIdx = idx;
+        const el = sections[idx];
+        if (el) el.scrollTop = 0;
+      }
+    }
+    function onScroll() {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(apply);
+    }
+    main.addEventListener("scroll", onScroll, { passive: true });
+    apply();
+    return () => { main.removeEventListener("scroll", onScroll); cancelAnimationFrame(raf); };
+  }, []);
+}
 export default function App(){
   useMainWheelRedirect();
   useKeyboardSectionNav();
+  useResetSectionScrollOnChange();
   useTabTitleCycle();
   const mainRef = useRef<HTMLElement>(null);
   return <div className="app-shell" style={{background:"#000",color:"#00ff41",height:"100vh",overflow:"hidden"}}><style>{KEYFRAMES}</style><ScrollProgress/><SectionDots/><ClickRipple/><Nav/><main id="top" ref={mainRef} style={{display:"flex",flexDirection:"row",height:"100%",overflowX:"auto",overflowY:"hidden"}}><LiveConsole/><Hero mainRef={mainRef}/><DecodeStreamDivider/><Mission/><AIConsierge/><Services/><Price/><Process/><Contact/><Footer/></main></div>;
