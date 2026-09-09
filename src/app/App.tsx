@@ -333,14 +333,14 @@ const CODE_TUNNEL_LINES = [
 ];
 function Portfolio3DPhoto({ src }: { src: string }) {
   const rows = [
-    { z: -70, size: 10, speed: 30, opacity: .35 },
-    { z: -25, size: 12, speed: 22, opacity: .55 },
-    { z: 20, size: 15, speed: 15, opacity: .8 },
-    { z: 65, size: 19, speed: 9, opacity: 1 },
+    { z: -70, size: 10, speed: 30, opacity: .2 },
+    { z: -25, size: 12, speed: 22, opacity: .32 },
+    { z: 20, size: 15, speed: 15, opacity: .48 },
+    { z: 65, size: 19, speed: 9, opacity: .6 },
   ];
   return (
-    <div style={{ position: "relative", aspectRatio: "16/10", overflow: "hidden", background: "#000" }}>
-      <img src={src} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", filter: "grayscale(1) contrast(1.15) brightness(.32)" }} />
+    <div style={{ position: "relative", aspectRatio: "16/9", overflow: "hidden", background: "#000" }}>
+      <img src={src} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", filter: "grayscale(1) contrast(1.1) brightness(.22)" }} />
       <div style={{ position: "absolute", inset: 0, background: "repeating-linear-gradient(0deg,rgba(0,0,0,.4) 0,rgba(0,0,0,.4) 1px,transparent 1px,transparent 3px)", mixBlendMode: "overlay", pointerEvents: "none" }} />
       <div style={{ position: "absolute", inset: 0, perspective: 420, display: "flex", flexDirection: "column", justifyContent: "center", gap: "8%", pointerEvents: "none" }}>
         {rows.map((r, i) => (
@@ -365,7 +365,7 @@ function Portfolio3DPhoto({ src }: { src: string }) {
 }
 function PortfolioShot({ lines }: { lines: string[] }) {
   return (
-    <div className="portfolio-shot" style={{ position: "relative", aspectRatio: "16/10", overflow: "hidden", background: "#0a0a0a" }}>
+    <div className="portfolio-shot" style={{ position: "relative", aspectRatio: "16/9", overflow: "hidden", background: "#0a0a0a" }}>
       <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "14%", background: "rgba(255,255,255,.04)", display: "flex", alignItems: "center", gap: 6, padding: "0 10px", borderBottom: "1px solid rgba(255,255,255,.08)" }}>
         {["#ff5f57", "#ffbd2e", "#28c840"].map(c => <span key={c} style={{ width: 6, height: 6, borderRadius: "50%", background: c, opacity: .5 }} />)}
       </div>
@@ -423,7 +423,8 @@ function Services() {
                 {svc.photo ? <Portfolio3DPhoto src={svc.photo} /> : <PortfolioShot lines={svc.code!} />}
                 <div style={{ padding: "clamp(14px,2.4vh,22px)" }}>
                   <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, color: "#008f11", letterSpacing: ".14em" }}>{svc.id}</span>
-                  <h3 style={{ fontFamily: "'Montserrat',sans-serif", fontWeight: 600, fontSize: "clamp(15px,2vh,19px)", color: "#f2f2f2", margin: "8px 0 6px" }}>{svc.name}</h3>
+                  <h3 style={{ fontFamily: "'Montserrat',sans-serif", fontWeight: 700, fontSize: "clamp(19px,2.8vh,26px)", color: "#f2f2f2", margin: "9px 0 0", letterSpacing: "-.01em" }}>{svc.name}</h3>
+                  <span style={{ display: "block", width: 28, height: 2, background: "#00ff41", boxShadow: "0 0 6px rgba(0,255,65,.6)", margin: "8px 0 10px" }} />
                   <p style={{ color: "#9a9a9a", fontSize: 12.5, lineHeight: 1.5, fontFamily: "'Montserrat',sans-serif" }}>{svc.desc}</p>
                 </div>
               </div>
