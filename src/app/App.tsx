@@ -421,7 +421,7 @@ function Services() {
           <div className="section-header" style={{ marginBottom: 24 }}>
             <AppWindow skin={APP_SKINS.console}>
               <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, color: "#008f11" }}>01 / Что делаю</span>
-              <h2 className="section-header-title" style={SECTION_TITLE_STYLE}>От идеи до запуска — всё в одних руках.</h2>
+              <h2 className="section-header-title" style={SECTION_TITLE_STYLE}>Не шаблон для всех — формат под вашу задачу.</h2>
             </AppWindow>
           </div>
         </Reveal>
