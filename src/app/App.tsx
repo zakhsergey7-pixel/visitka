@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, useScroll, useTransform } from "motion/react";
+import { gsap } from "gsap";
+import { SplitText } from "gsap/SplitText";
 import iconNode from "../assets/icon-node.png";
 import iconSpark from "../assets/icon-spark.png";
 import iconWhale from "../assets/icon-whale.png";
 import portfolioLanding from "../assets/portfolio-landing.jpg";
+gsap.registerPlugin(SplitText);
 
 // prefers-reduced-motion: read once synchronously (no flash of motion before
 // the effect runs) and stay subscribed so a live OS-level toggle during the
@@ -60,6 +63,28 @@ function NoiseOverlay() { const ref = useRef<HTMLCanvasElement>(null); const red
 function useDecrypt(text: string, active: boolean, speed = 36) { const reducedMotion = usePrefersReducedMotion(); const glyphs = "01ｱｲｳｴｵｶﾀﾁﾂ<>[]{}|\\!@#$%"; const [out, setOut] = useState(() => reducedMotion ? text : text.split("").map(c => c === " " ? " " : glyphs[(Math.random() * glyphs.length) | 0]).join("")); const pos = useRef(0); useEffect(() => { if (!active) return; if (reducedMotion) { setOut(text); return; } pos.current = 0; const id = setInterval(() => { pos.current += 1.6; const p = pos.current; setOut(text.split("").map((c, i) => c === " " ? " " : i < p ? c : glyphs[(Math.random() * glyphs.length) | 0]).join("")); if (p >= text.length) clearInterval(id); }, speed); return () => clearInterval(id); }, [active, text, speed, reducedMotion]); return out; }
 function Glitch({ children }: { children: string }) { const reducedMotion = usePrefersReducedMotion(); const [glitching, setGlitching] = useState(false); const g = "01ｱｲｳｴｵ<>[]{}|\\"; useEffect(() => { if (reducedMotion) return; const id = setInterval(() => { setGlitching(true); setTimeout(() => setGlitching(false), 110); }, 3400 + Math.random() * 5000); return () => clearInterval(id); }, [reducedMotion]); if (!glitching) return <span>{children}</span>; return <span style={{ color: "#ff0040", textShadow: "-2px 0 #ff0040, 2px 0 #00ffff" }}>{children.split("").map(c => Math.random() > 0.55 ? g[(Math.random() * g.length) | 0] : c).join("")}</span>; }
 function Reveal({ children, className, delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) { const ref = useRef<HTMLDivElement>(null); const [v, setV] = useState(false); useEffect(() => { const el = ref.current; if (!el) return; const ob = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setV(true); ob.disconnect(); } }, { threshold: 0.08 }); ob.observe(el); return () => ob.disconnect(); }, []); return <div ref={ref} className={className} style={{ opacity: v ? 1 : 0, transform: v ? "none" : "translateY(28px)", filter: v ? "blur(0px)" : "blur(7px)", transition: `opacity 1.15s cubic-bezier(.16,1,.3,1) ${delay}ms, transform 1.15s cubic-bezier(.16,1,.3,1) ${delay}ms, filter 1.15s cubic-bezier(.16,1,.3,1) ${delay}ms` }}>{children}</div>; }
+// EXPERIMENTAL — GSAP SplitText demo, not yet rolled out beyond Services.
+// Splits the headline into characters and staggers them in on first scroll
+// into view (ui-ux-pro-max skill's gsap domain: "scroll reveal stagger",
+// Complex tier). Reverts the split on unmount so screen readers/copy-paste
+// see the original text node, not one <div> per character.
+function SplitHeadline({ text, className, style }: { text: string; className?: string; style?: React.CSSProperties }) {
+  const ref = useRef<HTMLHeadingElement>(null);
+  const reducedMotion = usePrefersReducedMotion();
+  useEffect(() => {
+    const el = ref.current; if (!el || reducedMotion) return;
+    let split: SplitText | null = null;
+    const ob = new IntersectionObserver(([e]) => {
+      if (!e.isIntersecting) return;
+      ob.disconnect();
+      split = SplitText.create(el, { type: "chars" });
+      gsap.from(split.chars, { opacity: 0, y: 20, rotateX: -40, duration: 0.6, stagger: 0.015, ease: "expo.out" });
+    }, { threshold: 0.2 });
+    ob.observe(el);
+    return () => { ob.disconnect(); split?.revert(); };
+  }, [text, reducedMotion]);
+  return <h2 ref={ref} className={className} style={{ position: "relative", ...style }}>{text}</h2>;
+}
 function SignalBars() { const [level, setLevel] = useState(4); useEffect(() => { const id = setInterval(() => setLevel(Math.random() > 0.15 ? 4 : 3), 2800 + Math.random() * 2000); return () => clearInterval(id); }, []); return <span style={{ display: "inline-flex", alignItems: "flex-end", gap: 2, marginLeft: 10 }}>{[1,2,3,4].map(b => <span key={b} style={{ width: 3, height: b * 3 + 1, background: b <= level ? "#00ff41" : "#003b00", display: "block", transition: "background .5s", boxShadow: b <= level ? "0 0 4px #00ff41" : "none" }} />)}</span>; }
 const NAV_LINKS: [string,string][] = [["#services","Услуги"],["#ai","Консьерж"],["#price","Стоимость"],["#contact","Связаться"]];
 // One shared style object (not a per-component copy) so all five numbered
@@ -443,7 +468,7 @@ function Services() {
           <div className="section-header" style={{ marginBottom: 24 }}>
             <AppWindow skin={APP_SKINS.console}>
               <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, color: "#008f11" }}>01 / Что делаю</span>
-              <h2 className="section-header-title" style={SECTION_TITLE_STYLE}>Не шаблон для всех — формат под вашу задачу.</h2>
+              <SplitHeadline text="Не шаблон для всех — формат под вашу задачу." className="section-header-title" style={SECTION_TITLE_STYLE} />
             </AppWindow>
           </div>
         </Reveal>
